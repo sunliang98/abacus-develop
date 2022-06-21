@@ -233,6 +233,8 @@ OBJS_ESOLVER=esolver.o\
     esolver_dp.o\
     esolver_of.o\
     kedf_tf.o\
+    kedf_vw.o\
+    kedf_wt.o\
 
 OBJS_OFOPT=opt_CG.o\
     opt_DCsrch.o\
