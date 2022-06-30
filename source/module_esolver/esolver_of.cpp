@@ -193,6 +193,9 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
         this->nelec[1] = GlobalC::ucell.magnet.get_neldw();
     }
 
+    // ==================================
+    // Initialize phi and rho if needed
+    // ==================================
     this->pphi = new double*[GlobalV::NSPIN];
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
@@ -246,6 +249,9 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
     // }
 // ===============================================================
 
+    // ================================
+    // Initialize optimization methods
+    // ================================
     if (this->of_method == "tn")
     {
         this->opt_tn.allocate(this->nrxx);
@@ -271,6 +277,9 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
 
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT OPT");
 
+    // =============================================
+    // Initalize chemical potential and step length
+    // =============================================
     this->mu = new double[GlobalV::NSPIN];
     this->theta = new double[GlobalV::NSPIN];
 
@@ -284,9 +293,13 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
         this->theta[0] = 0.2;
     }
 
+    // ===================================
+    // Initialize KEDF
+    // ===================================
     this->tf.set_para(this->nrxx, this->dV, GlobalV::of_tf_weight);
     this->vw.set_para(this->nrxx, this->dV, GlobalV::of_vw_weight);
     this->wt.set_para(this->nrxx, this->dV, GlobalV::of_wt_alpha, GlobalV::of_wt_beta, this->nelec[0], GlobalV::of_tf_weight, GlobalV::of_vw_weight, this->pw_rho);
+    ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT KEDF");
 }
 
 void ESolver_OF::Run(int istep, UnitCell_pseudo& ucell)
@@ -300,7 +313,6 @@ void ESolver_OF::Run(int istep, UnitCell_pseudo& ucell)
     {
         srho.begin(is, GlobalC::CHR, GlobalC::rhopw, GlobalC::Pgrid, GlobalC::symm);
     }
-    cout << "============================================ OFDFT ============================================" <<  endl;
     while(true)
     {
         // once we get a new rho and phi, update potential
@@ -323,42 +335,9 @@ void ESolver_OF::Run(int istep, UnitCell_pseudo& ucell)
 
         this->iter++;
     }
-    if (this->conv)
-    {
-        GlobalV::ofs_running << "\n charge density convergence is achieved" << std::endl;
-        GlobalV::ofs_running << " final etot is " << GlobalC::en.etot * ModuleBase::Ry_to_eV << " eV" << std::endl;
-    }
-    else
-    {
-        GlobalV::ofs_running << " convergence has NOT been achieved!" << std::endl;
-    }
-    if (GlobalC::CHR.out_chg > 0)
-    {
-        for (int is = 0; is < GlobalV::NSPIN; ++is)
-        {
-            std::stringstream ssc;
-            ssc << GlobalV::global_out_dir << "tmp" << "_SPIN" << is << "_CHG";
-            GlobalC::CHR.write_rho(GlobalC::CHR.rho[is], is, iter, ssc.str(), 11);
-        }
-    }
-    if (GlobalV::CAL_FORCE)
-    {
-        ModuleBase::matrix ff(GlobalC::ucell.nat, 3);
-        this->cal_Force(ff);
-    }
-    if (GlobalV::CAL_STRESS)
-    {
-        double unit_transform = ModuleBase::RYDBERG_SI / pow(ModuleBase::BOHR_RADIUS_SI,3) * 1.0e-8 / 10;
-        ModuleBase::matrix stress(3,3);
-        this->cal_Stress(stress);
-        // stress *= unit_transform;
-        // cout << "STRESS (GPa)" << endl;
-        // for (int i = 0; i < 3; ++i)
-        // {
-        //     cout << stress(i,0) << "\t"
-        //         << stress(i, 1) << "\t" << stress(i, 2) << endl;
-        // }
-    }
+
+    this->postprocess();
+
     ModuleBase::timer::tick("ESolver_OF", "Run");
 }
 
@@ -815,7 +794,10 @@ void ESolver_OF::printInfo()
         if (this->pdLdphi[0][i] < minPot) minPot = this->pdLdphi[0][i];
         if (this->pdLdphi[0][i] > maxPot) maxPot = this->pdLdphi[0][i];
     }
-    if (this->iter == 0) cout << "Iter        Etot(Ha)          Theta       PotNorm        min/max(den)          min/max(dL/dPhi)" << endl;
+    if (this->iter == 0){
+        cout << "============================================ OFDFT ============================================" <<  endl;
+        cout << "Iter        Etot(Ha)          Theta       PotNorm        min/max(den)          min/max(dL/dPhi)" << endl;
+    } 
     else cout << setw(6) << this->iter 
     << setw(22) << setiosflags(ios::scientific) << setprecision(12) << GlobalC::en.etot/2. 
     << setw(12) << setprecision(3) << this->theta[0]
@@ -824,6 +806,46 @@ void ESolver_OF::printInfo()
     << setw(10) << minDen << "/ " << setw(12) << maxDen
     << setw(10) << minPot << "/ " << setw(10) << maxPot << endl;
 // =============================================================
+}
+
+void ESolver_OF::postprocess()
+{
+    if (this->conv)
+    {
+        GlobalV::ofs_running << "\n charge density convergence is achieved" << std::endl;
+        GlobalV::ofs_running << " final etot is " << GlobalC::en.etot * ModuleBase::Ry_to_eV << " eV" << std::endl;
+    }
+    else
+    {
+        GlobalV::ofs_running << " convergence has NOT been achieved!" << std::endl;
+    }
+    if (GlobalC::CHR.out_chg > 0)
+    {
+        for (int is = 0; is < GlobalV::NSPIN; ++is)
+        {
+            std::stringstream ssc;
+            ssc << GlobalV::global_out_dir << "tmp" << "_SPIN" << is << "_CHG";
+            GlobalC::CHR.write_rho(GlobalC::CHR.rho[is], is, iter, ssc.str(), 11);
+        }
+    }
+    if (GlobalV::CAL_FORCE)
+    {
+        ModuleBase::matrix ff(GlobalC::ucell.nat, 3);
+        this->cal_Force(ff);
+    }
+    if (GlobalV::CAL_STRESS)
+    {
+        double unit_transform = ModuleBase::RYDBERG_SI / pow(ModuleBase::BOHR_RADIUS_SI,3) * 1.0e-8 / 10;
+        ModuleBase::matrix stress(3,3);
+        this->cal_Stress(stress);
+        // stress *= unit_transform;
+        // cout << "STRESS (GPa)" << endl;
+        // for (int i = 0; i < 3; ++i)
+        // {
+        //     cout << stress(i,0) << "\t"
+        //         << stress(i, 1) << "\t" << stress(i, 2) << endl;
+        // }
+    }
 }
 
 //
@@ -950,7 +972,7 @@ void ESolver_OF::cal_Stress(ModuleBase::matrix& stress)
     }
 }
 
-
+// calculated kinetic potential and plus it to &rpot
 void ESolver_OF::kineticPotential(double **prho, double **pphiInpt, ModuleBase::matrix &rpot)
 {
     if (this->of_kinetic == "tf")
@@ -974,6 +996,7 @@ void ESolver_OF::kineticPotential(double **prho, double **pphiInpt, ModuleBase::
     }
 }
 
+// return the kinetic energy
 double ESolver_OF::kineticEnergy()
 {
     double kinetic = 0.;

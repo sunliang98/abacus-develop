@@ -5,6 +5,9 @@
 #include "../module_base/global_variable.h"
 #include "../module_base/matrix.h"
 
+// 
+// a class which calculates kinetic energy, potential, and stress with Thomas-Fermi KEDF
+// 
 class KEDF_TF
 {
 public:
@@ -12,9 +15,7 @@ public:
     {
         this->stress.create(3,3);
     }
-    ~KEDF_TF()
-    {
-    }
+    ~KEDF_TF() {}
 
     void set_para(int nx, double dV, double tf_weight);
 
@@ -23,10 +24,10 @@ public:
     void tf_potential(const double * const * prho, ModuleBase::matrix &rpotential);
     void get_stress(double cellVol, double inpt_TFenergy=-1);
 
-    int nx = 0;
-    double dV = 0.;
-    double tf_weight = 1.;
+    int nx = 0; // number of real space points in current core
+    double dV = 0.; // volume element = V/nxyz
+    double tf_weight = 1.; // weight of TF KEDF
     const double cTF = 3.0/10.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0) * 2; // 10/3*(3*pi^2)^{2/3}, multiply by 2 to convert unit from Hartree to Ry, finally in Ry*Bohr^(-2)
-    double TFenergy = 0.;
+    double TFenergy = 0.; // TF energy
     ModuleBase::matrix stress;
 };

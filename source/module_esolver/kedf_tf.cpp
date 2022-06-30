@@ -87,9 +87,7 @@ void KEDF_TF::get_stress(double cellVol, double inpt_TFenergy)
     {
         temp = 2. * inpt_TFenergy / (3. * cellVol) * this->tf_weight;
     }
-// #ifdef __MPI
-//     //
-// #endif
+
     for (int i = 0; i < 3; ++i)
     {
         this->stress(i, i) = temp;

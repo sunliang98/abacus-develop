@@ -78,7 +78,6 @@ public:
         if (this->opt_cg_mag != NULL) delete this->opt_cg_mag;
     }
 
-    // Basis_PW basis_pw;
     virtual void Init(Input &inp, UnitCell_pseudo &ucell) override;
     virtual void Run(int istep, UnitCell_pseudo& ucell) override;
 
@@ -110,16 +109,14 @@ private:
     int maxIter = 50;           // scf_nmax
 
     // parameters from other module
-    int iter = 0;
     int nrxx = 0; // PWBASIS
     double dV = 0; // CELL
     double *nelec = NULL;              // number of electrons
-    // double *nelecspin = NULL;   // number of spin up and spin down electrons
 
     // used in density optimization
+    int iter = 0;
     double **pdirect = NULL;
     double *theta = NULL;
-    // double theta = 0.2;
     double **pdEdphi = NULL; // dE/dphi
     double **pdLdphi = NULL; // dL/dphi
     double **pphi = NULL; // pphi[i] = ppsi.get_pointer(i), which will be freed in ~Psi().
@@ -127,6 +124,7 @@ private:
     double *mu = NULL; // chemical potential
     int tnSpinFlag = -1; // spin flag used in calV, which will be called by opt_tn
     int maxDCsrch = 200; // max no. of line search
+    int flag = -1; // flag of TN
 
     // used in conv check
     bool conv = false;
@@ -135,7 +133,6 @@ private:
     double energy_current = 0;
     double normdLdphi = 100.;
 
-    int flag = -1; // flag of TN
 
     void updateV();
     void solveV();
@@ -143,6 +140,7 @@ private:
     void updateRho();
     bool checkExit();
     void printInfo();
+    void postprocess();
 
     void calV(double *ptempPhi, double *rdLdphi);
     void caldEdtheta(double **ptempPhi, double **ptempRho, double *ptheta, double *rdEdtheta);
