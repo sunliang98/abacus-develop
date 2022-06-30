@@ -32,11 +32,6 @@ void KEDF_WT::set_para(int nx, double dV, double alpha, double beta, double nele
         eta = sqrt(pw_rho->gg[ip]) * pw_rho->tpiba / this->tkF;
         this->kernel[ip] = this->WTkernel(eta, tf_weight, vw_weight) * coef;
     }
-    for (int i = 0; i < 10000; ++i)
-    {
-        double eta = 0.0005*i;
-        GlobalV::ofs_warning << eta << "    " << this->WTkernel(eta, tf_weight, vw_weight) << endl; 
-    }
 }
 
 // 
@@ -80,7 +75,7 @@ double KEDF_WT::get_energy(const double * const * prho, ModulePW::PW_Basis *pw_r
     return energy;
 }
 
-double KEDF_WT::get_energy_density(double **prho, int is, int ir, ModulePW::PW_Basis *pw_rho)
+double KEDF_WT::get_energy_density(const double * const *prho, int is, int ir, ModulePW::PW_Basis *pw_rho)
 {
     double **kernelRhoBeta = new double* [GlobalV::NSPIN];
     for (int is = 0; is < GlobalV::NSPIN; ++is) kernelRhoBeta[is] = new double[pw_rho->nrxx];

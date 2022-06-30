@@ -19,7 +19,7 @@ public:
     void set_para(int nx, double dV, double tf_weight);
 
     double get_energy(const double * const *prho);
-    double get_energy_density(double **prho, int is, int ir);
+    double get_energy_density(const double * const *prho, int is, int ir);
     void tf_potential(const double * const * prho, ModuleBase::matrix &rpotential);
     void get_stress(double cellVol, double inpt_TFenergy=-1);
 

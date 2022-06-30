@@ -40,7 +40,7 @@ double KEDF_TF::get_energy(const double * const *prho)
     return energy;
 }
 
-double KEDF_TF::get_energy_density(double **prho, int is, int ir)
+double KEDF_TF::get_energy_density(const double * const *prho, int is, int ir)
 {
     double energyDen = 0.; // in Ry
     energyDen = this->cTF * pow(prho[is][ir], 5./3.) * this->tf_weight;

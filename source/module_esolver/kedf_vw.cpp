@@ -171,6 +171,7 @@ void KEDF_vW::get_stress(const double * const * pphi, ModulePW::PW_Basis *pw_rho
     delete[] ggPhi;
 }
 
+// get minus Laplacian phi
 void KEDF_vW::laplacianPhi(const double * const * pphi, double **rLapPhi, ModulePW::PW_Basis *pw_rho)
 {
     std::complex<double> **recipPhi = new std::complex<double> *[GlobalV::NSPIN];
