@@ -100,7 +100,7 @@ void Driver::atomic_world(void)
 		{
 			use_ensol = "sdft_pw";
 		}
-		else if (GlobalV::CALCULATION=="ofdft")
+		else if (GlobalV::CALCULATION=="ofdft" || GlobalV::CALCULATION=="of-md")
 		{
 			use_ensol = "ofdft";
 		}

@@ -313,6 +313,7 @@ void ESolver_OF::Run(int istep, UnitCell_pseudo& ucell)
     {
         srho.begin(is, GlobalC::CHR, GlobalC::rhopw, GlobalC::Pgrid, GlobalC::symm);
     }
+    this->iter = 0;
     while(true)
     {
         // once we get a new rho and phi, update potential

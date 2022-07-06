@@ -31,7 +31,7 @@ void Print_Info::setup_parameters(UnitCell_pseudo &ucell, K_Vectors &kv)
         {
             std::cout << " Cell relaxation calculations" << std::endl;
         }
-		if(GlobalV::CALCULATION=="md"||GlobalV::CALCULATION=="sto-md")
+		if(GlobalV::CALCULATION=="md"||GlobalV::CALCULATION=="sto-md"||GlobalV::CALCULATION=="of-md")
 		{
 			std::cout << " Molecular Dynamics simulations" << std::endl;
 
@@ -257,7 +257,7 @@ void Print_Info::print_scf(const int &istep, const int &iter)
 		GlobalV::ofs_running << "ION = " << std::setw(4) << unsigned(istep+1)
 		    				 << "  ELEC = " << std::setw(4) << unsigned(iter);
 	}
-	else if(GlobalV::CALCULATION=="md"||GlobalV::CALCULATION=="sto-md")
+	else if(GlobalV::CALCULATION=="md"||GlobalV::CALCULATION=="sto-md"||GlobalV::CALCULATION=="of-md")
 	{
 		GlobalV::ofs_running << "MD = " << std::setw(4) << unsigned(istep+1)
 		    				 << "  ELEC = " << std::setw(4) << unsigned(iter);
@@ -293,7 +293,7 @@ void Print_Info::print_screen(const int &stress_step, const int &force_step, con
         std::cout << " NONSELF-CONSISTENT : " << std::endl;
 		GlobalV::ofs_running << " NONSELF-CONSISTENT" << std::endl;
 	}
-	else if(GlobalV::CALCULATION=="md"||GlobalV::CALCULATION=="sto-md")
+	else if(GlobalV::CALCULATION=="md"||GlobalV::CALCULATION=="sto-md"||GlobalV::CALCULATION=="of-md")
 	{
         std::cout << " STEP OF MOLECULAR DYNAMICS : " << unsigned(istep) << std::endl;
 		GlobalV::ofs_running << " STEP OF MOLECULAR DYNAMICS : " << unsigned(istep) << std::endl;
