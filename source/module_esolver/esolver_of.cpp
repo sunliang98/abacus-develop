@@ -200,24 +200,25 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
         this->pphi[is] = this->psi->get_pointer(is);
-        if (GlobalC::pot.init_chg != "file")
-        {
-            for (int ibs = 0; ibs < this->nrxx; ++ibs)
-            {
-                // Here we initialize rho to be uniform, 
-                // because the rho got by pot.init_pot -> Charge::atomic_rho may contain minus elements.
-                GlobalC::CHR.rho[is][ibs] = this->nelec[is]/GlobalC::ucell.omega;
-                this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
-            }
-        }
-        else
-        {
-            for (int ibs = 0; ibs < this->nrxx; ++ibs)
-            {
-                this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
-            }
-        }
     }
+    //     if (GlobalC::pot.init_chg != "file")
+    //     {
+    //         for (int ibs = 0; ibs < this->nrxx; ++ibs)
+    //         {
+    //             // Here we initialize rho to be uniform, 
+    //             // because the rho got by pot.init_pot -> Charge::atomic_rho may contain minus elements.
+    //             GlobalC::CHR.rho[is][ibs] = this->nelec[is]/GlobalC::ucell.omega;
+    //             this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
+    //         }
+    //     }
+    //     else
+    //     {
+    //         for (int ibs = 0; ibs < this->nrxx; ++ibs)
+    //         {
+    //             this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
+    //         }
+    //     }
+    // }
 
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT PSI");
 
@@ -305,14 +306,9 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
 void ESolver_OF::Run(int istep, UnitCell_pseudo& ucell)
 {
     ModuleBase::timer::tick("ESolver_OF", "Run");
-    //calculate ewald energy
-    H_Ewald_pw::compute_ewald(GlobalC::ucell, GlobalC::rhopw);
-    //Symmetry_rho should be moved to Init()
-    Symmetry_rho srho;
-    for (int is = 0; is < GlobalV::NSPIN; is++)
-    {
-        srho.begin(is, GlobalC::CHR, GlobalC::rhopw, GlobalC::Pgrid, GlobalC::symm);
-    }
+    // get Ewald energy, initial rho and phi if necessary
+    this->preprocess();
+
     this->iter = 0;
     while(true)
     {
@@ -355,7 +351,48 @@ void ESolver_OF::cal_Energy(energy &en)
         ePP += this->inner_product(GlobalC::pot.vltot, GlobalC::CHR.rho[is], this->nrxx, this->dV);
     }
     Parallel_Reduce::reduce_double_all(ePP);
+    if (this->iter == 50)
+    {
+        // eV
+        cout << "eKE = " << eKE*13.6056923 << endl;
+        cout << "ePP = " << ePP*13.6056923 << endl;
+        cout << "eOT = " << en.etot*13.6056923 << endl;
+    }
     en.etot += eKE + ePP;
+}
+
+void ESolver_OF::preprocess()
+{
+    //calculate ewald energy
+    H_Ewald_pw::compute_ewald(GlobalC::ucell, GlobalC::rhopw);
+    //Symmetry_rho should be moved to Init()
+    Symmetry_rho srho;
+    for (int is = 0; is < GlobalV::NSPIN; is++)
+    {
+        srho.begin(is, GlobalC::CHR, GlobalC::rhopw, GlobalC::Pgrid, GlobalC::symm);
+    }
+    // ==== for md test ====
+    for (int is = 0; is < GlobalV::NSPIN; ++is)
+    {
+        if (GlobalC::pot.init_chg != "file")
+        {
+            for (int ibs = 0; ibs < this->nrxx; ++ibs)
+            {
+                // Here we initialize rho to be uniform, 
+                // because the rho got by pot.init_pot -> Charge::atomic_rho may contain minus elements.
+                GlobalC::CHR.rho[is][ibs] = this->nelec[is]/GlobalC::ucell.omega;
+                this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
+            }
+        }
+        else
+        {
+            for (int ibs = 0; ibs < this->nrxx; ++ibs)
+            {
+                this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
+            }
+        }
+    }
+    // ========================
 }
 
 // 
@@ -370,7 +407,11 @@ void ESolver_OF::updateV()
     {
         for (int ir = 0; ir < this->nrxx; ++ir)
         { 
-            this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir) * 2. * this->pphi[is][ir];
+            // for vw test, remember to modify it !!!
+            if (this->iter > 1) assert(this->pdEdphi[is][ir] == GlobalC::pot.vr_eff(is,ir));
+            this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir);
+            // =======================================
+            // this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir) * 2. * this->pphi[is][ir];
         }
         this->mu[is] = this->cal_mu(this->pphi[is], this->pdEdphi[is], this->nelec[is]);
 
@@ -716,14 +757,24 @@ void ESolver_OF::getNextDirect()
 
 void ESolver_OF::updateRho()
 {
+    // for test !!!
+    int numMinusPhi = 0;
+    double numElec = 0.;
+    // =============
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
         for (int ir = 0; ir < this->nrxx; ++ir)
         {
             this->pphi[is][ir] = this->pphi[is][ir] * cos(this->theta[is]) + this->pdirect[is][ir] * sin(this->theta[is]);
             GlobalC::CHR.rho[is][ir] = this->pphi[is][ir] * this->pphi[is][ir];
+            // for test !!!
+            if (this->pphi[is][ir] < 0) numMinusPhi++;
+            numElec += GlobalC::CHR.rho[is][ir];
+            // this->pphi[is][ir] = abs(this->pphi[is][ir]);
+            // ============
         }
     }
+    cout << "numMinusPhi = " << numMinusPhi << " numElec = " << numElec * this->dV << endl;
 }
 
 //
@@ -735,13 +786,14 @@ bool ESolver_OF::checkExit()
     bool potConv = false;
     bool energyConv = false;
 
-    this->normdLdphi = 0.;
-    for (int is = 0; is < GlobalV::NSPIN; ++is)
-    {
-       this->normdLdphi += this->inner_product(this->pdLdphi[is], this->pdLdphi[is], this->nrxx, this->dV);
-    }
-    Parallel_Reduce::reduce_double_all(this->normdLdphi);
-    this->normdLdphi = sqrt(this->normdLdphi/this->nrxx/GlobalV::NSPIN);
+    // this->normdLdphi = 0.;
+    // for (int is = 0; is < GlobalV::NSPIN; ++is)
+    // {
+    //    this->normdLdphi += this->inner_product(this->pdLdphi[is], this->pdLdphi[is], this->nrxx, 1);
+    // //    this->normdLdphi += this->inner_product(this->pdLdphi[is], this->pdLdphi[is], this->nrxx, this->dV);
+    // }
+    // Parallel_Reduce::reduce_double_all(this->normdLdphi);
+    // this->normdLdphi = sqrt(this->normdLdphi/this->pw_rho->nxyz/GlobalV::NSPIN);
 
     if (this->normdLdphi < this->of_tolp)
         potConv = true;
@@ -784,29 +836,41 @@ bool ESolver_OF::checkExit()
 // 
 void ESolver_OF::printInfo()
 {
-    double minDen = GlobalC::CHR.rho[0][0];
-    double maxDen = GlobalC::CHR.rho[0][0];
-    double minPot = this->pdLdphi[0][0];
-    double maxPot = this->pdLdphi[0][0];
-    for (int i = 0; i < this->nrxx; ++i)
+    this->normdLdphi = 0.;
+    for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
-        if (GlobalC::CHR.rho[0][i] < minDen) minDen = GlobalC::CHR.rho[0][i];
-        if (GlobalC::CHR.rho[0][i] > maxDen) maxDen = GlobalC::CHR.rho[0][i];
-        if (this->pdLdphi[0][i] < minPot) minPot = this->pdLdphi[0][i];
-        if (this->pdLdphi[0][i] > maxPot) maxPot = this->pdLdphi[0][i];
+       this->normdLdphi += this->inner_product(this->pdLdphi[is], this->pdLdphi[is], this->nrxx, 1);
+    //    this->normdLdphi += this->inner_product(this->pdLdphi[is], this->pdLdphi[is], this->nrxx, this->dV);
     }
-    if (this->iter == 0){
-        cout << "============================================ OFDFT ============================================" <<  endl;
-        cout << "Iter        Etot(Ha)          Theta       PotNorm        min/max(den)          min/max(dL/dPhi)" << endl;
-    } 
-    else cout << setw(6) << this->iter 
-    << setw(22) << setiosflags(ios::scientific) << setprecision(12) << GlobalC::en.etot/2. 
-    << setw(12) << setprecision(3) << this->theta[0]
-    << setw(12) << this->normdLdphi
-// ============ used to compare with PROFESS3.0 ================
-    << setw(10) << minDen << "/ " << setw(12) << maxDen
-    << setw(10) << minPot << "/ " << setw(10) << maxPot << endl;
-// =============================================================
+    Parallel_Reduce::reduce_double_all(this->normdLdphi);
+    this->normdLdphi = sqrt(this->normdLdphi/this->pw_rho->nxyz/GlobalV::NSPIN);
+
+    // if (GlobalV::CALCULATION == "ofdft")
+    // {
+        double minDen = GlobalC::CHR.rho[0][0];
+        double maxDen = GlobalC::CHR.rho[0][0];
+        double minPot = this->pdEdphi[0][0];
+        double maxPot = this->pdEdphi[0][0];
+        for (int i = 0; i < this->nrxx; ++i)
+        {
+            if (GlobalC::CHR.rho[0][i] < minDen) minDen = GlobalC::CHR.rho[0][i];
+            if (GlobalC::CHR.rho[0][i] > maxDen) maxDen = GlobalC::CHR.rho[0][i];
+            if (this->pdEdphi[0][i] < minPot) minPot = this->pdEdphi[0][i];
+            if (this->pdEdphi[0][i] > maxPot) maxPot = this->pdEdphi[0][i];
+        }
+        if (this->iter == 0){
+            cout << "============================================ OFDFT ============================================" <<  endl;
+            cout << "Iter        Etot(Ha)          Theta       PotNorm        min/max(den)          min/max(dE/dPhi)" << endl;
+        } 
+        cout << setw(6) << this->iter 
+        << setw(22) << setiosflags(ios::scientific) << setprecision(12) << GlobalC::en.etot/2. 
+        << setw(12) << setprecision(3) << this->theta[0]
+        << setw(12) << this->normdLdphi
+    // ============ used to compare with PROFESS3.0 ================
+        << setw(10) << minDen << "/ " << setw(12) << maxDen
+        << setw(10) << minPot << "/ " << setw(10) << maxPot << endl;
+    // =============================================================
+    // }
 }
 
 void ESolver_OF::postprocess()
@@ -882,7 +946,10 @@ void ESolver_OF::calV(double *ptempPhi, double *rdLdphi)
     this->kineticPotential(tempRho, tempPhi, GlobalC::pot.vr_eff);
     for (int i = 0; i < this->nrxx; ++i)
     {
-        dEdtempPhi[this->tnSpinFlag][i] = GlobalC::pot.vr_eff(this->tnSpinFlag,i) * 2. * ptempPhi[i];
+        // for vw test, remember to modify it !!!
+        dEdtempPhi[this->tnSpinFlag][i] = GlobalC::pot.vr_eff(this->tnSpinFlag,i);
+        // =========================================
+        // dEdtempPhi[this->tnSpinFlag][i] = GlobalC::pot.vr_eff(this->tnSpinFlag,i) * 2. * ptempPhi[i];
     }
     double tempMu = this->cal_mu(ptempPhi, dEdtempPhi[this->tnSpinFlag], this->nelec[this->tnSpinFlag]);
     for (int i = 0; i < this->nrxx; ++i)
@@ -916,7 +983,11 @@ void ESolver_OF::caldEdtheta(double **ptempPhi, double **ptempRho, double *pthet
     {
         for (int ir = 0; ir < this->nrxx; ++ir)
         {
-            this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir)  * 2 * ptempPhi[is][ir];
+            // for vw test, remember to modify it !!!
+            this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir);
+            // =======================================
+            // this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir)  * 2 * ptempPhi[is][ir];
+
 
             pdPhidTheta[ir] = - this->pphi[is][ir] * sin(ptheta[is]) + this->pdirect[is][ir] * cos(ptheta[is]);
         }
@@ -976,23 +1047,68 @@ void ESolver_OF::cal_Stress(ModuleBase::matrix& stress)
 // calculated kinetic potential and plus it to &rpot
 void ESolver_OF::kineticPotential(double **prho, double **pphiInpt, ModuleBase::matrix &rpot)
 {
+    // // for vw test, remember to modify it !!!!
+    // for (int is = 0; is < GlobalV::NSPIN; ++is)
+    // {
+    //     for (int ir = 0; ir < this->nrxx; ++ir)
+    //     {
+    //         rpot(is,ir) *= 2.0 * pphiInpt[is][ir];
+    //     }
+    // }
+    // // ========================================
     if (this->of_kinetic == "tf")
     {
         this->tf.tf_potential(prho, rpot);
+        // for vw test, remember to modify it !!!!
+        for (int is = 0; is < GlobalV::NSPIN; ++is)
+        {
+            for (int ir = 0; ir < this->nrxx; ++ir)
+            {
+                rpot(is,ir) *= 2.0 * pphiInpt[is][ir];
+            }
+        }
+        // ========================================
     }
     else if (this->of_kinetic == "vw")
     {
+        // for vw test, remember to modify it !!!!
+        for (int is = 0; is < GlobalV::NSPIN; ++is)
+        {
+            for (int ir = 0; ir < this->nrxx; ++ir)
+            {
+                rpot(is,ir) *= 2.0 * pphiInpt[is][ir];
+            }
+        }
+        // ========================================
         this->vw.vW_potential(pphiInpt, this->pw_rho, rpot);
     }
     else if (this->of_kinetic == "wt")
     {
         this->tf.tf_potential(prho, rpot);
-        this->vw.vW_potential(pphiInpt, this->pw_rho, rpot);
         this->wt.WT_potential(prho, this->pw_rho, rpot);
+        // for vw test, remember to modify it !!!!
+        for (int is = 0; is < GlobalV::NSPIN; ++is)
+        {
+            for (int ir = 0; ir < this->nrxx; ++ir)
+            {
+                rpot(is,ir) *= 2.0 * pphiInpt[is][ir];
+            }
+        }
+        // ========================================
+        this->vw.vW_potential(pphiInpt, this->pw_rho, rpot);
     }
     else if (this->of_kinetic == "tf+")
     {
         this->tf.tf_potential(prho, rpot);
+        // for vw test, remember to modify it !!!!
+        for (int is = 0; is < GlobalV::NSPIN; ++is)
+        {
+            for (int ir = 0; ir < this->nrxx; ++ir)
+            {
+                rpot(is,ir) *= 2.0 * pphiInpt[is][ir];
+            }
+        }
+        // ========================================
         this->vw.vW_potential(pphiInpt, this->pw_rho, rpot);
     }
 }

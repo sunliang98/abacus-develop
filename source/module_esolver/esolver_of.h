@@ -133,7 +133,7 @@ private:
     double energy_current = 0;
     double normdLdphi = 100.;
 
-
+    void preprocess();
     void updateV();
     void solveV();
     void getNextDirect();
