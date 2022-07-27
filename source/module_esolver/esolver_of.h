@@ -70,6 +70,14 @@ public:
             }
             delete[] this->pdEdphi;
         } 
+        if (this->precipDir != NULL)
+        {
+            for (int is = 0; is < GlobalV::NSPIN; ++is)
+            {
+                delete[] this->precipDir[is];
+            }
+            delete[] this->precipDir;
+        }
 
         if (this->nelec != NULL) delete[] this->nelec;
         if (this->theta != NULL) delete[] this->theta;
@@ -116,6 +124,7 @@ private:
     // used in density optimization
     int iter = 0;
     double **pdirect = NULL;
+    std::complex<double> **precipDir = NULL; // direct in reciprocal space
     double *theta = NULL;
     double **pdEdphi = NULL; // dE/dphi
     double **pdLdphi = NULL; // dL/dphi
@@ -131,6 +140,8 @@ private:
     double energy_llast = 0;
     double energy_last = 0;
     double energy_current = 0;
+    double normdLdphi_llast = 100;
+    double normdLdphi_last = 100;
     double normdLdphi = 100.;
 
     void preprocess();

@@ -100,11 +100,14 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
     this->pdLdphi = new double*[GlobalV::NSPIN];
     this->pdEdphi = new double*[GlobalV::NSPIN];
     this->pdirect = new double*[GlobalV::NSPIN];
+    this->precipDir = new std::complex<double> *[GlobalV::NSPIN];
+
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
         this->pdLdphi[is] = new double[this->nrxx];
         this->pdEdphi[is] = new double[this->nrxx];
         this->pdirect[is] = new double[this->nrxx];
+        this->precipDir[is] = new std::complex<double>[pw_rho->npw];
         ModuleBase::GlobalFunc::ZEROS(this->pdLdphi[is], this->nrxx);
         ModuleBase::GlobalFunc::ZEROS(this->pdEdphi[is], this->nrxx);
         ModuleBase::GlobalFunc::ZEROS(this->pdirect[is], this->nrxx);
@@ -351,13 +354,13 @@ void ESolver_OF::cal_Energy(energy &en)
         ePP += this->inner_product(GlobalC::pot.vltot, GlobalC::CHR.rho[is], this->nrxx, this->dV);
     }
     Parallel_Reduce::reduce_double_all(ePP);
-    if (this->iter == 50)
-    {
-        // eV
-        cout << "eKE = " << eKE*13.6056923 << endl;
-        cout << "ePP = " << ePP*13.6056923 << endl;
-        cout << "eOT = " << en.etot*13.6056923 << endl;
-    }
+    // if (this->iter == 50)
+    // {
+    //     // eV
+    //     cout << "eKE = " << eKE*13.6056923 << endl;
+    //     cout << "ePP = " << ePP*13.6056923 << endl;
+    //     cout << "eOT = " << en.etot*13.6056923 << endl;
+    // }
     en.etot += eKE + ePP;
 }
 
@@ -408,7 +411,7 @@ void ESolver_OF::updateV()
         for (int ir = 0; ir < this->nrxx; ++ir)
         { 
             // for vw test, remember to modify it !!!
-            if (this->iter > 1) assert(this->pdEdphi[is][ir] == GlobalC::pot.vr_eff(is,ir));
+            // if (this->iter > 1) assert(this->pdEdphi[is][ir] == GlobalC::pot.vr_eff(is,ir));
             this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir);
             // =======================================
             // this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir) * 2. * this->pphi[is][ir];
@@ -420,6 +423,18 @@ void ESolver_OF::updateV()
             this->pdLdphi[is][ir] = this->pdEdphi[is][ir] - 2. * this->mu[is] * this->pphi[is][ir];
         }
     }
+    // get the norm of dLdphi
+    // ============ temporary solution of potential convergence ===========
+    this->normdLdphi_llast = this->normdLdphi_last;
+    this->normdLdphi_last = this->normdLdphi;
+    // ====================================================================
+    this->normdLdphi = 0.;
+    for (int is = 0; is < GlobalV::NSPIN; ++is)
+    {
+       this->normdLdphi += this->inner_product(this->pdLdphi[is], this->pdLdphi[is], this->nrxx, 1);
+    }
+    Parallel_Reduce::reduce_double_all(this->normdLdphi);
+    this->normdLdphi = sqrt(this->normdLdphi/this->pw_rho->nxyz/GlobalV::NSPIN);
 }
 
 //
@@ -699,8 +714,17 @@ void ESolver_OF::solveV()
 // 
 void ESolver_OF::getNextDirect()
 {
+    // ============ for test ===============
+    for (int is = 0; is < GlobalV::NSPIN; ++is)
+    {
+        pw_rho->real2recip(this->pdirect[is], this->precipDir[is]);
+        pw_rho->recip2real(this->precipDir[is], this->pdirect[is]);
+    }
+    // =====================================
+
     if (GlobalV::NSPIN == 1)
     {
+
         double tempTheta = 0; // tempTheta = |d'|/|d0 + phi|, theta = min(theta, tempTheta)
 
         // (1) make direction orthogonal to phi
@@ -758,8 +782,8 @@ void ESolver_OF::getNextDirect()
 void ESolver_OF::updateRho()
 {
     // for test !!!
-    int numMinusPhi = 0;
-    double numElec = 0.;
+    // int numMinusPhi = 0;
+    // double numElec = 0.;
     // =============
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
@@ -768,13 +792,13 @@ void ESolver_OF::updateRho()
             this->pphi[is][ir] = this->pphi[is][ir] * cos(this->theta[is]) + this->pdirect[is][ir] * sin(this->theta[is]);
             GlobalC::CHR.rho[is][ir] = this->pphi[is][ir] * this->pphi[is][ir];
             // for test !!!
-            if (this->pphi[is][ir] < 0) numMinusPhi++;
-            numElec += GlobalC::CHR.rho[is][ir];
+            // if (this->pphi[is][ir] < 0) numMinusPhi++;
+            // numElec += GlobalC::CHR.rho[is][ir];
             // this->pphi[is][ir] = abs(this->pphi[is][ir]);
             // ============
         }
     }
-    cout << "numMinusPhi = " << numMinusPhi << " numElec = " << numElec * this->dV << endl;
+    // cout << "numMinusPhi = " << numMinusPhi << " numElec = " << numElec * this->dV << endl;
 }
 
 //
@@ -784,6 +808,7 @@ bool ESolver_OF::checkExit()
 {
     this->conv = false;
     bool potConv = false;
+    bool potHold = false; // if normdLdphi nearly remains unchanged
     bool energyConv = false;
 
     // this->normdLdphi = 0.;
@@ -797,6 +822,10 @@ bool ESolver_OF::checkExit()
 
     if (this->normdLdphi < this->of_tolp)
         potConv = true;
+    if (this->iter >= 3
+        && abs(this->normdLdphi - this->normdLdphi_last) < 1e-10
+        && abs(this->normdLdphi - this->normdLdphi_llast) < 1e-10)
+        potHold = true;
 
     this->energy_llast = this->energy_last;
     this->energy_last = this->energy_current;
@@ -815,7 +844,15 @@ bool ESolver_OF::checkExit()
     {
         this->conv = true;
         return true;
+    // ============ temporary solution of potential convergence ===========
     }
+    else if (this->of_conv == "potential" && potHold)
+    {
+        GlobalV::ofs_warning << "ESolver_OF WARNING: " << 
+        "The convergence of potential has not been reached, but the norm of potential nearly remains unchanged, run ABACUS with larger ecutwfc may work." << endl;
+        return true;
+    }
+    // ====================================================================
     else if (this->of_conv == "both" && potConv && energyConv)
     {
         this->conv = true;
@@ -836,14 +873,7 @@ bool ESolver_OF::checkExit()
 // 
 void ESolver_OF::printInfo()
 {
-    this->normdLdphi = 0.;
-    for (int is = 0; is < GlobalV::NSPIN; ++is)
-    {
-       this->normdLdphi += this->inner_product(this->pdLdphi[is], this->pdLdphi[is], this->nrxx, 1);
-    //    this->normdLdphi += this->inner_product(this->pdLdphi[is], this->pdLdphi[is], this->nrxx, this->dV);
-    }
-    Parallel_Reduce::reduce_double_all(this->normdLdphi);
-    this->normdLdphi = sqrt(this->normdLdphi/this->pw_rho->nxyz/GlobalV::NSPIN);
+
 
     // if (GlobalV::CALCULATION == "ofdft")
     // {
