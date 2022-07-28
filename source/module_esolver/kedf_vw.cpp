@@ -137,8 +137,10 @@ void KEDF_vW::vW_potential(const double * const *pphi, ModulePW::PW_Basis *pw_rh
 
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
+        delete[] tempPhi[is];
         delete[] LapPhi[is];
     }
+    delete[] tempPhi;
     delete[] LapPhi;
 
     ModuleBase::timer::tick("KEDF_vW", "vw_potential");
