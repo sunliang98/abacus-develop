@@ -357,9 +357,13 @@ void ESolver_OF::cal_Energy(energy &en)
     // if (this->iter == 50)
     // {
     //     // eV
-    //     cout << "eKE = " << eKE*13.6056923 << endl;
-    //     cout << "ePP = " << ePP*13.6056923 << endl;
-    //     cout << "eOT = " << en.etot*13.6056923 << endl;
+        // cout << setprecision(16) << "eKE = " << eKE*13.6056923 << endl;
+        // cout << setprecision(16) << "eTF = " << tf.TFenergy*13.6056923 << endl;
+        // cout << setprecision(16) << "evW = " << vw.vWenergy*13.6056923 << endl;
+        // cout << setprecision(16) << "eWT = " << wt.WTenergy*13.6056923 << endl;
+        // cout << "ePP = " << ePP*13.6056923 << endl;
+        // cout << "eOT = " << en.etot*13.6056923 << endl;
+        // cout << "eXC = " << (en.etxc - en.etxcc)*13.6056923 << endl;
     // }
     en.etot += eKE + ePP;
 }
@@ -413,6 +417,7 @@ void ESolver_OF::updateV()
             // for vw test, remember to modify it !!!
             // if (this->iter > 1) assert(this->pdEdphi[is][ir] == GlobalC::pot.vr_eff(is,ir));
             this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir);
+            // cout << pdEdphi[is][ir] << "  ";
             // =======================================
             // this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir) * 2. * this->pphi[is][ir];
         }
@@ -522,28 +527,32 @@ void ESolver_OF::solveV()
     }
     delete[] tempTheta;
 
-// ======================== for test ============================
-    // if (this->iter == 2)
-    // {
-    //     for (int i = -100; i < 100; ++i)
-    //     {
-    //         this->theta[0] = 0.001 * i;
-    //         for (int i = 0; i < this->nrxx; ++i)
-    //         {
-    //             ptempPhi[0][i] = this->pphi[0][i] * cos(this->theta[0]) + this->pdirect[0][i] * sin(this->theta[0]);
-    //             ptempRho[0][i] = ptempPhi[0][i] * ptempPhi[0][i];
-    //         }
-    //         this->caldEdtheta(ptempPhi, ptempRho, this->theta, dEdtheta);
-    //         GlobalC::en.calculate_etot();
-    //         E = GlobalC::en.etot;
-    //         E += this->tf.get_energy(ptempRho);
-    //         E += this->inner_product(GlobalC::pot.vltot, ptempRho[0], this->nrxx, this->dV);
-    //         GlobalV::ofs_warning << i << "    " << dEdtheta[0] << "    " << E << endl;
-    //         if (this->theta[0] == 0) cout << "dEdtheta    " << dEdtheta[0]<< endl;
-    //     }
-    //     exit(0);
-    // }
-// ======================== for test ============================
+// // ======================== for test ============================
+//     if (this->iter == 5)
+//     {
+//         for (int i = -100; i < 100; ++i)
+//         {
+//             this->theta[0] = 0.001 * i;
+//             for (int ir = 0; ir < this->nrxx; ++ir)
+//             {
+//                 ptempPhi[0][ir] = this->pphi[0][ir] * cos(this->theta[0]) + this->pdirect[0][ir] * sin(this->theta[0]);
+//                 ptempRho[0][ir] = ptempPhi[0][ir] * ptempPhi[0][ir];
+//             }
+//             this->caldEdtheta(ptempPhi, ptempRho, this->theta, dEdtheta);
+//             GlobalC::en.calculate_etot();
+//             E = GlobalC::en.etot;
+//             double eKE = 0.;
+//             double ePP = 0.;
+//             eKE = this->kineticEnergy();
+//             ePP = this->inner_product(GlobalC::pot.vltot, ptempRho[0], this->nrxx, this->dV);
+//             Parallel_Reduce::reduce_double_all(ePP);
+//             E += eKE + ePP;
+//             GlobalV::ofs_warning << i << "    " << dEdtheta[0] << "    " << E << endl;
+//             if (this->theta[0] == 0) cout << "dEdtheta    " << dEdtheta[0]<< endl;
+//         }
+//         exit(0);
+//     }
+// // ======================== for test ============================
 
     // (4) line search to find best theta
     double eKE = 0.;

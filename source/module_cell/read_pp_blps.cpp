@@ -44,7 +44,7 @@ int Pseudopot_upf::read_pseudo_blps(std::ifstream &ifs)
     }
     else if (pspxc == 11)
     {
-        this->xc_func = "GGA";
+        this->xc_func = "PBE";
     }
 
     ifs.ignore(300, '\n');
