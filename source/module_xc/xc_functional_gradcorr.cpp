@@ -204,7 +204,7 @@ void XC_Functional::gradcorr(double &etxc, double &vtxc, ModuleBase::matrix &v, 
 					// D(rho*Exc) / D(|grad rho|) * (grad rho) / |grad rho|
 					if (grho2a == 0)
 					{
-						// for uniform density, we take gdri/|nabla rho| = 1/sqrt(3) here.
+						// for uniform density, v2x ~ 1/|nabla rho|, we take gdri/|nabla rho| = 1/sqrt(3) here, and v2c is a number, so gdri*v2c = 0.
 						h1[ir].x = ModuleBase::e2 * v2xc / sqrt(3);
 						h1[ir].y = ModuleBase::e2 * v2xc / sqrt(3);
 						h1[ir].z = ModuleBase::e2 * v2xc / sqrt(3);

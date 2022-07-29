@@ -170,7 +170,14 @@ void XC_Functional::pbec(const double &rho, const double &grho, const int &iflag
 
 	sc = rho * h0;
 	v1c = h0 + dh0;
-	v2c = ddh0;
+    if (grho != 0)
+    {
+	    v2c = ddh0;
+    }
+    else
+    {
+        v2c = 0; // for uniform density, v2x = -nan, so v2c is covered up by v2x, sunliang add 2022-07-29.
+    }
 	
 	return;
 }
