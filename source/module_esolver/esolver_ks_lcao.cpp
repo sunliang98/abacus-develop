@@ -42,53 +42,73 @@ namespace ModuleESolver
 
     void ESolver_KS_LCAO::Init(Input& inp, UnitCell_pseudo& ucell)
     {
-        ESolver_KS::Init(inp,ucell);
+        ModuleBase::TITLE("ESolver_KS_LCAO","Init");
+        // if we are only calculating S, then there is no need
+        // to prepare for potentials and so on
 
-
-#ifdef __MPI 
-        if (GlobalV::CALCULATION == "nscf")
+        if(GlobalV::CALCULATION== "get_S")
         {
-            switch (GlobalC::exx_global.info.hybrid_type)
+            if (ModuleSymmetry::Symmetry::symm_flag)
             {
-            case Exx_Global::Hybrid_Type::HF:
-            case Exx_Global::Hybrid_Type::PBE0:
-            case Exx_Global::Hybrid_Type::HSE:
-                XC_Functional::set_xc_type(ucell.atoms[0].xc_func);
-                break;
+                GlobalC::symm.analy_sys(ucell, GlobalV::ofs_running);
+                ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "SYMMETRY");
             }
+
+            // Setup the k points according to symmetry.
+            GlobalC::kv.set(GlobalC::symm, GlobalV::global_kpoint_card, GlobalV::NSPIN, ucell.G, ucell.latvec);
+            ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT K-POINTS");
+
+            Print_Info::setup_parameters(ucell, GlobalC::kv);
         }
+        else
+        {
+            ESolver_KS::Init(inp,ucell);
+#ifdef __MPI 
+            if (GlobalV::CALCULATION == "nscf")
+            {
+                switch (GlobalC::exx_global.info.hybrid_type)
+                {
+                case Exx_Global::Hybrid_Type::HF:
+                case Exx_Global::Hybrid_Type::PBE0:
+                case Exx_Global::Hybrid_Type::SCAN0:
+                case Exx_Global::Hybrid_Type::HSE:
+                    XC_Functional::set_xc_type(ucell.atoms[0].xc_func);
+                    break;
+                }
+            }
 #endif
 
 #ifdef __DEEPKS
-        //wenfei 2021-12-19
-        //if we are performing DeePKS calculations, we need to load a model
-        if (GlobalV::deepks_scf)
-        {
-            // load the DeePKS model from deep neural network
-            GlobalC::ld.load_model(INPUT.deepks_model);
-        }
+            //wenfei 2021-12-19
+            //if we are performing DeePKS calculations, we need to load a model
+            if (GlobalV::deepks_scf)
+            {
+                // load the DeePKS model from deep neural network
+                GlobalC::ld.load_model(INPUT.deepks_model);
+            }
 #endif
 
-        // Initialize the local wave functions.
-        // npwx, eigenvalues, and weights
-        // npwx may change according to cell change
-        // this function belongs to cell LOOP
-        GlobalC::wf.allocate_ekb_wg(GlobalC::kv.nks);
+            // Initialize the local wave functions.
+            // npwx, eigenvalues, and weights
+            // npwx may change according to cell change
+            // this function belongs to cell LOOP
+            GlobalC::wf.allocate_ekb_wg(GlobalC::kv.nks);
 
-        // Initialize the FFT.
-        // this function belongs to cell LOOP
+            // Initialize the FFT.
+            // this function belongs to cell LOOP
 
-        // output is GlobalC::ppcell.vloc 3D local pseudopotentials
-        // without structure factors
-        // this function belongs to cell LOOP
-        GlobalC::ppcell.init_vloc(GlobalC::ppcell.vloc, GlobalC::rhopw);
+            // output is GlobalC::ppcell.vloc 3D local pseudopotentials
+            // without structure factors
+            // this function belongs to cell LOOP
+            GlobalC::ppcell.init_vloc(GlobalC::ppcell.vloc, GlobalC::rhopw);
 
-        // Initialize the sum of all local potentials.
-        // if ion_step==0, read in/initialize the potentials
-        // this function belongs to ions LOOP
-        int ion_step = 0;
-        GlobalC::pot.init_pot(ion_step, GlobalC::sf.strucFac);
-        ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT POTENTIAL");      
+            // Initialize the sum of all local potentials.
+            // if ion_step==0, read in/initialize the potentials
+            // this function belongs to ions LOOP
+            int ion_step = 0;
+            GlobalC::pot.init_pot(ion_step, GlobalC::sf.strucFac);
+            ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT POTENTIAL");      
+        } // end ifnot get_S
 
         //------------------init Basis_lcao----------------------
         // Init Basis should be put outside of Ensolver.
@@ -97,6 +117,15 @@ namespace ModuleESolver
         this->Init_Basis_lcao(this->orb_con, inp, ucell);
         //------------------init Basis_lcao----------------------
 
+        if(GlobalV::CALCULATION=="get_S")
+        {
+            //pass Hamilt-pointer to Operator
+            this->UHM.genH.LM = this->UHM.LM = &this->LM;
+            //pass basis-pointer to EState and Psi
+            this->LOC.ParaV = this->LOWF.ParaV = this->LM.ParaV;
+            return;
+        }
+        
         //------------------init Hamilt_lcao----------------------
         // * allocate H and S matrices according to computational resources
         // * set the 'trace' between local H/S and global H/S
@@ -113,6 +142,7 @@ namespace ModuleESolver
             {
             case Exx_Global::Hybrid_Type::HF:
             case Exx_Global::Hybrid_Type::PBE0:
+            case Exx_Global::Hybrid_Type::SCAN0:
             case Exx_Global::Hybrid_Type::HSE:
                 GlobalC::exx_lcao.init();
                 break;
@@ -256,7 +286,6 @@ namespace ModuleESolver
         this->orb_con.calculation = GlobalV::CALCULATION;
         this->orb_con.ks_solver = GlobalV::KS_SOLVER;
         this->orb_con.setup_2d = true;
-
         // * reading the localized orbitals/projectors
         // * construct the interpolation tables.
         this->orb_con.read_orb_first(
@@ -306,6 +335,7 @@ namespace ModuleESolver
 
         if (this->orb_con.setup_2d)
             this->orb_con.setup_2d_division(GlobalV::ofs_running, GlobalV::ofs_warning);
+
     }
 
 
@@ -413,7 +443,7 @@ namespace ModuleESolver
 
 #ifdef __MPI
         // calculate exact-exchange
-        if (XC_Functional::get_func_type() == 4)
+        if (XC_Functional::get_func_type() == 4 || XC_Functional::get_func_type() == 5)
         {
             if (!GlobalC::exx_global.info.separate_loop)
             {
@@ -478,7 +508,7 @@ namespace ModuleESolver
         GlobalC::en.set_exx();
 
         // Peize Lin add 2020.04.04
-        if (XC_Functional::get_func_type() == 4)
+        if (XC_Functional::get_func_type() == 4 || XC_Functional::get_func_type() == 5)
         {
             if (GlobalC::restart.info_load.load_H && GlobalC::restart.info_load.load_H_finish && !GlobalC::restart.info_load.restart_exx)
             {
@@ -906,7 +936,7 @@ namespace ModuleESolver
             GlobalC::dmft.out_to_dmft(this->LOWF, *this->UHM.LM);
         }
 
-        if (Pdiag_Double::out_mat_hsR)
+        if (hsolver::HSolverLCAO::out_mat_hsR)
         {
             this->output_HS_R(); //LiuXh add 2019-07-15
         }

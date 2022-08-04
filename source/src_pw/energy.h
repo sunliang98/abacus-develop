@@ -51,6 +51,8 @@ class energy
     double deband;         // correction for variational energy
 	double deband_harris;
     double descf;
+	double esol_el;		   //correction for implicit solvation energy
+	double esol_cav;		   //correction for implicit solvation energy
 
     double etxcc;          // the nlcc exchange and correlation
 	double etxc;
@@ -90,6 +92,7 @@ class energy
 	void print_etot(const bool converged, const int &iter, 
 	const double &scf_thr, const double &duration, const double &pw_diag_thr=0, const double &avg_iter=0, bool print = true);
 
+	void print_occ();
 	void print_band(const int &ik);
 
 	void print_format(const std::string &name, const double &value);

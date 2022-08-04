@@ -125,14 +125,7 @@ double &sx, double &v1x, double &v2x)
     const double dfx = 2.0 * mu[iflag] * s1 / dfx1;
     
 	v1x = sx + dxunif * fx + exunif * dfx * ds;
-    if (agrho == 0)
-    {
-        v2x = exunif * dfx * dsg; // sunliang add 2022-07-28, to deal with uniform density, in which agrho = 0. See XC_Functional::gradcorr for further processing.
-    }
-    else
-    {
-        v2x = exunif * dfx * dsg / agrho;
-    }
+    v2x = exunif * dfx * dsg / agrho;
     sx = sx * rho;
 
 	return;

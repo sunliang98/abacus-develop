@@ -185,11 +185,7 @@ void XC_Functional::gradcorr(double &etxc, double &vtxc, ModuleBase::matrix &v, 
 						for(int m = 0;m< l+1;m++)
 						{
 							int ind = l*3 + m;
-							// for uniform density, v2xc = -nan, tt * tt * v2xc = 0, sunliang add 2022-07-28
-							if (grho2a != 0)
-							{
-								stress_gga[ind] += tt[l] * tt[m] * ModuleBase::e2 * v2xc;
-							}
+							stress_gga[ind] += tt[l] * tt[m] * ModuleBase::e2 * v2xc;
 						}
 					}
 				}
@@ -202,17 +198,7 @@ void XC_Functional::gradcorr(double &etxc, double &vtxc, ModuleBase::matrix &v, 
 					
 					// h contains
 					// D(rho*Exc) / D(|grad rho|) * (grad rho) / |grad rho|
-					if (grho2a == 0)
-					{
-						// for uniform density, v2x ~ 1/|nabla rho|, we take gdri/|nabla rho| = 1/sqrt(3) here, and v2c is a number, so gdri*v2c = 0.
-						h1[ir].x = ModuleBase::e2 * v2xc / sqrt(3);
-						h1[ir].y = ModuleBase::e2 * v2xc / sqrt(3);
-						h1[ir].z = ModuleBase::e2 * v2xc / sqrt(3);
-					}
-					else
-					{
-						h1[ir] = ModuleBase::e2 * v2xc * gdr1[ir];
-					}
+					h1[ir] = ModuleBase::e2 * v2xc * gdr1[ir];
 					
 					vtxcgc += ModuleBase::e2* v1xc * ( rhotmp1[ir] - GlobalC::CHR.rho_core[ir] );
 					etxcgc += ModuleBase::e2* sxc  * segno;

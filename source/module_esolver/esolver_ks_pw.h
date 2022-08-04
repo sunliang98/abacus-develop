@@ -23,6 +23,9 @@ namespace ModuleESolver
         virtual void hamilt2estates(const double ethr) override;
         virtual void nscf() override;
         void postprocess() override;
+        //calculate conductivities with Kubo-Greenwood formula
+        void KG(const int nche_KG, const double fwhmin, const double wcut, 
+             const double dw_in, const int times);
 
     protected:
         virtual void beforescf(const int istep) override;
@@ -31,11 +34,14 @@ namespace ModuleESolver
         virtual void eachiterfinish(const int iter) override;
         virtual void afterscf() override;
 
-    private:
-        // <Temporary> Get wavefunctions and eigen energies. 
-        // It should be replaced by diag class in HSolver module in the future
-        void c_bands(const int istep, const int iter);
+        //temporary, this will be removed in the future;
+        //Init Global class
+        void Init_GlobalC(Input& inp, UnitCell_pseudo& cell);
+        //calculate conductivities from j-j correlation function
+        void calcondw(const int nt,const double dt,const double fwhmin,const double wcut,const double dw_in,double*ct11,double*ct12,double *ct22);
 
+
+    private:
         // It copies the function in Threshold_Elec class.
         // After all ESolver, HSolver are constructed, Class Electrons and Threshold_Elec should be deleted.
         void print_eigenvalue(std::ofstream& ofs);

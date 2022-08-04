@@ -2,11 +2,11 @@ INPUT_PARAMETERS
 #Parameters (1.General)
 suffix			autotest
 calculation     sto-scf
+method_sto      1
 ntype			1
 symmetry		0
 pseudo_dir      ../tools/PP_ORB/
 
-nbands			0
 nbands_sto		10
 
 nche_sto		120
