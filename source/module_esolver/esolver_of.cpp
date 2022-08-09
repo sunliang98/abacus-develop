@@ -108,9 +108,6 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
         this->pdEdphi[is] = new double[this->nrxx];
         this->pdirect[is] = new double[this->nrxx];
         this->precipDir[is] = new std::complex<double>[pw_rho->npw];
-        ModuleBase::GlobalFunc::ZEROS(this->pdLdphi[is], this->nrxx);
-        ModuleBase::GlobalFunc::ZEROS(this->pdEdphi[is], this->nrxx);
-        ModuleBase::GlobalFunc::ZEROS(this->pdirect[is], this->nrxx);
     }
 
     // Calculate Structure factor
@@ -204,24 +201,6 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
     {
         this->pphi[is] = this->psi->get_pointer(is);
     }
-    //     if (GlobalC::pot.init_chg != "file")
-    //     {
-    //         for (int ibs = 0; ibs < this->nrxx; ++ibs)
-    //         {
-    //             // Here we initialize rho to be uniform, 
-    //             // because the rho got by pot.init_pot -> Charge::atomic_rho may contain minus elements.
-    //             GlobalC::CHR.rho[is][ibs] = this->nelec[is]/GlobalC::ucell.omega;
-    //             this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
-    //         }
-    //     }
-    //     else
-    //     {
-    //         for (int ibs = 0; ibs < this->nrxx; ++ibs)
-    //         {
-    //             this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
-    //         }
-    //     }
-    // }
 
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT PSI");
 
@@ -286,16 +265,6 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
     // =============================================
     this->mu = new double[GlobalV::NSPIN];
     this->theta = new double[GlobalV::NSPIN];
-
-    for (int is = 0; is < GlobalV::NSPIN; ++is)
-    {
-        this->mu[is] = 0;
-        this->theta[is] = 0.;
-    }
-    if (GlobalV::NSPIN == 1)
-    {
-        this->theta[0] = 0.2;
-    }
 
     // ===================================
     // Initialize KEDF
@@ -400,6 +369,18 @@ void ESolver_OF::preprocess()
         }
     }
     // ========================
+    for (int is = 0; is < GlobalV::NSPIN; ++is)
+    {
+        this->mu[is] = 0;
+        this->theta[is] = 0.;
+        ModuleBase::GlobalFunc::ZEROS(this->pdLdphi[is], this->nrxx);
+        ModuleBase::GlobalFunc::ZEROS(this->pdEdphi[is], this->nrxx);
+        ModuleBase::GlobalFunc::ZEROS(this->pdirect[is], this->nrxx);
+    }
+    if (GlobalV::NSPIN == 1)
+    {
+        this->theta[0] = 0.2;
+    }
 }
 
 // 
@@ -528,7 +509,7 @@ void ESolver_OF::solveV()
     delete[] tempTheta;
 
 // // ======================== for test ============================
-//     if (this->iter == 5)
+//     if (this->iter == 10)
 //     {
 //         for (int i = -100; i < 100; ++i)
 //         {
@@ -799,9 +780,19 @@ void ESolver_OF::updateRho()
         for (int ir = 0; ir < this->nrxx; ++ir)
         {
             this->pphi[is][ir] = this->pphi[is][ir] * cos(this->theta[is]) + this->pdirect[is][ir] * sin(this->theta[is]);
+    //     }
+    //         // ============ for test ===============
+
+    //     pw_rho->real2recip(this->pphi[is], this->precipDir[is]);
+    //     pw_rho->recip2real(this->precipDir[is], this->pphi[is]);
+
+    // // =====================================
+    //     for (int ir = 0; ir < this->nrxx; ++ir)
+    //     {
             GlobalC::CHR.rho[is][ir] = this->pphi[is][ir] * this->pphi[is][ir];
             // for test !!!
             // if (this->pphi[is][ir] < 0) numMinusPhi++;
+            // if (this->pphi[is][ir] < 0) cout << pphi[is][ir];
             // numElec += GlobalC::CHR.rho[is][ir];
             // this->pphi[is][ir] = abs(this->pphi[is][ir]);
             // ============

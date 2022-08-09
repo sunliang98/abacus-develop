@@ -154,13 +154,10 @@ This part of variables are used to control general system parameters.
   - *istate*: Please see the explanation for variable `nbands_istate`.
   - *ienvelope*: Please see the explanation for variable `nbands_istate`.
   - *md*: molecular dynamics
-<<<<<<< HEAD
   - *ofdft*: do orbital-free dft calculation.
-  - *of-md*: do molecular dynamics with OFDFT
-=======
+  - *of-md*: do molecular dynamics with OFDFT.
   - *sto-scf*: do self-consistent electronic structure calculation with [stochastic DFT](#electronic-structure-sdft)
   - *sto-md*: molecular dynamics with [stochastic DFT](#electronic-structure-sdft)
->>>>>>> 6a545cdc4f2b2601dabe2a62a649a2b62381e82b
 
   > Note: *istate* and *ienvelope* only work for LCAO basis set and are not working right now.
   >
