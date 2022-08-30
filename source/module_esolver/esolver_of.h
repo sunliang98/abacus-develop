@@ -88,6 +88,7 @@ public:
 
     virtual void Init(Input &inp, UnitCell_pseudo &ucell) override;
     virtual void Run(int istep, UnitCell_pseudo& ucell) override;
+    virtual void postprocess() override;
 
     virtual void cal_Energy(energy &en) override;
     virtual void cal_Force(ModuleBase::matrix &force) override;
@@ -151,7 +152,7 @@ private:
     void updateRho();
     bool checkExit();
     void printInfo();
-    void postprocess();
+    void afterOpt();
 
     void calV(double *ptempPhi, double *rdLdphi);
     void caldEdtheta(double **ptempPhi, double **ptempRho, double *ptheta, double *rdEdtheta);

@@ -2,6 +2,7 @@ INPUT_PARAMETERS
 #Parameters (1.General)
 suffix			autotest
 calculation     sto-scf
+method_sto      1
 ntype			1
 nbands			10
 nbands_sto		0
@@ -24,7 +25,6 @@ init_chg        file
 
 #Parameters (3.Basis)
 basis_type		pw
-gamma_only		1
 
 #Parameters (4.Smearing)
 smearing_method		fd

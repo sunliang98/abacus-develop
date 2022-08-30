@@ -310,7 +310,8 @@ void ESolver_OF::Run(int istep, UnitCell_pseudo& ucell)
         this->iter++;
     }
 
-    this->postprocess();
+    this->afterOpt();
+    // this->postprocess();
 
     ModuleBase::timer::tick("ESolver_OF", "Run");
 }
@@ -917,7 +918,7 @@ void ESolver_OF::printInfo()
     // }
 }
 
-void ESolver_OF::postprocess()
+void ESolver_OF::afterOpt()
 {
     if (this->conv)
     {
@@ -928,33 +929,46 @@ void ESolver_OF::postprocess()
     {
         GlobalV::ofs_running << " convergence has NOT been achieved!" << std::endl;
     }
+
     if (GlobalC::CHR.out_chg > 0)
     {
-        for (int is = 0; is < GlobalV::NSPIN; ++is)
+        for (int is = 0; is < GlobalV::NSPIN; is++)
         {
             std::stringstream ssc;
-            ssc << GlobalV::global_out_dir << "tmp" << "_SPIN" << is << "_CHG";
-            GlobalC::CHR.write_rho(GlobalC::CHR.rho[is], is, iter, ssc.str(), 11);
+            std::stringstream ss1;
+            ssc << GlobalV::global_out_dir << "tmp" << "_SPIN" << is + 1 << "_CHG";
+            GlobalC::CHR.write_rho(GlobalC::CHR.rho_save[is], is, iter, ssc.str(), 3);//mohan add 2007-10-17
+            ss1 << GlobalV::global_out_dir << "tmp" << "_SPIN" << is + 1 << "_CHG.cube";
+            GlobalC::CHR.write_rho_cube(GlobalC::CHR.rho_save[is], is, ss1.str(), 3);
         }
     }
-    if (GlobalV::CAL_FORCE)
-    {
-        ModuleBase::matrix ff(GlobalC::ucell.nat, 3);
-        this->cal_Force(ff);
-    }
-    if (GlobalV::CAL_STRESS)
-    {
-        double unit_transform = ModuleBase::RYDBERG_SI / pow(ModuleBase::BOHR_RADIUS_SI,3) * 1.0e-8 / 10;
-        ModuleBase::matrix stress(3,3);
-        this->cal_Stress(stress);
-        // stress *= unit_transform;
-        // cout << "STRESS (GPa)" << endl;
-        // for (int i = 0; i < 3; ++i)
-        // {
-        //     cout << stress(i,0) << "\t"
-        //         << stress(i, 1) << "\t" << stress(i, 2) << endl;
-        // }
-    }
+}
+
+void ESolver_OF::postprocess()
+{
+    GlobalV::ofs_running << "\n\n --------------------------------------------" << std::endl;
+    GlobalV::ofs_running << std::setprecision(16);
+    GlobalV::ofs_running << " !FINAL_ETOT_IS " << GlobalC::en.etot * ModuleBase::Ry_to_eV << " eV" << std::endl;
+    GlobalV::ofs_running << " --------------------------------------------\n\n" << std::endl;
+    
+    // if (GlobalV::CAL_FORCE)
+    // {
+    //     ModuleBase::matrix ff(GlobalC::ucell.nat, 3);
+    //     this->cal_Force(ff);
+    // }
+    // if (GlobalV::CAL_STRESS)
+    // {
+    //     double unit_transform = ModuleBase::RYDBERG_SI / pow(ModuleBase::BOHR_RADIUS_SI,3) * 1.0e-8 / 10;
+    //     ModuleBase::matrix stress(3,3);
+    //     this->cal_Stress(stress);
+    //     // stress *= unit_transform;
+    //     // cout << "STRESS (GPa)" << endl;
+    //     // for (int i = 0; i < 3; ++i)
+    //     // {
+    //     //     cout << stress(i,0) << "\t"
+    //     //         << stress(i, 1) << "\t" << stress(i, 2) << endl;
+    //     // }
+    // }
 }
 
 //

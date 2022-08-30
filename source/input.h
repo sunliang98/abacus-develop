@@ -54,7 +54,7 @@ class Input
     bool berry_phase; // berry phase calculation
     int gdir; // berry phase calculation
     double kspacing;
-
+    double min_dist_coef;
     //==========================================================
     // Wannier functions
     //==========================================================
@@ -73,6 +73,7 @@ class Input
     int bndpar; //parallel for stochastic/deterministic bands
     int initsto_freq; //frequency to init stochastic orbitals when running md
     int method_sto; //different methods for sdft, 1: slow, less memory  2: fast, more memory
+    int npart_sto; //for method_sto = 2, reduce memory
     bool cal_cond; //calculate electronic conductivities
     int cond_nche; //orders of Chebyshev expansions for conductivities
     double cond_dw; //d\omega for conductivities
@@ -437,7 +438,8 @@ class Input
     //==========================================================
     // variables for test only
     //==========================================================
-    bool test_just_neighbor;
+    bool test_just_neighbor = false;
+    bool test_skip_ewald = false;
 
   private:
     //==========================================================

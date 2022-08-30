@@ -8,7 +8,7 @@
 
 - [System variables](#system-variables)
 
-    [suffix](#suffix) | [ntype](#ntype) | [calculation](#calculation) | [symmetry](#symmetry) | [kpar](#kpar) | [bndpar](#bndpar) | [latname](#latname) | [init_wfc](#init_wfc) | [init_chg](#init_chg) | [init_vel](#init_vel) | [nelec](#nelec) | [tot_magnetization](#tot_magnetization) | [dft_functional](#dft_functional) | [pseudo_type](#pseudo_type) |  [pseudo_rcut](#pseudo_rcut) | [pseudo_mesh](#pseudo_mesh) | [mem_saver](#mem_saver) | [diago_proc](#diago_proc) | [nbspline](#nbspline) | [kspacing](#kspacing)
+    [suffix](#suffix) | [ntype](#ntype) | [calculation](#calculation) | [symmetry](#symmetry) | [kpar](#kpar) | [bndpar](#bndpar) | [latname](#latname) | [init_wfc](#init_wfc) | [init_chg](#init_chg) | [init_vel](#init_vel) | [nelec](#nelec) | [tot_magnetization](#tot_magnetization) | [dft_functional](#dft_functional) | [pseudo_type](#pseudo_type) |  [pseudo_rcut](#pseudo_rcut) | [pseudo_mesh](#pseudo_mesh) | [mem_saver](#mem_saver) | [diago_proc](#diago_proc) | [nbspline](#nbspline) | [kspacing](#kspacing)  | [min_dist_coef](#min_dist_coef)
 
 - [Variables related to input files](#variables-related-to-input-files)
 
@@ -66,16 +66,11 @@
   [dft_plus_u](#dft_plus_u) | [orbital_corr](#orbital_corr) | [hubbard_u](#hubbard_u) | [hund_j](#hund_j) | [yukawa_potential](#yukawa_potential) | [omc](#omc)
 - [Variables useful for debugging](#variables-useful-for-debugging)
 
-  [nurse](#nurse) | [t_in_h](#t-in-h) | [vl_in_h](#vl-in-h) | [vnl_in_h](#vnl-in-h) | [test_force](#test-force) | [test_stress](#test-stress) | [colour](#colour) | [test_just_neighbor](#test-just-neighbor)
-- [DeePKS](#deepks)
+    [nurse](#nurse) | [t_in_h](#t_in_h) | [vl_in_h](#vl_in_h) | [vnl_in_h](#vnl_in_h) | [test_force](#test_force) | [test_stress](#test_stress) | [colour](#colour)
 
-  [deepks_out_labels](#out-descriptor) | [deepks_descriptor_lmax](#lmax-descriptor) | [deepks_scf](#deepks-scf) | [deepks_model](#model-file)
-  
 - [OFDFT: orbital free density functional theory](#ofdft-orbital-free-density-functional-theory)
 
   [of_kinetic](#of_kinetic) | [of_method](#of_method) | [of_conv](#of_conv) | [of_tole](#of_tole) | [of_tolp](#of_tolp) | [of_tf_weight](#of_tf_weight) | [of_vw_weight](#of_vw_weight) | [of_wt_alpha](#of_wt_alpha) | [of_wt_beta](#of_wt_beta) | [of_wt_rho0](#of_wt_rho0) | [of_hold_rho0](#of_hold_rho0)
-- [Electric field and dipole correction](#Electric-field-and-dipole-correction)
-    [nurse](#nurse) | [t_in_h](#t_in_h) | [vl_in_h](#vl_in_h) | [vnl_in_h](#vnl_in_h) | [test_force](#test_force) | [test_stress](#test_stress) | [colour](#colour) | [test_just_neighbor](#test_just_neighbor)
 
 - [DeePKS](#deepks)
 
@@ -158,6 +153,9 @@ This part of variables are used to control general system parameters.
   - *of-md*: do molecular dynamics with OFDFT.
   - *sto-scf*: do self-consistent electronic structure calculation with [stochastic DFT](#electronic-structure-sdft)
   - *sto-md*: molecular dynamics with [stochastic DFT](#electronic-structure-sdft)
+  - *test_memory* : checks memory required for the calculation. The number is not quite reliable, please use with care
+  - *test_neighbour* : only performs neighbouring atom search
+  - *gen_jle* : generates projectors for DeePKS; see also deepks_lmax_descriptor
 
   > Note: *istate* and *ienvelope* only work for LCAO basis set and are not working right now.
   >
@@ -294,6 +292,12 @@ This part of variables are used to control general system parameters.
 - **Type**: double
 - **Descrption**: Set the smallest allowed spacing between k points, unit in 1/bohr. It should be larger than 0.0, and suggest smaller than 0.25. When you have set this value > 0.0, then the KPT file is unneccessary, and the number of K points nk_i = max(1,int(|b_i|/KSPACING)+1), where b_i is the reciprocal lattice vector. The default value 0.0 means that ABACUS will read the applied KPT file. Notice: if gamma_only is set to be true, kspacing is invalid.
 - **Default**: 0.0
+
+#### min_dist_coef
+
+- **Type**: double
+- **Descrption**: a factor related to the allowed minimum distance between two atoms. At the begining, ABACUS will check the structure, and if the distance of two atoms is shorter than min_dist_coef*(standard covalent bond length), we think this structure is unreasonable. If you want to calculate some structures in extreme condition like high pressure, you should set this parameter as a smaller value or even 0.
+- **Default**: 0.2
 
 ### Variables related to input files
 
@@ -584,9 +588,9 @@ This part of variables are used to control the parameters of stochastic DFT (SDF
 - **Description**:
   - Different method to do SDFT.
   - 1: SDFT calculates $T_n(\hat{h})\ket{\chi}$ twice, where $T_n(x)$ is the n-th order Chebyshev polynomial and $\hat{h}=\frac{\hat{H}-\bar{E}}{\Delta E}$ owning eigen-value $\in(-1,1)$. This method cost less memory but slow.
-  - 2: SDFT calculates $T_n(\hat{h})\ket{\chi}$ once but need much more memory. This method is fast but when memory is not enough, only method 1 can be used.
-  - other: use 1
-- **Default**: 1
+  - 2: SDFT calculates $T_n(\hat{h})\ket{\chi}$ once but need much more memory. This method is much faster. Besides, it calculate $N_e$ with $\bra{\chi}\sqrt{\hat f}\sqrt{\hat f}\ket{\chi}$, which needs smaller [nche_sto](#nche_sto). However, when memory is not enough, only method 1 can be used.
+  - other: use 2
+- **Default**: 2
 
 #### nbands_sto
 
@@ -628,6 +632,12 @@ This part of variables are used to control the parameters of stochastic DFT (SDF
 - **Type**: Integer
 - **Description**: Frequency (once each initsto_freq steps) to generate new stochastic orbitals when running md.
 - **Default**:1000
+
+#### npart_sto
+
+- **Type**: Integer
+- **Description**: Make memory cost to 1/npart_sto times of previous one when running post process of SDFT like DOS with method_sto = 2.
+- **Default**:1
 
 ### Geometry relaxation
 
@@ -928,28 +938,29 @@ This part of variables are used to control the calculation of DOS.
 ### DeePKS
 
 This part of variables are used to control the usage of DeePKS method (a comprehensive data-driven approach to improve accuracy of DFT).
-Warning: this function is not robust enough for version 2.2.0. Please try these variables in [https://github.com/deepmodeling/abacus-develop/tree/deepks](https://github.com/deepmodeling/abacus-develop/tree/deepks) .
+Warning: this function is not robust enough for the current version. Please try the following variables at your own risk:
 
 #### deepks_out_labels
 
 - **Type**: Boolean
 - **Description**: when set to 1, ABACUS will calculate and output descriptor for DeePKS training. In `LCAO` calculation, a path of *.orb file is needed to be specified under `NUMERICAL_DESCRIPTOR`in `STRU`file. For example:
 
-  ```txt
-  NUMERICAL_ORBITAL
-  H_gga_8au_60Ry_2s1p.orb
-  O_gga_7au_60Ry_2s2p1d.orb
+    ```txt
+    NUMERICAL_ORBITAL
+    H_gga_8au_60Ry_2s1p.orb
+    O_gga_7au_60Ry_2s2p1d.orb
 
-  NUMERICAL_DESCRIPTOR
-  jle.orb
-  ```
+    NUMERICAL_DESCRIPTOR
+    jle.orb
+    ```
+
 - **Default**: 0
 
 #### deepks_descriptor_lmax
 
 - **Type**: Integer
-- **Description**: control the max angular momentum of descriptor basis.
-- **Default**: 0
+- **Description**: when generating projectors, this variable controls the max angular momentum of descriptor basis.
+- **Default**: 2
 
 #### deepks_scf
 
@@ -1031,13 +1042,26 @@ This part of variables are relevant when using hybrid functionals
 
 #### exx_hse_omega
 
-- **Type**:
+- **Type**: Real
 - **Description**: range-separation parameter in HSE functional, such that $1/r=erfc(\omega r)/r+erf(\omega r)/r$.
 - **Default**: 0.11
 
-adial integration for pseudopotentials, in Bohr.
-@@ -214,6 +279,13 @@ This part of variables are used to control general system para
+#### exx_separate_loop
 
+- **Type**: Boolean
+- **Description**: There are two types of iterative approach provided by ABACUS to evaluate Fock exchange. If this parameter is set to 0, it will start with a GGA-Loop, and then Hybrid-Loop, in which EXX Hamiltonian $H_{exx}$ is updated with electronic iterations. If this parameter is set to 1, a two-step method is employed, i.e. in the inner iterations, density matrix is updated, while in the outer iterations, $H_{exx}$ is calculated based on density matrix that converges in the inner iteration. 
+- **Default**: 1
+
+#### exx_hybrid_step
+
+- **Type**: Integer
+- **Description**: This variable indicates the maximal electronic iteration number in the evaluation of Fock exchange.
+- **Default**: 100
+
+#### exx_lambda
+
+- **Type**: Real
+- **Description**: It is used to compensate for divergence points at G=0 in the evaluation of Fock exchange using *lcao_in_pw* method.
 - **Default**: 0.3
 
 #### exx_pca_threshold
@@ -1652,12 +1676,6 @@ This part of variables are used to control berry phase and wannier90 interfacae 
 
 - **Type**: Boolean
 - **Description**: If set to 1, output to terminal will have some color.
-- **Default**: 0
-
-#### test_just_neighbor
-
-- **Type**: Boolean
-- **Description**: If set to 1, then only perform the neighboring atoms search.
 - **Default**: 0
 
 ### Electronic conductivities
