@@ -53,6 +53,11 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
 		XC_Functional::set_xc_type(ucell.atoms[0].xc_func);
 	}
 
+    // ========== for test =============
+    // XC_Functional::set_xc_type("pbe");
+    // =================================
+
+
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "SETUP UNITCELL");
     
     // symmetry analysis should be performed every time the cell is changed
@@ -415,12 +420,21 @@ void ESolver_OF::updateV()
     this->normdLdphi_last = this->normdLdphi;
     // ====================================================================
     this->normdLdphi = 0.;
+
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
+    // ============test of reciprocal potential============================
+        // this->pw_rho->real2recip(this->pdLdphi[is], this->precipDir[is]);
+        // for (int ig = 0; ig < this->pw_rho->npw; ++ig)
+        // {
+        //     this->normdLdphi += norm(this->precipDir[is][ig]);
+        // }
+    // ====================================================================
        this->normdLdphi += this->inner_product(this->pdLdphi[is], this->pdLdphi[is], this->nrxx, 1);
     }
     Parallel_Reduce::reduce_double_all(this->normdLdphi);
     this->normdLdphi = sqrt(this->normdLdphi/this->pw_rho->nxyz/GlobalV::NSPIN);
+    // this->normdLdphi = sqrt(this->normdLdphi/this->pw_rho->npwtot/GlobalV::NSPIN);
 }
 
 //
