@@ -223,4 +223,6 @@ double of_wt_alpha = 5./6.;
 double of_wt_beta = 5./6.;
 double of_wt_rho0 = 0.;
 bool of_hold_rho0 = false;
+bool of_full_pw = false;
+int of_full_pw_dim = 0;
 } // namespace GlobalV

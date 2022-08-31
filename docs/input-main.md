@@ -8,56 +8,43 @@
 
 - [System variables](#system-variables)
 
-    [suffix](#suffix) | [ntype](#ntype) | [calculation](#calculation) | [symmetry](#symmetry) | [kpar](#kpar) | [bndpar](#bndpar) | [latname](#latname) | [init_wfc](#init_wfc) | [init_chg](#init_chg) | [init_vel](#init_vel) | [nelec](#nelec) | [tot_magnetization](#tot_magnetization) | [dft_functional](#dft_functional) | [pseudo_type](#pseudo_type) |  [pseudo_rcut](#pseudo_rcut) | [pseudo_mesh](#pseudo_mesh) | [mem_saver](#mem_saver) | [diago_proc](#diago_proc) | [nbspline](#nbspline) | [kspacing](#kspacing)  | [min_dist_coef](#min_dist_coef)
-
+  [suffix](#suffix) | [ntype](#ntype) | [calculation](#calculation) | [symmetry](#symmetry) | [kpar](#kpar) | [bndpar](#bndpar) | [latname](#latname) | [init_wfc](#init_wfc) | [init_chg](#init_chg) | [init_vel](#init_vel) | [nelec](#nelec) | [tot_magnetization](#tot_magnetization) | [dft_functional](#dft_functional) | [pseudo_type](#pseudo_type) |  [pseudo_rcut](#pseudo_rcut) | [pseudo_mesh](#pseudo_mesh) | [mem_saver](#mem_saver) | [diago_proc](#diago_proc) | [nbspline](#nbspline) | [kspacing](#kspacing)  | [min_dist_coef](#min_dist_coef)
 - [Variables related to input files](#variables-related-to-input-files)
 
-    [stru_file](#stru_file) | [kpoint_file](#kpoint_file) | [pseudo_dir](#pseudo_dir) | [orbital_dir](#orbital_dir) | [read_file_dir](#read_file_dir)
-
+  [stru_file](#stru_file) | [kpoint_file](#kpoint_file) | [pseudo_dir](#pseudo_dir) | [orbital_dir](#orbital_dir) | [read_file_dir](#read_file_dir)
 - [Plane wave related variables](#plane-wave-related-variables)
 
-    [ecutwfc](#ecutwfc) | [nx,ny,nz](#nx-ny-nz) | [pw_seed](#pw_seed) | [pw_diag_thr](#pw_diag_thr) | [pw_diag_nmax](#pw_diag_nmax) | [pw_diag_ndim](#pw_diag_ndim)
-
+  [ecutwfc](#ecutwfc) | [nx,ny,nz](#nx-ny-nz) | [pw_seed](#pw_seed) | [pw_diag_thr](#pw_diag_thr) | [pw_diag_nmax](#pw_diag_nmax) | [pw_diag_ndim](#pw_diag_ndim)
 - [Numerical atomic orbitals related variables](#numerical-atomic-orbitals-related-variables)
 
-    [nb2d](#nb2d) | [lmaxmax](#lmaxmax) | [lcao_ecut](#lcao_ecut) | [lcao_dk](#lcao_dk) | [lcao_dr](#lcao_dr) | [lcao_rmax](#lcao_rmax) | [search_radius](#search_radius) | [search_pbc](#search_pbc)
-
+  [nb2d](#nb2d) | [lmaxmax](#lmaxmax) | [lcao_ecut](#lcao_ecut) | [lcao_dk](#lcao_dk) | [lcao_dr](#lcao_dr) | [lcao_rmax](#lcao_rmax) | [search_radius](#search_radius) | [search_pbc](#search_pbc)
 - [Electronic structure](#electronic-structure)
 
-    [basis_type](#basis_type) | [ks_solver](#ks_solver) | [nbands](#nbands) | [nbands_istate](#nbands_istate) | [nspin](#nspin) | [occupations](#occupations) | [smearing_method](#smearing_method) | [smearing_sigma](#smearing_sigma) | [mixing_type](#mixing_type) | [mixing_beta](#mixing_beta) | [mixing_ndim](#mixing_ndim) | [mixing_gg0](#mixing_gg0) | [gamma_only](#gamma_only) | [printe](#printe) | [scf_nmax](#scf_nmax) | [scf_thr](#scf_thr) | [chg_extrap](#chg_extrap)
-
+  [basis_type](#basis_type) | [ks_solver](#ks_solver) | [nbands](#nbands) | [nbands_istate](#nbands_istate) | [nspin](#nspin) | [occupations](#occupations) | [smearing_method](#smearing_method) | [smearing_sigma](#smearing_sigma) | [mixing_type](#mixing_type) | [mixing_beta](#mixing_beta) | [mixing_ndim](#mixing_ndim) | [mixing_gg0](#mixing_gg0) | [gamma_only](#gamma_only) | [printe](#printe) | [scf_nmax](#scf_nmax) | [scf_thr](#scf_thr) | [chg_extrap](#chg_extrap)
 - [Electronic structure (SDFT)](#electronic-structure-sdft)
 
-    [method_sto](#method_sto) | [nbands_sto](#nbands_sto) | [nche_sto](#nche_sto) | [emin_sto](#emin_sto) | [emax_sto](#emax_sto) | [seed_sto](#seed_sto) | [initsto_freq](#initsto_freq)
-
+  [method_sto](#method_sto) | [nbands_sto](#nbands_sto) | [nche_sto](#nche_sto) | [emin_sto](#emin_sto) | [emax_sto](#emax_sto) | [seed_sto](#seed_sto) | [initsto_freq](#initsto_freq)
 - [Geometry relaxation](#geometry-relaxation)
 
-    [relax_nmax](#relax_nmax) | [relax_method](#relax_method) | [relax_cg_thr](#relax_cg_thr) | [relax_bfgs_w1](#relax_bfgs_w1) | [relax_bfgs_w2](#relax_bfgs_w2) | [relax_bfgs_rmax](#relax_bfgs_rmax) | [relax_bfgs_rmin](#relax_bfgs_rmin) | [relax_bfgs_init](#relax_bfgs_init) | [cal_force](#cal_force) | [force_thr](#force_thr) | [force_thr_ev](#force_thr_ev) | [cal_stress](#cal_stress) | [stress_thr](#stress_thr) | [press1, press2, press3](#press1-press2-press3) | [fixed_axes](#fixed_axes) | [cell_factor](#cell_factor)
-
+  [relax_nmax](#relax_nmax) | [relax_method](#relax_method) | [relax_cg_thr](#relax_cg_thr) | [relax_bfgs_w1](#relax_bfgs_w1) | [relax_bfgs_w2](#relax_bfgs_w2) | [relax_bfgs_rmax](#relax_bfgs_rmax) | [relax_bfgs_rmin](#relax_bfgs_rmin) | [relax_bfgs_init](#relax_bfgs_init) | [cal_force](#cal_force) | [force_thr](#force_thr) | [force_thr_ev](#force_thr_ev) | [cal_stress](#cal_stress) | [stress_thr](#stress_thr) | [press1, press2, press3](#press1-press2-press3) | [fixed_axes](#fixed_axes) | [cell_factor](#cell_factor)
 - [Variables related to output information](#variables-related-to-output-information)
 
-    [out_force](#out_force) | [out_mul](#out_mul) | [out_freq_elec](#out_freq_elec) | [out_freq_ion](#out_freq_ion) | [out_chg](#out_chg) | [out_pot](#out_pot) | [out_dm](#out_dm) | [out_wfc_pw](#out_wfc_pw) | [out_wfc_r](#out_wfc_r) | [out_wfc_lcao](#out_wfc_lcao) | [out_dos](#out_dos) | [out_band](#out_band) | [out_proj_band](#out_proj_band) | [out_stru](#out_stru) | [out_level](#out_level) | [out_alllog](#out_alllog) | [out_mat_hs](#out_mat_hs) | [out_mat_r](#out_mat_r) | [out_mat_hs2](#out_mat_hs2) | [out_element_info](#out_element_info) | [restart_save](#restart_save) | [restart_load](#restart_load)
-
+  [out_force](#out_force) | [out_mul](#out_mul) | [out_freq_elec](#out_freq_elec) | [out_freq_ion](#out_freq_ion) | [out_chg](#out_chg) | [out_pot](#out_pot) | [out_dm](#out_dm) | [out_wfc_pw](#out_wfc_pw) | [out_wfc_r](#out_wfc_r) | [out_wfc_lcao](#out_wfc_lcao) | [out_dos](#out_dos) | [out_band](#out_band) | [out_proj_band](#out_proj_band) | [out_stru](#out_stru) | [out_level](#out_level) | [out_alllog](#out_alllog) | [out_mat_hs](#out_mat_hs) | [out_mat_r](#out_mat_r) | [out_mat_hs2](#out_mat_hs2) | [out_element_info](#out_element_info) | [restart_save](#restart_save) | [restart_load](#restart_load)
 - [Density of states](#density-of-states)
 
-    [dos_edelta_ev](#dos_edelta_ev) | [dos_sigma](#dos_sigma) | [dos_scale](#dos_scale) | [dos_nche](#dos_nche)
-
+  [dos_edelta_ev](#dos_edelta_ev) | [dos_sigma](#dos_sigma) | [dos_scale](#dos_scale) | [dos_nche](#dos_nche)
 - [Exact exchange](#exact-exchange) (Under tests)
 
-    [exx_hybrid_type](#exx_hybrid_type) | [exx_hybrid_alpha](#exx_hybrid_alpha) | [exx_hse_omega](#exx_hse_omega) | [exx_separate_loop](#exx_separate_loop) | [exx_hybrid_step](#exx_hybrid_step) | [exx_lambda](#exx_lambda) | [exx_pca_threshold](#exx_pca_threshold) | [exx_c_threshold](#exx_c_threshold) | [exx_v_threshold](#exx_v_threshold) | [exx_dm_threshold](#exx_dm_threshold) | [exx_schwarz_threshold](#exx_schwarz_threshold) | [exx_cauchy_threshold](#exx_cauchy_threshold) | [exx_ccp_threshold](#exx_ccp_threshold) | [exx_ccp_rmesh_times](#exx_ccp_rmesh_times) | [exx_distribute_type](#exx_distribute_type) | [exx_opt_orb_lmax](#exx_opt_orb_lmax) | [exx_opt_orb_ecut](#exx_opt_orb_ecut) | [exx_opt_orb_tolerence](#exx_opt_orb_tolerence)
-
+  [exx_hybrid_type](#exx_hybrid_type) | [exx_hybrid_alpha](#exx_hybrid_alpha) | [exx_hse_omega](#exx_hse_omega) | [exx_separate_loop](#exx_separate_loop) | [exx_hybrid_step](#exx_hybrid_step) | [exx_lambda](#exx_lambda) | [exx_pca_threshold](#exx_pca_threshold) | [exx_c_threshold](#exx_c_threshold) | [exx_v_threshold](#exx_v_threshold) | [exx_dm_threshold](#exx_dm_threshold) | [exx_schwarz_threshold](#exx_schwarz_threshold) | [exx_cauchy_threshold](#exx_cauchy_threshold) | [exx_ccp_threshold](#exx_ccp_threshold) | [exx_ccp_rmesh_times](#exx_ccp_rmesh_times) | [exx_distribute_type](#exx_distribute_type) | [exx_opt_orb_lmax](#exx_opt_orb_lmax) | [exx_opt_orb_ecut](#exx_opt_orb_ecut) | [exx_opt_orb_tolerence](#exx_opt_orb_tolerence)
 - [Molecular dynamics](#molecular-dynamics)
 
-    [md_type](#md_type) | [md_nstep](#md_nstep) | [md_ensolver](#md_ensolver) | [md_restart](#md_restart) | [md_dt](#md_dt) | [md_t](#md_t) | [md_dumpfreq](#md_dumpfreq) | [md_restartfreq](#md_restartfreq) | [md_seed](#md_seed) | [md_tfreq](#md_tfreq) | [md_mnhc](#md_mnhc) | [lj_rcut](#lj_rcut) | [lj_epsilon](#lj_epsilon) | [lj_sigma](#lj_sigma) | [msst_direction](#msst_direction) | [msst_vel](#msst_vel) | [msst_vis](#msst_vis) | [msst_tscale](#msst_tscale) | [msst_qmass](#msst_qmass) | [md_damp](#md_damp)
-
+  [md_type](#md_type) | [md_nstep](#md_nstep) | [md_ensolver](#md_ensolver) | [md_restart](#md_restart) | [md_dt](#md_dt) | [md_t](#md_t) | [md_dumpfreq](#md_dumpfreq) | [md_restartfreq](#md_restartfreq) | [md_seed](#md_seed) | [md_tfreq](#md_tfreq) | [md_mnhc](#md_mnhc) | [lj_rcut](#lj_rcut) | [lj_epsilon](#lj_epsilon) | [lj_sigma](#lj_sigma) | [msst_direction](#msst_direction) | [msst_vel](#msst_vel) | [msst_vis](#msst_vis) | [msst_tscale](#msst_tscale) | [msst_qmass](#msst_qmass) | [md_damp](#md_damp)
 - [vdW correction](#vdw-correction)
 
-    [vdw_method](#vdw_method) | [vdw_s6](#vdw_s6) | [vdw_s8](#vdw_s8) | [vdw_a1](#vdw_a1) | [vdw_a2](#vdw_a2) | [vdw_d](#vdw_d) | [vdw_abc](#vdw_abc) | [vdw_C6_file](#vdw_C6_file) | [vdw_C6_unit](#vdw_C6_unit) | [vdw_R0_file](#vdw_R0_file) | [vdw_R0_unit](#vdw_R0_unit) | [vdw_model](#vdw_model) | [vdw_radius](#vdw_radius) | [vdw_radius_unit](#vdw_radius_unit) | [vdw_cn_radius](#vdw_cn_radius) | [vdw_cn_radius_unit](#vdw_cn_radius_unit) | [vdw_period](#vdw_period)
-
+  [vdw_method](#vdw_method) | [vdw_s6](#vdw_s6) | [vdw_s8](#vdw_s8) | [vdw_a1](#vdw_a1) | [vdw_a2](#vdw_a2) | [vdw_d](#vdw_d) | [vdw_abc](#vdw_abc) | [vdw_C6_file](#vdw_C6_file) | [vdw_C6_unit](#vdw_C6_unit) | [vdw_R0_file](#vdw_R0_file) | [vdw_R0_unit](#vdw_R0_unit) | [vdw_model](#vdw_model) | [vdw_radius](#vdw_radius) | [vdw_radius_unit](#vdw_radius_unit) | [vdw_cn_radius](#vdw_cn_radius) | [vdw_cn_radius_unit](#vdw_cn_radius_unit) | [vdw_period](#vdw_period)
 - [Berry phase and wannier90 interface](#berry-phase-and-wannier90-interface)
 
-    [berry_phase](#berry_phase) | [gdir](#gdir) | [towannier90](#towannier90) | [nnkpfile](#nnkpfile) | [wannier_spin](#wannier_spin)
-
+  [berry_phase](#berry_phase) | [gdir](#gdir) | [towannier90](#towannier90) | [nnkpfile](#nnkpfile) | [wannier_spin](#wannier_spin)
 - [TDDFT: time dependent density functional theory](#tddft-time-dependent-density-functional-theory) (Under tests)
 
   [tddft](#tddft) | [td_scf_thr](#td_scf_thr) | [td_dt](#td_dt) | [td_force_dt](#td_force_dt) | [td_vext](#td_vext) | [td_vext_dire](#td_vext_dire) | [td_timescale](#td_timescale) | [td_vexttype](#td_vexttype) | [td_vextout](#td_vextout) | [td_dipoleout](#td_dipoleout) | [ocp](#ocp) | [ocp_set](#ocp_set)
@@ -66,23 +53,19 @@
   [dft_plus_u](#dft_plus_u) | [orbital_corr](#orbital_corr) | [hubbard_u](#hubbard_u) | [hund_j](#hund_j) | [yukawa_potential](#yukawa_potential) | [omc](#omc)
 - [Variables useful for debugging](#variables-useful-for-debugging)
 
-    [nurse](#nurse) | [t_in_h](#t_in_h) | [vl_in_h](#vl_in_h) | [vnl_in_h](#vnl_in_h) | [test_force](#test_force) | [test_stress](#test_stress) | [colour](#colour)
-
+  [nurse](#nurse) | [t_in_h](#t_in_h) | [vl_in_h](#vl_in_h) | [vnl_in_h](#vnl_in_h) | [test_force](#test_force) | [test_stress](#test_stress) | [colour](#colour)
 - [OFDFT: orbital free density functional theory](#ofdft-orbital-free-density-functional-theory)
 
   [of_kinetic](#of_kinetic) | [of_method](#of_method) | [of_conv](#of_conv) | [of_tole](#of_tole) | [of_tolp](#of_tolp) | [of_tf_weight](#of_tf_weight) | [of_vw_weight](#of_vw_weight) | [of_wt_alpha](#of_wt_alpha) | [of_wt_beta](#of_wt_beta) | [of_wt_rho0](#of_wt_rho0) | [of_hold_rho0](#of_hold_rho0)
-
 - [DeePKS](#deepks)
 
-    [deepks_out_labels](#deepks_out_labels) | [deepks_descriptor_lmax](#deepks_descriptor_lmax) | [deepks_scf](#deepks_scf) | [deepks_model](#deepks_model)
-
+  [deepks_out_labels](#deepks_out_labels) | [deepks_descriptor_lmax](#deepks_descriptor_lmax) | [deepks_scf](#deepks_scf) | [deepks_model](#deepks_model)
 - [Electric field and dipole correction](#electric-field-and-dipole-correction)
 
   [efield_flag](#efield_flag) | [dip_cor_flag](#dip_cor_flag) | [efield_dir](#efield_dir) | [efield_pos_max](#efield_pos_max) | [efield_pos_dec](#efield_pos_dec) | [efield_amp ](#efield_amp)
-
 - [Electronic conductivities](#electronic-conductivities)
 
-    [cal_cond](#cal_cond) | [cond_nche](#cond_nche) | [cond_dw](#cond_dw) | [cond_wcut](#cond_wcut) | [cond_wenlarge](#cond_wenlarge) | [cond_fwhm ](#cond_fwhm )
+  [cal_cond](#cal_cond) | [cond_nche](#cond_nche) | [cond_dw](#cond_dw) | [cond_wcut](#cond_wcut) | [cond_wenlarge](#cond_wenlarge) | [cond_fwhm ](#cond_fwhm)
 
 [back to main page](../README.md)
 
@@ -945,15 +928,14 @@ Warning: this function is not robust enough for the current version. Please try 
 - **Type**: Boolean
 - **Description**: when set to 1, ABACUS will calculate and output descriptor for DeePKS training. In `LCAO` calculation, a path of *.orb file is needed to be specified under `NUMERICAL_DESCRIPTOR`in `STRU`file. For example:
 
-    ```txt
-    NUMERICAL_ORBITAL
-    H_gga_8au_60Ry_2s1p.orb
-    O_gga_7au_60Ry_2s2p1d.orb
+  ```txt
+  NUMERICAL_ORBITAL
+  H_gga_8au_60Ry_2s1p.orb
+  O_gga_7au_60Ry_2s2p1d.orb
 
-    NUMERICAL_DESCRIPTOR
-    jle.orb
-    ```
-
+  NUMERICAL_DESCRIPTOR
+  jle.orb
+  ```
 - **Default**: 0
 
 #### deepks_descriptor_lmax
@@ -982,11 +964,19 @@ This part of variables are relevant to electric field and dipole correction
 
 - **Type**: Boolean
 - **Description**: If set to true, a saw-like potential simulating an electric field
-<<<<<<< HEAD
+  <<<<<<< HEAD
   is added to the bare ionic potential.
-=======
-is added to the bare ionic potential.
+  =======
+  is added to the bare ionic potential.
+
 >>>>>>> 6a545cdc4f2b2601dabe2a62a649a2b62381e82b
+>>>>>>>
+>>>>>>
+>>>>>
+>>>>
+>>>
+>>
+
 - **Default**: false
 
 #### dip_cor_flag
@@ -1049,7 +1039,7 @@ This part of variables are relevant when using hybrid functionals
 #### exx_separate_loop
 
 - **Type**: Boolean
-- **Description**: There are two types of iterative approach provided by ABACUS to evaluate Fock exchange. If this parameter is set to 0, it will start with a GGA-Loop, and then Hybrid-Loop, in which EXX Hamiltonian $H_{exx}$ is updated with electronic iterations. If this parameter is set to 1, a two-step method is employed, i.e. in the inner iterations, density matrix is updated, while in the outer iterations, $H_{exx}$ is calculated based on density matrix that converges in the inner iteration. 
+- **Description**: There are two types of iterative approach provided by ABACUS to evaluate Fock exchange. If this parameter is set to 0, it will start with a GGA-Loop, and then Hybrid-Loop, in which EXX Hamiltonian $H_{exx}$ is updated with electronic iterations. If this parameter is set to 1, a two-step method is employed, i.e. in the inner iterations, density matrix is updated, while in the outer iterations, $H_{exx}$ is calculated based on density matrix that converges in the inner iteration.
 - **Default**: 1
 
 #### exx_hybrid_step
@@ -1215,15 +1205,23 @@ This part of variables are used to control the molecular dynamics calculations.
 - **Type**: Real
 - **Description**:
   - When md_type = 1, md_tfreq controls the frequency of the temperature oscillations during the simulation. If it is too large, the
-<<<<<<< HEAD
+    <<<<<<< HEAD
     temperature will fluctuate violently; if it is too small, the temperature will take a very long time to equilibrate with the atomic system.
     temperature will fluctuate violently; if it is too small, the temperature will take a very long time to equilibrate with the atomic system.
     temperature will fluctuate violently; if it is too small, the temperature will take a very long time to equilibrate with the atomic system.
-=======
-temperature will fluctuate violently; if it is too small, the temperature will take a very long time to equilibrate with the atomic system.
+    =======
+    temperature will fluctuate violently; if it is too small, the temperature will take a very long time to equilibrate with the atomic system.
+
 >>>>>>> 6a545cdc4f2b2601dabe2a62a649a2b62381e82b
-  - When md_type = 3, md_tfreq*md_dt is the collision probability in Anderson method.
-  - If md_tfreq is not set in INPUT, md_tfreq will be autoset to be 1/40/md_dt.
+>>>>>>>
+>>>>>>
+>>>>>
+>>>>
+>>>
+>>
+
+- When md_type = 3, md_tfreq*md_dt is the collision probability in Anderson method.
+- If md_tfreq is not set in INPUT, md_tfreq will be autoset to be 1/40/md_dt.
 - **Default**: 1/40/md_dt
 
 #### md_mnhc
@@ -1634,6 +1632,18 @@ This part of variables are used to control berry phase and wannier90 interfacae 
 - **Description**:If set to 1, the rho0 will be fixed even if the volume of system has changed, it will be set to 1 automaticly if of_wt_rho0 is not zero.
 - **Default**: 0
 
+#### of_full_pw
+
+- **Type**: Boolean
+- **Description**:If set to 1, ecut will be ignored while collecting planewaves, so that all planewaves will be used.
+- **Default**: 0
+
+#### of_full_pw_dim
+
+- **Type**: Integer
+- **Description**:If of_full_pw = 1, the dimention of FFT will be testricted to be (0) either odd or even; (1) odd only; (2) even only.
+- **Default**: 0
+
 ### Variables useful for debugging
 
 #### nurse
@@ -1682,14 +1692,22 @@ This part of variables are used to control berry phase and wannier90 interfacae 
 
 Frequency-dependent electronic conductivities can be calculated with Kubo-Greenwood formula[Phys. Rev. B 83, 235120 (2011)].
 Onsager coefficiencies:
-$$L_{mn}(\omega)=(-1)^{m+n}\frac{2\pi e^2\hbar^2}{3m_e^2\omega\Omega}\\
+
+$$
+L_{mn}(\omega)=(-1)^{m+n}\frac{2\pi e^2\hbar^2}{3m_e^2\omega\Omega}\\
 \times\sum_{ij\alpha\mathbf{k}}W(\mathbf{k})\left(\frac{\epsilon_{i\mathbf{k}}+\epsilon_{j\mathbf{k}}}{2}-\mu\right)^{m+n-2}|
 \langle\Psi_{i\mathbf{k}}|\nabla_\alpha|\Psi_{j\mathbf{k}}\rangle|^2\\
-\times[f(\epsilon_{i\mathbf{k}})-f(\epsilon_{j\mathbf{k}})]\delta(\epsilon_{j\mathbf{k}}-\epsilon_{i\mathbf{k}}-\hbar\omega).$$
+\times[f(\epsilon_{i\mathbf{k}})-f(\epsilon_{j\mathbf{k}})]\delta(\epsilon_{j\mathbf{k}}-\epsilon_{i\mathbf{k}}-\hbar\omega).
+$$
+
 They can also computed by $j$-$j$ correlation function.
-$$L_{mn}=\frac{2e^{m+n-2}}{3\Omega\hbar\omega}\Im[\tilde{C}_{mn}(\omega)]\\
+
+$$
+L_{mn}=\frac{2e^{m+n-2}}{3\Omega\hbar\omega}\Im[\tilde{C}_{mn}(\omega)]\\
 \tilde{C}_{mn}=\int_0^\infty C_{mn}(t)e^{-i\omega t}e^{-\frac{1}{2}(\Delta E)^2t^2}dt\\
-C_{mn}(t)=-2\theta(t)\Im\left\{Tr\left[\sqrt{\hat f}\hat{j}_m(1-\hat{f})e^{i\frac{\hat{H}}{\hbar}t}\hat{j}_ne^{-i\frac{\hat{H}}{\hbar}t}\sqrt{\hat f}\right]\right\},$$
+C_{mn}(t)=-2\theta(t)\Im\left\{Tr\left[\sqrt{\hat f}\hat{j}_m(1-\hat{f})e^{i\frac{\hat{H}}{\hbar}t}\hat{j}_ne^{-i\frac{\hat{H}}{\hbar}t}\sqrt{\hat f}\right]\right\},
+$$
+
 where $j_1$ is electric flux and $j_2$ is thermal flux.
 Frequency-dependent electric conductivities:    $\sigma(\omega)=L_{11}(\omega).$
 Frequency-dependent thermal conductivities: $\kappa(\omega)=\frac{1}{e^2T}\left(L_{22}-\frac{L_{12}^2}{L_{11}}\right).$
@@ -1699,7 +1717,7 @@ Thermal conductivities: $\kappa = \lim_{\omega\to 0}\kappa(\omega)$
 #### cal_cond
 
 - **Type**: Boolean
-- **Description**: If set to 1, electronic conductivities will be calculated. Only supported in calculations of SDFT and KSDFT_PW. 
+- **Description**: If set to 1, electronic conductivities will be calculated. Only supported in calculations of SDFT and KSDFT_PW.
 - **Default**: 0
 
 #### cond_nche

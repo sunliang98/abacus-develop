@@ -720,10 +720,13 @@ void ESolver_OF::solveV()
 void ESolver_OF::getNextDirect()
 {
     // ============ for test ===============
-    for (int is = 0; is < GlobalV::NSPIN; ++is)
+    if (!GlobalV::of_full_pw)
     {
-        pw_rho->real2recip(this->pdirect[is], this->precipDir[is]);
-        pw_rho->recip2real(this->precipDir[is], this->pdirect[is]);
+        for (int is = 0; is < GlobalV::NSPIN; ++is)
+        {
+            pw_rho->real2recip(this->pdirect[is], this->precipDir[is]);
+            pw_rho->recip2real(this->precipDir[is], this->pdirect[is]);
+        }
     }
     // =====================================
 

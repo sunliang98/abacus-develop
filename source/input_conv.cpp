@@ -523,7 +523,6 @@ void Input_Conv::Convert(void)
     GlobalC::solvent_model.comp_l = INPUT.comp_l;
     GlobalC::solvent_model.comp_center = INPUT.comp_center;
     GlobalC::solvent_model.comp_dim = INPUT.comp_dim;
-    ModuleBase::timer::tick("Input_Conv", "Convert");
     //-----------------------------------------------
     // sunliang add for ofdft 20220-05-11
     //-----------------------------------------------
@@ -538,5 +537,9 @@ void Input_Conv::Convert(void)
     GlobalV::of_wt_beta = INPUT.of_wt_beta;
     GlobalV::of_wt_rho0 = INPUT.of_wt_rho0;
     GlobalV::of_hold_rho0 = INPUT.of_hold_rho0;
+    GlobalV::of_full_pw = INPUT.of_full_pw;
+    GlobalV::of_full_pw_dim = INPUT.of_full_pw_dim;
+    
+    ModuleBase::timer::tick("Input_Conv", "Convert");
     return;
 }

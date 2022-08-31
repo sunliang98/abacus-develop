@@ -455,6 +455,8 @@ void Input::Default(void)
     of_wt_beta = 5./6.;
     of_wt_rho0 = 0.;
     of_hold_rho0 = false;
+    of_full_pw = false;
+    of_full_pw_dim = 0;
 
     return;
 }
@@ -1650,6 +1652,14 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, of_hold_rho0);
         }
+        else if (strcmp("of_full_pw", word) == 0)
+        {
+            read_value(ifs, of_full_pw);
+        }
+        else if (strcmp("of_full_pw_dim", word) == 0)
+        {
+            read_value(ifs, of_full_pw_dim);
+        }
         //----------------------------------------------------------------------------------
         else
         {
@@ -2016,6 +2026,7 @@ void Input::Default_2(void) // jiyy add 2019-08-04
         method_sto = 2;
     }
     if(of_wt_rho0 != 0) of_hold_rho0 = true; // sunliang add 2022-06-17
+    if(!of_full_pw) of_full_pw_dim = 0; // sunliang add 2022-08-31
 }
 #ifdef __MPI
 void Input::Bcast()
@@ -2370,6 +2381,8 @@ void Input::Bcast()
     Parallel_Common::bcast_double(of_wt_beta);
     Parallel_Common::bcast_double(of_wt_rho0);
     Parallel_Common::bcast_bool(of_hold_rho0);
+    Parallel_Common::bcast_bool(of_full_pw);
+    Parallel_Common::bcast_int(of_full_pw_dim);
 
     return;
 }
