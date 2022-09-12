@@ -107,12 +107,17 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
     this->pdirect = new double*[GlobalV::NSPIN];
     this->precipDir = new std::complex<double> *[GlobalV::NSPIN];
 
+    // this->pdeltaRho = new double*[GlobalV::NSPIN];
+    // this->pdeltaRhoHar = new double[this->pw_rho->nrxx];
+
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
         this->pdLdphi[is] = new double[this->nrxx];
         this->pdEdphi[is] = new double[this->nrxx];
         this->pdirect[is] = new double[this->nrxx];
         this->precipDir[is] = new std::complex<double>[pw_rho->npw];
+
+        // this->pdeltaRho[is] = new double[this->nrxx];
     }
 
     // Calculate Structure factor
@@ -353,7 +358,7 @@ void ESolver_OF::preprocess()
     {
         srho.begin(is, GlobalC::CHR, GlobalC::rhopw, GlobalC::Pgrid, GlobalC::symm);
     }
-    // ==== for md test ====
+
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
         if (GlobalC::pot.init_chg != "file")
@@ -374,7 +379,7 @@ void ESolver_OF::preprocess()
             }
         }
     }
-    // ========================
+
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
         this->mu[is] = 0;
@@ -402,9 +407,7 @@ void ESolver_OF::updateV()
         for (int ir = 0; ir < this->nrxx; ++ir)
         { 
             // for vw test, remember to modify it !!!
-            // if (this->iter > 1) assert(this->pdEdphi[is][ir] == GlobalC::pot.vr_eff(is,ir));
             this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir);
-            // cout << pdEdphi[is][ir] << "  ";
             // =======================================
             // this->pdEdphi[is][ir] = GlobalC::pot.vr_eff(is,ir) * 2. * this->pphi[is][ir];
         }
@@ -424,18 +427,10 @@ void ESolver_OF::updateV()
 
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
-    // ============test of reciprocal potential============================
-        // this->pw_rho->real2recip(this->pdLdphi[is], this->precipDir[is]);
-        // for (int ig = 0; ig < this->pw_rho->npw; ++ig)
-        // {
-        //     this->normdLdphi += norm(this->precipDir[is][ig]);
-        // }
-    // ====================================================================
        this->normdLdphi += this->inner_product(this->pdLdphi[is], this->pdLdphi[is], this->nrxx, 1);
     }
     Parallel_Reduce::reduce_double_all(this->normdLdphi);
     this->normdLdphi = sqrt(this->normdLdphi/this->pw_rho->nxyz/GlobalV::NSPIN);
-    // this->normdLdphi = sqrt(this->normdLdphi/this->pw_rho->npwtot/GlobalV::NSPIN);
 }
 
 //
@@ -789,34 +784,34 @@ void ESolver_OF::getNextDirect()
 
 void ESolver_OF::updateRho()
 {
-    // for test !!!
-    // int numMinusPhi = 0;
-    // double numElec = 0.;
-    // =============
+    // this->deltaRhoG = 0.;
+    // this->deltaRhoR = 0.;
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
         for (int ir = 0; ir < this->nrxx; ++ir)
         {
             this->pphi[is][ir] = this->pphi[is][ir] * cos(this->theta[is]) + this->pdirect[is][ir] * sin(this->theta[is]);
-    //     }
-    //         // ============ for test ===============
-
-    //     pw_rho->real2recip(this->pphi[is], this->precipDir[is]);
-    //     pw_rho->recip2real(this->precipDir[is], this->pphi[is]);
-
-    // // =====================================
-    //     for (int ir = 0; ir < this->nrxx; ++ir)
-    //     {
+            // GlobalC::CHR.rho_save[is][ir] = GlobalC::CHR.rho[is][ir];
             GlobalC::CHR.rho[is][ir] = this->pphi[is][ir] * this->pphi[is][ir];
-            // for test !!!
-            // if (this->pphi[is][ir] < 0) numMinusPhi++;
-            // if (this->pphi[is][ir] < 0) cout << pphi[is][ir];
-            // numElec += GlobalC::CHR.rho[is][ir];
-            // this->pphi[is][ir] = abs(this->pphi[is][ir]);
-            // ============
+            // this->pdeltaRho[is][ir] = GlobalC::CHR.rho[is][ir] - GlobalC::CHR.rho_save[is][ir];
+            // this->deltaRhoR += abs(this->pdeltaRho[is][ir]);
+
         }
+        // this->pw_rho->real2recip(this->pdeltaRho[is], this->precipDir[is]);
+        // for (int ig = 0; ig < this->pw_rho->npw; ++ig)
+        // {
+        //     if (this->pw_rho->gg[ig] != 0.)
+        //         this->precipDir[is][ig] = this->precipDir[is][ig] / this->pw_rho->gg[ig] / this->pw_rho->tpiba2 * 4. * M_PI;
+        //     else
+        //         this->precipDir[is][ig] = 0.;
+        // }
+        // this->pw_rho->recip2real(this->precipDir[is], this->pdeltaRhoHar);
+        // this->deltaRhoG = this->inner_product(this->pdeltaRho[is], this->pdeltaRhoHar, this->nrxx, this->dV);
     }
-    // cout << "numMinusPhi = " << numMinusPhi << " numElec = " << numElec * this->dV << endl;
+    // Parallel_Reduce::reduce_double_all(this->deltaRhoR);
+    // Parallel_Reduce::reduce_double_all(this->deltaRhoG);
+    // this->deltaRhoR *= this->dV;
+    // this->deltaRhoG /= 2.;
 }
 
 //
@@ -909,11 +904,16 @@ void ESolver_OF::printInfo()
         if (this->iter == 0){
             cout << "============================================ OFDFT ============================================" <<  endl;
             cout << "Iter        Etot(Ha)          Theta       PotNorm        min/max(den)          min/max(dE/dPhi)" << endl;
+            // cout << "============================================ OFDFT ========================================" <<  endl;
+            // cout << "Iter        Etot(Ha)          Theta       PotNorm        deltaRhoG       deltaRhoR   deltaE" << endl;
         } 
         cout << setw(6) << this->iter 
         << setw(22) << setiosflags(ios::scientific) << setprecision(12) << GlobalC::en.etot/2. 
         << setw(12) << setprecision(3) << this->theta[0]
         << setw(12) << this->normdLdphi
+        // << setw(12) << this->deltaRhoG
+        // << setw(12) << this->deltaRhoR
+        // << setw(12) << this->energy_current - this->energy_last << endl;
     // ============ used to compare with PROFESS3.0 ================
         << setw(10) << minDen << "/ " << setw(12) << maxDen
         << setw(10) << minPot << "/ " << setw(10) << maxPot << endl;

@@ -79,6 +79,19 @@ public:
             delete[] this->precipDir;
         }
 
+        // if (this->pdeltaRho != NULL)
+        // {
+        //     for (int i = 0; i < GlobalV::NSPIN; ++i)
+        //     {
+        //         delete[] this->pdeltaRho[i];
+        //     }
+        //     delete[] this->pdeltaRho;
+        // } 
+        // if (this->pdeltaRhoHar != NULL)
+        // {
+        //     delete[] this->pdeltaRhoHar;
+        // } 
+
         if (this->nelec != NULL) delete[] this->nelec;
         if (this->theta != NULL) delete[] this->theta;
         if (this->mu != NULL) delete[] this->mu;
@@ -135,6 +148,12 @@ private:
     int tnSpinFlag = -1; // spin flag used in calV, which will be called by opt_tn
     int maxDCsrch = 200; // max no. of line search
     int flag = -1; // flag of TN
+
+    // // test rho convergence criterion
+    // double **pdeltaRho = NULL; // CHR.rho - CHR.rho_save
+    // double *pdeltaRhoHar = NULL; // 4pi*rhog/k^2
+    // double deltaRhoG = 0.; // 1/2\iint{deltaRho(r)deltaRho(r')/|r-r'|drdr'}
+    // double deltaRhoR = 0.; // \int{|deltaRho(r)|dr}
 
     // used in conv check
     bool conv = false;
