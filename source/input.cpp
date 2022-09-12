@@ -455,8 +455,10 @@ void Input::Default(void)
     of_wt_beta = 5./6.;
     of_wt_rho0 = 0.;
     of_hold_rho0 = false;
-    of_full_pw = false;
+    of_full_pw = true;
     of_full_pw_dim = 0;
+    of_read_kernel = false;
+    of_kernel_file = "WTkernel.txt";
 
     return;
 }
@@ -1660,6 +1662,14 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, of_full_pw_dim);
         }
+        else if (strcmp("of_read_kernel", word) == 0)
+        {
+            read_value(ifs, of_read_kernel);
+        }
+        else if (strcmp("of_kernel_file", word) == 0)
+        {
+            read_value(ifs, of_kernel_file);
+        }
         //----------------------------------------------------------------------------------
         else
         {
@@ -2027,6 +2037,7 @@ void Input::Default_2(void) // jiyy add 2019-08-04
     }
     if(of_wt_rho0 != 0) of_hold_rho0 = true; // sunliang add 2022-06-17
     if(!of_full_pw) of_full_pw_dim = 0; // sunliang add 2022-08-31
+    if(of_kinetic != "wt") of_read_kernel = false; // sunliang add 2022-09-12
 }
 #ifdef __MPI
 void Input::Bcast()
@@ -2383,6 +2394,8 @@ void Input::Bcast()
     Parallel_Common::bcast_bool(of_hold_rho0);
     Parallel_Common::bcast_bool(of_full_pw);
     Parallel_Common::bcast_int(of_full_pw_dim);
+    Parallel_Common::bcast_bool(of_read_kernel);
+    Parallel_Common::bcast_string(of_kernel_file);
 
     return;
 }

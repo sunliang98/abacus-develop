@@ -1,8 +1,10 @@
 #include "./kedf_wt.h"
 #include <iostream>
 #include "../src_parallel/parallel_reduce.h"
+#include "../module_base/tool_quit.h"
+#include "../module_base/global_variable.h"
 
-void KEDF_WT::set_para(int nx, double dV, double alpha, double beta, double nelec, double tf_weight, double vw_weight, ModulePW::PW_Basis *pw_rho)
+void KEDF_WT::set_para(int nx, double dV, double alpha, double beta, double nelec, double tf_weight, double vw_weight, bool read_kernel, std::string kernel_file, ModulePW::PW_Basis *pw_rho)
 {
     this->nx = nx;
     this->dV = dV;
@@ -22,16 +24,15 @@ void KEDF_WT::set_para(int nx, double dV, double alpha, double beta, double nele
     this->kF = pow(3. * pow(ModuleBase::PI, 2) * this->rho0, 1./3.);
     this->tkF = 2. * this->kF;
 
-    double coef = 5./(9. * this->alpha * this->beta * pow(this->rho0, this->alpha + this->beta - 5./3.));
+    this->WTcoef = 5./(9. * this->alpha * this->beta * pow(this->rho0, this->alpha + this->beta - 5./3.));
 
     if (this->kernel != NULL) delete[] this->kernel;
     this->kernel = new double[pw_rho->npw];
-    double eta = 0.;
-    for (int ip = 0; ip < pw_rho->npw; ++ip)
-    {
-        eta = sqrt(pw_rho->gg[ip]) * pw_rho->tpiba / this->tkF;
-        this->kernel[ip] = this->WTkernel(eta, tf_weight, vw_weight) * coef;
-    }
+
+    if (read_kernel)
+        this->readKernel(kernel_file, pw_rho);
+    else
+        this->fillKernel(tf_weight, vw_weight, pw_rho);
 }
 
 // 
@@ -345,4 +346,86 @@ void KEDF_WT::multiKernel(const double * const * prho, double **rkernelRho, doub
         delete[] recipkernelRho[is];
     }
     delete[] recipkernelRho;
+}
+
+void KEDF_WT::fillKernel(double tf_weight, double vw_weight, ModulePW::PW_Basis *pw_rho)
+{
+    double eta = 0.;
+    for (int ig = 0; ig < pw_rho->npw; ++ig)
+    {
+        eta = sqrt(pw_rho->gg[ig]) * pw_rho->tpiba / this->tkF;
+        this->kernel[ig] = this->WTkernel(eta, tf_weight, vw_weight) * this->WTcoef;
+    }
+}
+
+void KEDF_WT::readKernel(std::string fileName, ModulePW::PW_Basis *pw_rho)
+{
+    std::ifstream ifs(fileName.c_str(), ios::in);
+
+    GlobalV::ofs_running << "Read WT kernel from " << fileName << std::endl;
+    if (!ifs) ModuleBase::WARNING_QUIT("kedf_wt.cpp", "The kernel file of WT KEDF not found");
+
+    int kineType = 0;
+    double kF_in = 0.;
+    double rho0_in = 0.;
+    int nq_in = 0;
+    double maxEta_in = 0.;
+
+    ifs >> kineType;
+    ifs >> kF_in;
+    ifs >> rho0_in;
+    ifs >> nq_in;
+
+    double *eta_in = new double[nq_in];
+    double *w0_in = new double[nq_in];
+
+    for (int iq = 0; iq < nq_in; ++iq)
+    {
+        ifs >> eta_in[iq] >> w0_in[iq];
+    }
+
+    maxEta_in = eta_in[nq_in-1];
+
+    double eta = 0.;
+    double maxEta = 0.;
+    int ind1 = 0;
+    int ind2 = 0;
+    int ind_mid = 0;
+    double fac1 = 0.;
+    double fac2 = 0.;
+    for (int ig = 0; ig < pw_rho->npw; ++ig)
+    {
+        eta = sqrt(pw_rho->gg[ig]) * pw_rho->tpiba / this->tkF;
+        maxEta = std::max(eta, maxEta);
+
+        if (eta <= eta_in[0])
+            this->kernel[ig] = w0_in[0];
+        else if (eta > maxEta_in)
+            this->kernel[ig] = w0_in[nq_in-1];
+        else
+        {
+            ind1 = 1;
+            ind2 = nq_in;
+            while (ind1 < ind2 - 1)
+            {
+                ind_mid = (ind1 + ind2)/2;
+                if (eta > eta_in[ind_mid])
+                {
+                    ind1 = ind_mid;
+                }
+                else
+                {
+                    ind2 = ind_mid;
+                }
+            }
+            fac1 = (eta_in[ind2] - eta)/(eta_in[ind2] - eta_in[ind1]);
+            fac2 = (eta - eta_in[ind1])/(eta_in[ind2] - eta_in[ind1]);
+            this->kernel[ig] = fac1 * w0_in[ind1] + fac2 * w0_in[ind2];
+            this->kernel[ig] *= this->WTcoef;
+        }
+    }
+
+    if (maxEta > maxEta_in) ModuleBase::WARNING("kedf_wt.cpp", "Please increase the maximal eta value in KEDF kernel file");
+
+    ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "FILL WT KERNEL");
 }

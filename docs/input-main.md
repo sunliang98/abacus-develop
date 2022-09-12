@@ -56,7 +56,7 @@
   [nurse](#nurse) | [t_in_h](#t_in_h) | [vl_in_h](#vl_in_h) | [vnl_in_h](#vnl_in_h) | [test_force](#test_force) | [test_stress](#test_stress) | [colour](#colour)
 - [OFDFT: orbital free density functional theory](#ofdft-orbital-free-density-functional-theory)
 
-  [of_kinetic](#of_kinetic) | [of_method](#of_method) | [of_conv](#of_conv) | [of_tole](#of_tole) | [of_tolp](#of_tolp) | [of_tf_weight](#of_tf_weight) | [of_vw_weight](#of_vw_weight) | [of_wt_alpha](#of_wt_alpha) | [of_wt_beta](#of_wt_beta) | [of_wt_rho0](#of_wt_rho0) | [of_hold_rho0](#of_hold_rho0)
+  [of_kinetic](#of_kinetic) | [of_method](#of_method) | [of_conv](#of_conv) | [of_tole](#of_tole) | [of_tolp](#of_tolp) | [of_tf_weight](#of_tf_weight) | [of_vw_weight](#of_vw_weight) | [of_wt_alpha](#of_wt_alpha) | [of_wt_beta](#of_wt_beta) | [of_wt_rho0](#of_wt_rho0) | [of_hold_rho0](#of_hold_rho0) | [of_full_pw](#of_full_pw) | [of_full_pw_dim](#of_full_pw_dim) | [of_read_kernel](#of_read_kernel) | [of_kernel_file](#of_kernel_file)
 - [DeePKS](#deepks)
 
   [deepks_out_labels](#deepks_out_labels) | [deepks_descriptor_lmax](#deepks_descriptor_lmax) | [deepks_scf](#deepks_scf) | [deepks_model](#deepks_model)
@@ -1636,13 +1636,25 @@ This part of variables are used to control berry phase and wannier90 interfacae 
 
 - **Type**: Boolean
 - **Description**:If set to 1, ecut will be ignored while collecting planewaves, so that all planewaves will be used.
-- **Default**: 0
+- **Default**: 1
 
 #### of_full_pw_dim
 
 - **Type**: Integer
 - **Description**:If of_full_pw = 1, the dimention of FFT will be testricted to be (0) either odd or even; (1) odd only; (2) even only.
 - **Default**: 0
+
+#### of_read_kernel
+
+- **Type**: Boolean
+- **Description**:If set to 1, the kernel of WT KEDF will be filled from file of_kernel_file, not from formula. Only usable for WT KEDF.
+- **Default**: 0
+
+#### of_kernel_file
+
+- **Type**: String
+- **Description**:The name of WT kernel file.
+- **Default**: WTkernel.txt
 
 ### Variables useful for debugging
 
