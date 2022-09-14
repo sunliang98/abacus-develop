@@ -21,6 +21,7 @@ VPATH=./src_global\
 :./module_esolver\
 :./module_esolver/opt\
 :./module_hsolver\
+:./module_hsolver/genelpa\
 :./module_elecstate\
 :./module_psi\
 :./module_hamilt\
