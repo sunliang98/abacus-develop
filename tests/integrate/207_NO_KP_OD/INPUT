@@ -7,7 +7,6 @@ nbands			6
 symmetry		0
 pseudo_dir      ../tools/PP_ORB/
 read_file_dir   ./
-pseudo_type     upf201
 gamma_only      0
 
 #Parameters (2.Iteration)
