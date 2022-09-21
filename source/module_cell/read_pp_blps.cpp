@@ -42,7 +42,7 @@ int Pseudopot_upf::read_pseudo_blps(std::ifstream &ifs)
 	{
         if(pspxc == 2)
         {
-            this->xc_func = "LDA";
+            this->xc_func = "PZ";
         }
         else if (pspxc == 11)
         {
