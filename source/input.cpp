@@ -312,6 +312,16 @@ void Input::Default(void)
     efield_pos_dec = 0.1;
     efield_amp  = 0.0;
     //----------------------------------------------------------
+    // gatefield                        Yu Liu add 2022-09-13
+    //----------------------------------------------------------
+    gate_flag = false;
+    zgate = 0.5;
+    relax = false;
+    block = false;
+    block_down = 0.45;
+    block_up = 0.55;
+    block_height = 0.1;
+    //----------------------------------------------------------
     // vdw									//jiyy add 2019-08-04
     //----------------------------------------------------------
     vdw_method = "none";
@@ -433,15 +443,6 @@ void Input::Default(void)
     tau = 1.0798 * 1e-5;
     sigma_k = 0.6;
     nc_k = 0.00037;
-
-    //==========================================================
-    //    compensating charge        donghs added on 2022-06-23
-    //==========================================================
-    comp_chg = 0;
-    comp_q = 0.0;
-    comp_l = 1.0;
-    comp_center = 0.0;
-    comp_dim = 2;
 
     return;
 }
@@ -1272,6 +1273,38 @@ bool Input::Read(const std::string &fn)
             read_value(ifs, efield_amp );
         }
         //----------------------------------------------------------
+        // gatefield (compensating charge)
+        // Yu Liu add 2022-09-13
+        //----------------------------------------------------------
+        else if (strcmp("gate_flag", word) == 0)
+        {
+            read_value(ifs, gate_flag);
+        }
+        else if (strcmp("zgate", word) == 0)
+        {
+            read_value(ifs, zgate);
+        }
+        else if (strcmp("relax", word) == 0)
+        {
+            read_value(ifs, relax);
+        }
+        else if (strcmp("block", word) == 0)
+        {
+            read_value(ifs, block);
+        }
+        else if (strcmp("block_down", word) == 0)
+        {
+            read_value(ifs, block_down);
+        }
+        else if (strcmp("block_up", word) == 0)
+        {
+            read_value(ifs, block_up);
+        }
+        else if (strcmp("block_height", word) == 0)
+        {
+            read_value(ifs, block_height);
+        }
+        //----------------------------------------------------------
         // tddft
         // Fuxiang He add 2016-10-26
         //----------------------------------------------------------
@@ -1569,26 +1602,6 @@ bool Input::Read(const std::string &fn)
         else if (strcmp("nc_k", word) == 0)
         {
             read_value(ifs, nc_k);
-        }
-        else if (strcmp("comp_chg", word) == 0)
-        {
-            read_value(ifs, comp_chg);
-        }
-        else if (strcmp("comp_q", word) == 0)
-        {
-            read_value(ifs, comp_q);
-        }
-        else if (strcmp("comp_l", word) == 0)
-        {
-            read_value(ifs, comp_l);
-        }
-        else if (strcmp("comp_center", word) == 0)
-        {
-            read_value(ifs, comp_center);
-        }
-        else if (strcmp("comp_dim", word) == 0)
-        {
-            read_value(ifs, comp_dim);
         }
         //----------------------------------------------------------------------------------
         else
@@ -2171,7 +2184,15 @@ void Input::Bcast()
     Parallel_Common::bcast_int(efield_dir);
     Parallel_Common::bcast_double(efield_pos_max);
     Parallel_Common::bcast_double(efield_pos_dec);
-    Parallel_Common::bcast_double(efield_amp );
+    Parallel_Common::bcast_double(efield_amp);
+    // Yu Liu add 2022-09-13
+    Parallel_Common::bcast_bool(gate_flag);
+    Parallel_Common::bcast_double(zgate);
+    Parallel_Common::bcast_bool(relax);
+    Parallel_Common::bcast_bool(block);
+    Parallel_Common::bcast_double(block_down);
+    Parallel_Common::bcast_double(block_up);
+    Parallel_Common::bcast_double(block_height);
     /* 	// Peize Lin add 2014-04-07
         Parallel_Common::bcast_bool( vdwD2 );
         Parallel_Common::bcast_double( vdwD2_scaling );
@@ -2290,12 +2311,6 @@ void Input::Bcast()
     Parallel_Common::bcast_double(sigma_k);
     Parallel_Common::bcast_double(nc_k);
 
-    Parallel_Common::bcast_bool(comp_chg);
-    Parallel_Common::bcast_double(comp_q);
-    Parallel_Common::bcast_double(comp_l);
-    Parallel_Common::bcast_double(comp_center);
-    Parallel_Common::bcast_int(comp_dim);
-
     return;
 }
 #endif
@@ -2335,6 +2350,16 @@ void Input::Check(void)
     if (nelec < 0.0)
     {
         ModuleBase::WARNING_QUIT("Input", "nelec < 0 is not allowed !");
+    }
+
+    if(dip_cor_flag && !efield_flag)
+    {
+        ModuleBase::WARNING_QUIT("Input", "dipole correction is not active if efield_flag=false !");
+    }
+
+    if(gate_flag && efield_flag && !dip_cor_flag)
+    {
+        ModuleBase::WARNING_QUIT("Input", "gate field cannot be used with efield if dip_cor_flag=false !");
     }
 
     //----------------------------------------------------------

@@ -283,6 +283,18 @@ class Input
     double efield_amp ;        // amplitude of the electric field
 
     //==========================================================
+    // gatefield (compensating charge)
+    // Yu Liu add 2022-09-13
+    //==========================================================
+    bool gate_flag;                 // compensating charge or not
+    double zgate;                   // position of charged plate
+    bool relax;                     // allow relaxation along the specific direction
+    bool block;                     // add a block potential or not
+    double block_down;              // low bound of the block
+    double block_up;                // high bound of the block
+    double block_height;            // height of the block
+
+    //==========================================================
     // vdw
     // Peize Lin add 2014-03-31, jiyy update 2019-08-01
     //==========================================================
@@ -386,7 +398,7 @@ class Input
     //==========================================================
     //    DFT+DMFT       Xin Qu added on 2021-08
     //==========================================================
-    bool dft_plus_dmft; // true:DFT+U correction; false：standard DFT calcullation(default)
+    bool dft_plus_dmft; // true:DFT+DMFT; false：standard DFT calcullation(default)
 
     //==========================================================
     // DeepKS -- added by caoyu and mohan
@@ -413,12 +425,6 @@ class Input
     double tau;
     double sigma_k;
     double nc_k;
-    // compensating charge
-    bool comp_chg;
-    double comp_q;
-    double comp_l;
-    double comp_center;
-    int comp_dim;
 
     //==========================================================
     // variables for test only
