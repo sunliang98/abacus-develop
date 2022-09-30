@@ -1,4 +1,4 @@
-# STRU file
+# The STRU file
 
 - [Examples](#examples)
   - [no latname](#no-latname)
@@ -82,8 +82,17 @@ information that comes below.
     ```
 
     Here `Si_ONCV_PBE-1.0.upf` is the pseudopotential file. When the path is not specified, the file is assumed to be located in work directory. Otherwise, please explicitly specify the location of the pseudopotential files.
+
     After the pseudopotential file, `upf201` is the type of pseudopotential. There are five options: `upf`(.UPF format), `upf201`(the new .UPF format), `vwr`(.vwr format), `blps`(bulk-derived local pseudopotential), and `auto`(automatically identified). If no pseudopotential type is assigned, the default value is `auto`, and the pseudopotential type will be automatically identified. 
-    Different types of pseudopotentials can be used for different elements, but note that the XC functionals assigned by all pseudopotentials shouldl be the same one.
+
+    Different types of pseudopotentials can be used for different elements, but note that the XC functionals assigned by all pseudopotentials should be the same one. If not, the choice of XC functional must be set explicitly using the [dft_functional](./input-main.md#dft_functional) keyword.
+
+    Common sources of the pseudopotential files include:
+  1. [Quantum ESPRESSO](http://www.quantum-espresso.org/pseudopotentials/).
+  2. [SG15-ONCV](http://quantum-simulation.org/potentials/sg15_oncv/upf/).
+  3. [DOJO](http://www.pseudo-dojo.org/).
+
+
 - NUMERICAL_ORBITAL
 
     Numerical atomic orbitals are only needed for `LCAO` calculations. Thus this section will be neglected in calcultions with plane wave basis. In the above example, numerical atomic orbitals is specified for the element `Si`:
@@ -93,6 +102,8 @@ information that comes below.
     ```
 
     ‘Si_gga_8au_60Ry_2s2p1d.orb’ is name of the numerical orbital file. Again here the path is not specified, which means that this file is located in the work directory.
+
+    Numerical atomic orbitals may be downloaded from the [official website](http://abacus.ustc.edu.cn/pseudo/list.htm). 
 - LATTICE_CONSTANT
 
     The lattice constant of the system in unit of Bohr.
@@ -231,19 +242,19 @@ information that comes below.
     - `Cartesian` : Cartesian coordinates in unit of 'LATTICE_CONSTANT'.
     - `Cartesian_au` : Cartesian coordinates in unit of Bohr, same as setting of `Cartesian` with `LATTICE_CONSTANT` = 1.0 .
     - `Cartesian_angstrom` : Cartesian coordinates in unit of Angstrom, same as setting of `Cartesian` with `LATTICE_CONSTANT` = 1.889726125457828 .
-    - `Cartesian_angstrom_center_xy` : Cartesian coordinates in unit of Angstrom, a position vector (x, y, z) refer to (0.5 + x, 0.5 + y, z) with `Cartesian_angstrom`.
-    - `Cartesian_angstrom_center_xz` : Cartesian coordinates in unit of Angstrom, a position vector (x, y, z) refer to (0.5 + x, y, 0.5 + z) with `Cartesian_angstrom`.
-    - `Cartesian_angstrom_center_yz` : Cartesian coordinates in unit of Angstrom, a position vector (x, y, z) refer to (x, 0.5 + y, 0.5 + z) with `Cartesian_angstrom`.
-    - `Cartesian_angstrom_center_xyz` : Cartesian coordinates in unit of Angstrom, a position vector (x, y, z) refer to (0.5 + x, 0.5 + y, 0.5 + z) with `Cartesian_angstrom`.
+    - `Cartesian_angstrom_center_xy` : Cartesian coordinates in unit of Angstrom, with Direct coordinate (0.5, 0.5, 0.0) as reference.
+    - `Cartesian_angstrom_center_xz` : Cartesian coordinates in unit of Angstrom, with Direct coordinate (0.5, 0.0, 0.5) as reference..
+    - `Cartesian_angstrom_center_yz` : Cartesian coordinates in unit of Angstrom, with Direct coordinate (0.0, 0.5, 0.5) as reference..
+    - `Cartesian_angstrom_center_xyz` : Cartesian coordinates in unit of Angstrom, with Direct coordinate (0.5, 0.5, 0.5) as reference..
 
-    The following three lines tells the elemental type (`Si`), the initial magnetic moment (`0.0`), and the number of atoms for this particular element (`2`) repsectively. Notice this  magnetic moment will be a default value for every atom of this type but will be overrided if one define it for each atom by keyword(see below).
+    The following three lines tells the elemental type (`Fe`), the initial magnetic moment (`1.0`), and the number of atoms for this particular element (`2`) repsectively. Notice this  magnetic moment will be a default value for every atom of this type but will be overrided if one define it for each atom by keyword(see below).
 
     The last two lines in this example are the coordinates of atomic positions. There are three numbers in each line, which specifies the atomic positions, following by other parameters marked by keywords.
 
     Several other parameters could be defined after the atom position using key word :
-  - `m` or NO key word: three numbers, which take value in 0 or 1, control how the atom move in geometry relaxation calculations. The numbers `0 0 0` following the coordinates of the first atom means this atom are *not allowed* to move in all three directions, and the numbers `1 1 1` following the coordinates of the second atom means this atom *can* move in all three directions.
-  - `v` or `vel` or `velocity`: set the three components of initial velocity of atoms in geometry relaxation calculations.
-  - `mag` or `magmom` : set the start magnetization for each atom. In colinear case only one number should be given. In non-colinear case one have two choice:either set one number for the norm of magnetization here and specify two polar angle later, or set three number for the xyz commponent of magnetization here.
+  - `m` or NO key word: three numbers, which take value in 0 or 1, control how the atom move in geometry relaxation calculations. In example below, the numbers `0 0 0` following the coordinates of the first atom means this atom are *not allowed* to move in all three directions, and the numbers `1 1 1` following the coordinates of the second atom means this atom *can* move in all three directions.
+  - `v` or `vel` or `velocity`: set the three components of initial velocity of atoms in geometry relaxation calculations(e. g. `v 1.0 1.0 1.0`).
+  - `mag` or `magmom` : set the start magnetization for each atom. In colinear case only one number should be given. In non-colinear case one have two choice:either set one number for the norm of magnetization here and specify two polar angle later(e. g. see below), or set three number for the xyz commponent of magnetization here (e. g. `mag 0.0 0.0 1.0`). Note that if this parameter is set, the initial magnetic moment setting in the second line will be invalid.
   - `angle1`: in non-colinear case, specify the angle between c-axis and real spin, in angle measure instead of radian measure
   - `angle2`: in non-colinear case, specify angle between a-axis and real spin in projection in ab-plane , in angle measure instead of radian measure
 
@@ -251,8 +262,8 @@ information that comes below.
 
     ```
     Fe
-    1
+    1.0
     2
-    0.0 0.0 0.0 0 0 0 angle1 90 angle2 0
-    0.5 0.5 0.5 0 0 0 angle1 90 angle2 180
+    0.0 0.0 0.0 m 0 0 0 mag 1.0 angle1 90 angle2 0
+    0.5 0.5 0.5 m 1 1 1 mag 1.0 angle1 90 angle2 180
     ```

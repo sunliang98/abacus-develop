@@ -141,7 +141,7 @@ namespace ModuleESolver
         }
 
         // Inititlize the charge density.
-        this->pelec->allocateRho(GlobalV::NSPIN, GlobalC::rhopw->nrxx, GlobalC::rhopw->npw);
+        this->pelec->charge->allocate(GlobalV::NSPIN, GlobalC::rhopw->nrxx, GlobalC::rhopw->npw);
         //GlobalC::CHR.allocate(GlobalV::NSPIN, GlobalC::rhopw->nrxx, GlobalC::rhopw->npw);
         ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT CHARGE");
         // Initializee the potential.
@@ -432,7 +432,7 @@ namespace ModuleESolver
     }
 
 
-    void ESolver_KS_PW::afterscf()
+    void ESolver_KS_PW::afterscf(const int istep)
     {
         for(int ik=0; ik<this->pelec->ekb.nr; ++ik)
         {
