@@ -10,6 +10,7 @@ $(OBJS_PW)\
 $(OBJS_TOOLS)\
 ${OBJS_PARALLEL}\
 ${OBJS_ESOLVER}\
+${OBJS_OPT}\
 $(OBJS_SURCHEM)\
 ${OBJS_XC}\
 ${OBJ_PLANEWAVE}\
@@ -34,6 +35,7 @@ VPATH=../src_global\
 :../module_symmetry\
 :../module_xc\
 :../module_esolver\
+:../module_esolver/opt\
 :../module_hsolver\
 :../module_elecstate\
 :../module_psi\
@@ -167,6 +169,13 @@ OBJS_ESOLVER=esolver.o\
 	esolver_sdft_pw_tool.o\
     esolver_lj.o\
     esolver_dp.o
+    esolver_of.o\
+    kedf_tf.o\
+    kedf_vw.o\
+    kedf_wt.o\
+
+OBJS_OFOPT=opt_CG.o\
+    opt_DCsrch.o\
 
 OBJS_SURCHEM=H_correction_pw.o\
     cal_epsilon.o\
