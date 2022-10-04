@@ -24,7 +24,7 @@ AddTest(
   # module_esolver
   ../../module_esolver/esolver.cpp  ../../module_esolver/esolver_ks.cpp ../../module_esolver/esolver_fp.cpp ../../module_esolver/esolver_ks_pw.cpp
   ../../module_esolver/esolver_ks_pw_tool.cpp ../../module_esolver/esolver_sdft_pw.cpp ../../module_esolver/esolver_sdft_pw_tool.cpp
-  ../../module_esolver/esolver_lj.cpp  ../../module_esolver/esolver_dp.cpp
+  ../../module_esolver/esolver_lj.cpp  ../../module_esolver/esolver_dp.cpp ../../module_esolver/esolver_of.cpp
   # opt
   ../../module_esolver/opt/opt_CG.cpp ../../module_esolver/opt/opt_DCsrch.cpp
   # module_hsolver module_elecstate module_psi module_hamilt
