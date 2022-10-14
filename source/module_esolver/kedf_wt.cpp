@@ -427,5 +427,7 @@ void KEDF_WT::readKernel(std::string fileName, ModulePW::PW_Basis *pw_rho)
 
     if (maxEta > maxEta_in) ModuleBase::WARNING("kedf_wt.cpp", "Please increase the maximal eta value in KEDF kernel file");
 
+    delete[] eta_in;
+    delete[] w0_in;
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "FILL WT KERNEL");
 }
