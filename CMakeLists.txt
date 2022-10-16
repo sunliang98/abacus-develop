@@ -333,7 +333,7 @@ target_link_libraries(${ABACUS_BIN_NAME}
     psi
     esolver
     opt
-    -lm
+    rpa
 )
 
 install(PROGRAMS ${ABACUS_BIN_PATH}

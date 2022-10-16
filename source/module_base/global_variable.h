@@ -238,6 +238,10 @@ extern double tau;
 extern double sigma_k;
 extern double nc_k;
 
+// rpa related
+extern bool rpa_setorb;
+extern std::vector<std::string> rpa_orbitals;
+
 // ofdft sunliang add on 2022-05-11
 extern std::string of_kinetic; // Kinetic energy functional, such as TF, VW, WT
 extern std::string of_method;  // optimization method, include cg1, cg2, tn (default), bfgs
@@ -254,5 +258,6 @@ extern bool of_full_pw;     // If set to 1, ecut will be ignored while collectin
 extern int of_full_pw_dim;  // If of_full_pw = 1, the dimention of FFT will be testricted to be (0) either odd or even; (1) odd only; (2) even only.
 extern bool of_read_kernel; // If set to 1, the kernel of WT KEDF will be filled from file of_kernel_file, not from formula. Only usable for WT KEDF.
 extern std::string of_kernel_file; // The name of WT kernel file.
+
 } // namespace GlobalV
 #endif

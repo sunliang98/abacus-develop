@@ -361,7 +361,7 @@ void ESolver_OF::preprocess()
 
     for (int is = 0; is < GlobalV::NSPIN; ++is)
     {
-        if (GlobalC::pot.init_chg != "file")
+        if (GlobalC::CHR.init_chg != "file")
         {
             for (int ibs = 0; ibs < this->nrxx; ++ibs)
             {
