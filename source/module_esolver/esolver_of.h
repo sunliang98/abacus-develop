@@ -1,6 +1,8 @@
 #include "esolver_fp.h"
-#include "./opt/opt_TN.hpp"
-#include "./opt/opt_DCsrch.h"
+// #include "./opt/opt_TN.hpp"
+// #include "./opt/opt_DCsrch.h"
+#include "../module_base/opt_TN.hpp"
+#include "../module_base/opt_DCsrch.h"
 #include "../module_psi/psi.h"
 #include "./kedf_tf.h"
 #include "./kedf_vw.h"
@@ -116,11 +118,11 @@ private:
     KEDF_vW vw;
     KEDF_WT wt;
 
-    Opt_CG opt_cg;
-    Opt_TN opt_tn;
-    Opt_DCsrch opt_dcsrch;
+    ModuleBase::Opt_CG opt_cg;
+    ModuleBase::Opt_TN opt_tn;
+    ModuleBase::Opt_DCsrch opt_dcsrch;
 
-    Opt_CG *opt_cg_mag = NULL;
+    ModuleBase::Opt_CG *opt_cg_mag = NULL;
 
     // from Input
     string of_kinetic = "wt";   // Kinetic energy functional, such as TF, VW, WT

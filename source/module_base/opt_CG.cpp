@@ -1,5 +1,7 @@
 #include "./opt_CG.h"
 
+namespace ModuleBase
+{
 Opt_CG::Opt_CG()
 {
     this->pb = NULL;
@@ -246,4 +248,5 @@ void Opt_CG::HZ_beta(
     this->beta = std::max(temp_beta, temp_eta);
 
     delete[] y;
+}
 }

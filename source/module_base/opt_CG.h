@@ -1,8 +1,13 @@
+#ifndef OPT_CG_H
+#define OPT_CG_H
+
 #include <iostream>
 #include <math.h>
+#include "global_function.h"
+#include "../src_parallel/parallel_reduce.h"
 
-#include "../../module_base/global_function.h"
-#include "../../src_parallel/parallel_reduce.h"
+namespace ModuleBase
+{
 // 
 // A class designed to deal with optimization problems with CG method.
 // Three forms of CG methods have been implemented, including standard flow to solve 
@@ -84,3 +89,5 @@ private:
         return innerproduct;
     }
 };
+}
+#endif

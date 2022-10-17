@@ -1,9 +1,13 @@
+#ifndef OPT_TN_H
+#define OPT_TN_H
+
 #include "./opt_CG.h"
 #include <limits>
-
 // #include <iostream>
 // #include <iomanip>
 
+namespace ModuleBase
+{
 // 
 // A class designed to deal with optimization problems with TN method.
 // At each step, the optimization direction d is determined by roughly 
@@ -216,3 +220,5 @@ void Opt_TN::next_direct(
     delete[] temp_Hcgd;
     delete[] cg_direct;
 }
+}
+#endif

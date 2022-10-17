@@ -1,10 +1,11 @@
+#ifndef OPT_DCSRCH_H
+#define OPT_DCSRCH_H
+
 #include <iostream>
+#include "constants.h"
 
-#include "../../module_base/constants.h"
-
-// extern "C"{
-// 	#include "./opt_DCsrch.c"
-// }
+namespace ModuleBase
+{
 
 // 
 // A interface of line seach
@@ -86,3 +87,6 @@ private:
 	int *isave = NULL; // an integer work array of dimension 2.
     double *dsave = NULL; // a double precision work array of dimension 13.
 };
+}
+
+#endif

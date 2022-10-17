@@ -23,7 +23,6 @@ VPATH=./src_global\
 :./module_deepks\
 :./module_xc\
 :./module_esolver\
-:./module_esolver/opt\
 :./module_hsolver\
 :./module_hsolver/genelpa\
 :./module_elecstate\
@@ -129,6 +128,8 @@ element_basis_index.o \
 restart.o \
 mymath1.o \
 mymath3.o \
+opt_CG.o\
+opt_DCsrch.o
 
 OBJS_LCAO=sltk_grid.o\
 sltk_grid_driver.o \
@@ -267,9 +268,6 @@ OBJS_ESOLVER=esolver.o\
     kedf_tf.o\
     kedf_vw.o\
     kedf_wt.o\
-
-OBJS_OFOPT=opt_CG.o\
-    opt_DCsrch.o\
 
 OBJS_SURCHEM=H_correction_pw.o\
     cal_epsilon.o\

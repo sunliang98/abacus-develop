@@ -264,7 +264,7 @@ void ESolver_OF::Init(Input &inp, UnitCell_pseudo &ucell)
     // optimize theta if nspin=2
     if (GlobalV::NSPIN == 2)
     {
-        this->opt_cg_mag = new Opt_CG;
+        this->opt_cg_mag = new ModuleBase::Opt_CG;
         this->opt_cg_mag->allocate(GlobalV::NSPIN);
     }
 

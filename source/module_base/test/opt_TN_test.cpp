@@ -1,34 +1,30 @@
 #include "gtest/gtest.h"
-#include "../opt_CG.h"
+#include "../opt_TN.hpp"
 #include "../opt_DCsrch.h"
 #include "./test_tools.h"
 
-#define DOUBLETHRESHOLD 1e-8
+#define DOUBLETHRESHOLD 1e-5
 
-class CG_test : public testing::Test
+class TN_test : public testing::Test
 {
 protected:
-    Opt_CG cg;
-    Opt_DCsrch ds;
-    // LinearEqu le;
-    // MinFunc mf;
+    ModuleBase::Opt_TN tn;
+    ModuleBase::Opt_DCsrch ds;
     TestTools tools;
     int maxiter = 500;
     double step = 1.;
     double residual = 10.;
     double tol = 1e-5;
     int final_iter = 0;
+    int flag = 0;
     char *task = NULL;
-    double *Ap = NULL;
     double *p = NULL;
     double *x = NULL;
 
     void SetUp()
     {
-        cg.allocate(tools.nx);
-        cg.init_b(tools.le.b);
+        tn.allocate(tools.nx);
         task = new char[60];
-        Ap = new double[tools.nx];
         p = new double[tools.nx];
         x = new double[tools.nx];
     }
@@ -36,49 +32,13 @@ protected:
     void TearDown()
     {
         delete[] task;
-        delete[] Ap;
         delete[] p;
         delete[] x;
     }
 
-    void CG_Solve_LinearEq()
+    void Solve(int func_label)
     {
-        final_iter = 0;
-        cg.refresh(0, tools.le.b);
-        step = 1;
-        residual = 10.;
-        for (int i = 0; i < tools.nx; ++i)
-        {
-            x[i] = 0;
-            p[i] = 0;
-            Ap[i] = 0;
-        }
-        for (int iter = 0; iter < maxiter; ++iter)
-        {
-            cg.next_direct(Ap, 0, p);
-            tools.le.get_Ap(tools.le.A, p, Ap);
-            int ifPD = 0;
-            step = cg.step_length(Ap, p, ifPD);
-            for (int i = 0; i < 3; ++i) x[i] += step * p[i]; 
-            residual = cg.get_residual();
-            if (residual < tol) 
-            {
-                final_iter = iter;
-                break;
-            }
-        }
-    }
-
-    void Solve(int cg_label, int func_label)
-    {
-        if (func_label==0)
-        {
-            cg.refresh(0, tools.le.b);
-        }
-        else
-        {
-            cg.refresh();
-        }
+        tn.refresh();
         ds.set_paras(1e-4, 2e-1, 1e-12, 0.,12.);
         step = 1.;
         residual = 10.;
@@ -87,7 +47,6 @@ protected:
         {
             x[i] = 0;
             p[i] = 0;
-            Ap[i] = 0;
         }
 
         double f = 0;
@@ -107,7 +66,14 @@ protected:
                 final_iter = iter;
                 break;
             }
-            cg.next_direct(gradient, cg_label, p);
+            if (func_label == 0)
+            {
+                tn.next_direct(x, gradient, flag, p, &(tools.le), &LinearEqu::dfuncdx);
+            }
+            else if (func_label == 1)
+            {
+                tn.next_direct(x, gradient, flag, p, &(tools.mf), &MinFunc::dfuncdx);
+            }
             for (int i = 0; i < 3; ++i) temp_x[i] = x[i];
             task[0] = 'S'; task[1] = 'T'; task[2] = 'A'; task[3] = 'R'; task[4] = 'T';
             while (true)
@@ -140,48 +106,21 @@ protected:
     }
 };
 
-TEST_F(CG_test, Stand_Solve_LinearEq)
-{
-    CG_Solve_LinearEq();
-    EXPECT_NEAR(x[0], 0.5, DOUBLETHRESHOLD);
-    EXPECT_NEAR(x[1], 1.6429086563584579739e-18, DOUBLETHRESHOLD);
-    EXPECT_NEAR(x[2], 1.5, DOUBLETHRESHOLD);
-    ASSERT_EQ(final_iter, 3);
-}
 
-TEST_F(CG_test, PR_Solve_LinearEq)
+TEST_F(TN_test, TN_Solve_LinearEq)
 {
-    Solve(1, 0);
+    Solve(0);
     EXPECT_NEAR(x[0], 0.50000000000003430589, DOUBLETHRESHOLD);
     EXPECT_NEAR(x[1], -3.4028335704761047964e-14, DOUBLETHRESHOLD);
     EXPECT_NEAR(x[2], 1.5000000000000166533, DOUBLETHRESHOLD);
-    ASSERT_EQ(final_iter, 3);
+    ASSERT_EQ(final_iter, 1);
 }
 
-TEST_F(CG_test, HZ_Solve_LinearEq)
+TEST_F(TN_test, TN_Min_Func)
 {
-    Solve(2, 0);
-    EXPECT_NEAR(x[0], 0.49999999999999944489, DOUBLETHRESHOLD);
-    EXPECT_NEAR(x[1], -9.4368957093138305936e-16, DOUBLETHRESHOLD);
-    EXPECT_NEAR(x[2], 1.5000000000000011102, DOUBLETHRESHOLD);
-    ASSERT_EQ(final_iter, 3);
+    Solve(1);
+    EXPECT_NEAR(x[0], 4.0049968540891525137, DOUBLETHRESHOLD);
+    EXPECT_NEAR(x[1], 2.1208751163987624722, DOUBLETHRESHOLD);
+    EXPECT_NEAR(x[2], 9.4951527720891863993, DOUBLETHRESHOLD);
+    ASSERT_EQ(final_iter, 6);
 }
-
-TEST_F(CG_test, PR_Min_Func)
-{
-    Solve(1, 1);
-    EXPECT_NEAR(x[0], 4.0006805979150792396, DOUBLETHRESHOLD);
-    EXPECT_NEAR(x[1], 2.0713759992720870429, DOUBLETHRESHOLD);
-    EXPECT_NEAR(x[2], 9.2871067233169171118, DOUBLETHRESHOLD);
-    ASSERT_EQ(final_iter, 18);
-}
-
-TEST_F(CG_test, HZ_Min_Func)
-{
-    Solve(2, 1);
-    EXPECT_NEAR(x[0], 4.0006825378033568086, DOUBLETHRESHOLD);
-    EXPECT_NEAR(x[1], 2.0691732100663737803, DOUBLETHRESHOLD);
-    EXPECT_NEAR(x[2], 9.2780872787668311474, DOUBLETHRESHOLD);
-    ASSERT_EQ(final_iter, 18);
-}
-// g++ -std=c++11 ../opt_CG.cpp ../opt_DCsrch.cpp ./CG_test.cpp ./test_tools.cpp  -lgtest -lpthread -lgtest_main -o test.exe

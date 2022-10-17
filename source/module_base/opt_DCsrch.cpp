@@ -7,6 +7,8 @@
 // See original source at https://github.com/EACcodes/PROFESS/blob/master/Source.
 // sunliang 2022-05-30
 
+namespace ModuleBase
+{
 int dcsrch(double &stp, double &f, double &g, double &ftol, double &gtol, double &xtol,
 			char *task, double &stpmin, double &stpmax, int *isave, double *dsave)
 {
@@ -637,4 +639,5 @@ void Opt_DCsrch::dcSrch(
 )
 {
 	dcsrch(rstp, f, g, ftol, gtol, xtol, rtask, stpmin, stpmax, this->isave, this->dsave);
+}
 }
