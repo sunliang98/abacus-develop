@@ -160,7 +160,7 @@ public:
 
 public:
     bool gamma_only=false;	// only half g are used.
-    bool full_pw=false;   // If set to 1, ecut will be ignored while collecting planewaves, so that all planewaves will be used. sunliang added 2022-08-30.
+    bool full_pw=false;   // If set to 1, ecut will be ignored while collecting planewaves, so that all planewaves will be used. !! Note this parameter is not used in PW_BASIS_K !! sunliang added 2022-08-30.
     double ggecut=0;    //Energy cut off for g^2/2, unit in 1/lat0^2, ggecut=ecutwfc(Ry)*lat0^2/4pi^2
     double gridecut_lat=0; //Energy cut off for all fft grids, unit in 1/lat0^2, gridecut_lat=ecutrho(Ry)*lat0^2/4pi^2
     double lat0=1;     //unit length for lattice, unit in bohr
