@@ -14,35 +14,19 @@ class ESolver_OF: public ESolver_FP
 {
 // =========== TO DO LIST =============
 // MORE KEDF
-// MD TEST
+// GAMMA ONLY
 // SPIN POLARISE
 public:
     psi::Psi<double>* psi=nullptr;
 
-    // psi::Psi<double> *ppsi; 
-    // psi::Psi<double> ppsi; 
-    // ElecState *p_es; 
-
     ESolver_OF()
     {
-        // this->p_es = new ElecState_PW();
-        // this->phamilt = new Hamilt_PW();
         this->classname = "ESolver_OF";
-
-        // this->pdirect = new *double[1];
-        // this->pphi = new *double[1];
-        // this->pdLdphi = new *double[1];
-
-        // this->theta = new double[1];
-        // this->mu = new double[1];
-        // this->normdLdphi = new double[1];
         this->task = new char[60];
     }
 
     ~ESolver_OF()
     {
-        // delete this->p_es;
-        // delete this->ppsi;
         if(this->psi != nullptr)
         {
             delete psi;
@@ -81,19 +65,6 @@ public:
             delete[] this->precipDir;
         }
 
-        // if (this->pdeltaRho != NULL)
-        // {
-        //     for (int i = 0; i < GlobalV::NSPIN; ++i)
-        //     {
-        //         delete[] this->pdeltaRho[i];
-        //     }
-        //     delete[] this->pdeltaRho;
-        // } 
-        // if (this->pdeltaRhoHar != NULL)
-        // {
-        //     delete[] this->pdeltaRhoHar;
-        // } 
-
         if (this->nelec != NULL) delete[] this->nelec;
         if (this->theta != NULL) delete[] this->theta;
         if (this->mu != NULL) delete[] this->mu;
@@ -114,15 +85,16 @@ public:
     }
 
 private:
+    // kinetic energy density functionals
     KEDF_TF tf;
     KEDF_vW vw;
     KEDF_WT wt;
 
+    // optimization methods
     ModuleBase::Opt_CG opt_cg;
     ModuleBase::Opt_TN opt_tn;
     ModuleBase::Opt_DCsrch opt_dcsrch;
-
-    ModuleBase::Opt_CG *opt_cg_mag = NULL;
+    ModuleBase::Opt_CG *opt_cg_mag = NULL; // for spin2 case, under testing
 
     // from Input
     string of_kinetic = "wt";   // Kinetic energy functional, such as TF, VW, WT
@@ -135,29 +107,28 @@ private:
     // parameters from other module
     int nrxx = 0; // PWBASIS
     double dV = 0; // CELL
-    double *nelec = NULL;              // number of electrons
+    double *nelec = NULL;              // number of electrons with each spin
 
     // used in density optimization
-    int iter = 0;
-    double **pdirect = NULL;
-    std::complex<double> **precipDir = NULL; // direct in reciprocal space
-    double *theta = NULL;
-    double **pdEdphi = NULL; // dE/dphi
-    double **pdLdphi = NULL; // dL/dphi
-    double **pphi = NULL; // pphi[i] = ppsi.get_pointer(i), which will be freed in ~Psi().
-    char *task = NULL; // used in line search
-    double *mu = NULL; // chemical potential
-    int tnSpinFlag = -1; // spin flag used in calV, which will be called by opt_tn
-    int maxDCsrch = 200; // max no. of line search
-    int flag = -1; // flag of TN
+    int iter = 0;                               // iteration number
+    double **pdirect = NULL;                    // optimization direction of phi, which is sqrt(rho)
+    std::complex<double> **precipDir = NULL;    // direction in reciprocal space, used when of_full_pw=false.
+    double *theta = NULL;                       // step length
+    double **pdEdphi = NULL;                    // dE/dphi
+    double **pdLdphi = NULL;                    // dL/dphi
+    double **pphi = NULL;                       // pphi[i] = ppsi.get_pointer(i), which will be freed in ~Psi().
+    char *task = NULL;                          // used in line search
+    double *mu = NULL;                          // chemical potential
+    int tnSpinFlag = -1;                        // spin flag used in calV, which will be called by opt_tn
+    int maxDCsrch = 200;                        // max no. of line search
+    int flag = -1;                              // flag of TN
 
     // // test rho convergence criterion
-    // double **pdeltaRho = NULL; // CHR.rho - CHR.rho_save
     // double *pdeltaRhoHar = NULL; // 4pi*rhog/k^2
     // double deltaRhoG = 0.; // 1/2\iint{deltaRho(r)deltaRho(r')/|r-r'|drdr'}
     // double deltaRhoR = 0.; // \int{|deltaRho(r)|dr}
 
-    // used in conv check
+    // used in convergence check
     bool conv = false;
     double energy_llast = 0;
     double energy_last = 0;
@@ -166,15 +137,16 @@ private:
     double normdLdphi_last = 100;
     double normdLdphi = 100.;
 
-    void preprocess();
+    // main process of OFDFT
+    void beforeOpt();
     void updateV();
     void solveV();
     void getNextDirect();
     void updateRho();
     bool checkExit();
     void printInfo();
-    void afterOpt();
 
+    // tools
     void calV(double *ptempPhi, double *rdLdphi);
     void caldEdtheta(double **ptempPhi, double **ptempRho, double *ptheta, double *rdEdtheta);
     double cal_mu(double *pphi, double *pdEdphi, double nelec);
@@ -186,6 +158,7 @@ private:
         return innerproduct;
     }
 
+    // interfaces to KEDF
     void kineticPotential(double **prho, double **pphi, ModuleBase::matrix &rpot);
     double kineticEnergy();
 };
