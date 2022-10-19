@@ -217,7 +217,7 @@ void ESolver_OF::Run(int istep, UnitCell_pseudo& ucell)
         this->updateV();
 
         // calculate the energy of new rho and phi
-        this->cal_Energy(GlobalC::en);
+        this->cal_Energy(this->energy_current);
 
         // print neccesary information
         this->printInfo();
@@ -970,9 +970,9 @@ double ESolver_OF::cal_mu(double *pphi, double *pdEdphi, double nelec)
 // =====================================================================
 // NOTE THIS FUNCTION SHOULD BE CALLEDD AFTER POTENTIAL HAS BEEN UPDATED
 // =====================================================================
-void ESolver_OF::cal_Energy(energy &en)
+void ESolver_OF::cal_Energy(double& etot)
 {
-    en.calculate_etot();
+    GlobalC::en.calculate_etot();
     double eKE = this->kineticEnergy(); // kinetic energy
     double ePP = 0.;                    // electron-ion interaction energy
     for (int is = 0; is < GlobalV::NSPIN; ++is)
@@ -980,7 +980,7 @@ void ESolver_OF::cal_Energy(energy &en)
         ePP += this->inner_product(GlobalC::pot.vltot, GlobalC::CHR.rho[is], this->nrxx, this->dV);
     }
     Parallel_Reduce::reduce_double_all(ePP);
-    en.etot += eKE + ePP;
+    GlobalC::en.etot += eKE + ePP;
 
     this->energy_llast = this->energy_last;
     this->energy_last = this->energy_current;

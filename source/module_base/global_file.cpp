@@ -125,7 +125,7 @@ void ModuleBase::Global_File::make_dir_out(
     }
 
     // make dir for HS matrix output in md calculation
-    if(out_hs && (calculation == "md" || calculation == "sto-md"))
+    if(out_hs && (calculation == "md" || calculation == "sto-md" || calculation == "of-md"))
     {
         int make_dir_matrix = 0;
         std::string command1 =  "test -d " + GlobalV::global_matrix_dir + " || mkdir " + GlobalV::global_matrix_dir;

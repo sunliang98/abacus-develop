@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
+#include <unistd.h>
 Input INPUT;
 
 void Input::Init(const std::string &fn)
@@ -1276,6 +1277,10 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, mdp.md_damp);
         }
+        else if (strcmp("pot_file", word) == 0)
+        {
+            read_value(ifs, mdp.pot_file);
+        }
         //----------------------------------------------------------
         // efield and dipole correction
         // Yu Liu add 2022-05-18
@@ -2289,6 +2294,7 @@ void Input::Bcast()
     Parallel_Common::bcast_double(mdp.msst_tscale);
     Parallel_Common::bcast_double(mdp.md_tfreq);
     Parallel_Common::bcast_double(mdp.md_damp);
+    Parallel_Common::bcast_string(mdp.pot_file);
     // Yu Liu add 2022-05-18
     Parallel_Common::bcast_bool(efield_flag);
     Parallel_Common::bcast_bool(dip_cor_flag);
@@ -2649,6 +2655,13 @@ void Input::Check(void)
             if(mdp.msst_qmass <= 0)
             {
                 ModuleBase::WARNING_QUIT("Input::Check", "msst_qmass must be greater than 0!");
+            }
+        }
+        if(mdp.md_ensolver == "DP")
+        {
+            if (access(mdp.pot_file.c_str(), 0) == -1)
+            {
+                ModuleBase::WARNING_QUIT("Input::Check", "Can not find DP model !");
             }
         }
         // if(mdp.md_tfirst!=mdp.md_tlast)

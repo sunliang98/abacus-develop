@@ -32,7 +32,7 @@
   [exx_hybrid_alpha](#exx_hybrid_alpha) | [exx_hse_omega](#exx_hse_omega) | [exx_separate_loop](#exx_separate_loop) | [exx_hybrid_step](#exx_hybrid_step) | [exx_lambda](#exx_lambda) | [exx_pca_threshold](#exx_pca_threshold) | [exx_c_threshold](#exx_c_threshold) | [exx_v_threshold](#exx_v_threshold) | [exx_dm_threshold](#exx_dm_threshold) | [exx_schwarz_threshold](#exx_schwarz_threshold) | [exx_cauchy_threshold](#exx_cauchy_threshold) | [exx_ccp_threshold](#exx_ccp_threshold) | [exx_ccp_rmesh_times](#exx_ccp_rmesh_times) | [exx_distribute_type](#exx_distribute_type) | [exx_opt_orb_lmax](#exx_opt_orb_lmax) | [exx_opt_orb_ecut](#exx_opt_orb_ecut) | [exx_opt_orb_tolerence](#exx_opt_orb_tolerence)
 - [Molecular dynamics](#molecular-dynamics)
 
-  [md_type](#md_type) | [md_nstep](#md_nstep) | [md_ensolver](#md_ensolver) | [md_restart](#md_restart) | [md_dt](#md_dt) | [md_tfirst, md_tlast](#md_tfirst-md_tlast) | [md_dumpfreq](#md_dumpfreq) | [md_restartfreq](#md_restartfreq) | [md_seed](#md_seed) | [md_tfreq](#md_tfreq) | [md_mnhc](#md_mnhc) | [lj_rcut](#lj_rcut) | [lj_epsilon](#lj_epsilon) | [lj_sigma](#lj_sigma) | [msst_direction](#msst_direction) | [msst_vel](#msst_vel) | [msst_vis](#msst_vis) | [msst_tscale](#msst_tscale) | [msst_qmass](#msst_qmass) | [md_damp](#md_damp)
+  [md_type](#md_type) | [md_nstep](#md_nstep) | [md_ensolver](#md_ensolver) | [md_restart](#md_restart) | [md_dt](#md_dt) | [md_tfirst, md_tlast](#md_tfirst-md_tlast) | [md_dumpfreq](#md_dumpfreq) | [md_restartfreq](#md_restartfreq) | [md_seed](#md_seed) | [md_tfreq](#md_tfreq) | [md_mnhc](#md_mnhc) | [lj_rcut](#lj_rcut) | [lj_epsilon](#lj_epsilon) | [lj_sigma](#lj_sigma) | [pot_file](#pot_file) | [msst_direction](#msst_direction) | [msst_vel](#msst_vel) | [msst_vis](#msst_vis) | [msst_tscale](#msst_tscale) | [msst_qmass](#msst_qmass) | [md_damp](#md_damp)
 - [vdW correction](#vdw-correction)
 
   [vdw_method](#vdw_method) | [vdw_s6](#vdw_s6) | [vdw_s8](#vdw_s8) | [vdw_a1](#vdw_a1) | [vdw_a2](#vdw_a2) | [vdw_d](#vdw_d) | [vdw_abc](#vdw_abc) | [vdw_C6_file](#vdw_c6_file) | [vdw_C6_unit](#vdw_c6_unit) | [vdw_R0_file](#vdw_r0_file) | [vdw_R0_unit](#vdw_r0_unit) | [vdw_cutoff_type](#vdw_cutoff_type) | [vdw_cutoff_radius](#vdw_cutoff_radius) | [vdw_radius_unit](#vdw_radius_unit) | [vdw_cutoff_period](#vdw_cutoff_period) | [vdw_cn_thr](#vdw_cn_thr) | [vdw_cn_thr_unit](#vdw_cn_thr_unit)
@@ -457,7 +457,7 @@ calculations.
 ### nspin
 
 - **Type**: Integer
-- **Description**: Number of spin components of wave functions. There are only two choices now: 1 or 2, meaning non spin or collinear spin.
+- **Description**: Number of spin components of wave functions. There are only two choices now: 1 or 2, meaning non spin or collinear spin. For case of [noncollinear polarized](../scf/spin.md#noncollinear-spin-polarized-calculations), nspin will be automatically set to 4 without being specified in user input.
 - **Default**: 1
 
 ### smearing_method
@@ -1172,13 +1172,14 @@ Warning: this function is not robust enough for the current version. Please try 
 ### of_full_pw
 
 - **Type**: Boolean
-- **Description**:If set to 1, ecut will be ignored while collecting planewaves, so that all planewaves will be used.
+- **Description**:If set to 1, ecut will be ignored while collecting planewaves, so that all planewaves will be used in FFT.
 - **Default**: 1
 
 ### of_full_pw_dim
 
 - **Type**: Integer
 - **Description**:If of_full_pw = 1, the dimention of FFT will be testricted to be (0) either odd or even; (1) odd only; (2) even only.
+  Note that even dimension may cause slight error in FFT. It should be ingorable in ofdft calculation, but it may make Cardinal B-**spline** interpolation unstable, so set `of_full_pw_dim = 1` if `nbspline != -1`.
 - **Default**: 0
 
 [back to top](#full-list-of-input-keywords)
@@ -1456,24 +1457,9 @@ This part of variables are used to control the molecular dynamics calculations.
 - **Type**: Real
 - **Description**:
   - When md_type = 1, md_tfreq controls the frequency of the temperature oscillations during the simulation. If it is too large, the
-    <<<<<<< HEAD
     temperature will fluctuate violently; if it is too small, the temperature will take a very long time to equilibrate with the atomic system.
-    temperature will fluctuate violently; if it is too small, the temperature will take a very long time to equilibrate with the atomic system.
-    temperature will fluctuate violently; if it is too small, the temperature will take a very long time to equilibrate with the atomic system.
-    ===========================================================================================================================================
-
-    temperature will fluctuate violently; if it is too small, the temperature will take a very long time to equilibrate with the atomic system.
-
->>>>>>> 6a545cdc4f2b2601dabe2a62a649a2b62381e82b
->>>>>>>
->>>>>>
->>>>>
->>>>
->>>
->>
-
-- When md_type = 3, md_tfreq*md_dt is the collision probability in Anderson method.
-- If md_tfreq is not set in INPUT, md_tfreq will be autoset to be 1/40/md_dt.
+  - When md_type = 3, md_tfreq*md_dt is the collision probability in Anderson method.
+  - If md_tfreq is not set in INPUT, md_tfreq will be autoset to be 1/40/md_dt.
 - **Default**: 1/40/md_dt
 
 ### md_mnhc
@@ -1499,6 +1485,12 @@ This part of variables are used to control the molecular dynamics calculations.
 - **Type**: Real
 - **Description**: The value of sigma for Leonard Jones potential (angstrom).
 - **Default**: 3.405 (for He)
+
+### pot_file
+
+- **Type**: String
+- **Description**: The filename of potential files for CMD such as DP.
+- **Default**: graph.pb
 
 ### msst_direction
 

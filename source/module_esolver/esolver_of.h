@@ -74,7 +74,7 @@ public:
     virtual void Run(int istep, UnitCell_pseudo& ucell) override;
     virtual void postprocess() override;
 
-    virtual void cal_Energy(energy &en) override;
+    virtual void cal_Energy(double& etot) override;
     virtual void cal_Force(ModuleBase::matrix &force) override;
     virtual void cal_Stress(ModuleBase::matrix &stress) override;
 
