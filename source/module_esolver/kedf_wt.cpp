@@ -94,7 +94,7 @@ double KEDF_WT::get_energy_density(const double * const *prho, int is, int ir, M
 
 
 // 
-// Vtf = delta Etf/delta rho = 5/3 * cTF * rho^{2/3}
+// Vwt = cTF * [alpha rho^{alpha-1} \int{W(r - r')rho^{beta}(r') dr'} + beta rho^{beta-1} \int{W(r' - r)rho^{alpha}(r') dr'}]
 // 
 void KEDF_WT::WT_potential(const double * const *prho, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential)
 {
@@ -253,6 +253,7 @@ void KEDF_WT::get_stress(double cellVol, const double * const * prho, ModulePW::
     delete[] tempRho;
 }
 
+// Calculate WT kernel according to Lindhard response function
 double KEDF_WT::WTkernel(double eta, double tf_weight, double vw_weight)
 {
     if (eta < 0.) 
@@ -323,6 +324,7 @@ double KEDF_WT::diffLinhard(double eta, double vw_weight)
     }
 }
 
+// Calculate \int{W(r-r')rho^{exponent}(r') dr'}
 void KEDF_WT::multiKernel(const double * const * prho, double **rkernelRho, double exponent, ModulePW::PW_Basis *pw_rho)
 {
     std::complex<double> **recipkernelRho = new std::complex<double> *[GlobalV::NSPIN];
@@ -358,6 +360,7 @@ void KEDF_WT::fillKernel(double tf_weight, double vw_weight, ModulePW::PW_Basis 
     }
 }
 
+// Read kernel from file
 void KEDF_WT::readKernel(std::string fileName, ModulePW::PW_Basis *pw_rho)
 {
     std::ifstream ifs(fileName.c_str(), ios::in);

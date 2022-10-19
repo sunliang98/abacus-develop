@@ -22,7 +22,7 @@ public:
     double get_energy(const double * const *prho);
     double get_energy_density(const double * const *prho, int is, int ir);
     void tf_potential(const double * const * prho, ModuleBase::matrix &rpotential);
-    void get_stress(double cellVol, double inpt_TFenergy=-1);
+    void get_stress(double cellVol);
 
     int nx = 0; // number of real space points in current core
     double dV = 0.; // volume element = V/nxyz

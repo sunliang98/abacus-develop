@@ -23,6 +23,7 @@ public:
     double get_energy_density(double **pphi, int is, int ir, ModulePW::PW_Basis *pw_rho);
     void vW_potential(const double * const * pphi, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential);
     void get_stress(const double * const * pphi, ModulePW::PW_Basis *pw_rho, double inpt_vWenergy=-1);
+    
     void laplacianPhi(const double * const * pphi, double **rLapPhi, ModulePW::PW_Basis *pw_rho);
 
     int nx = 0;
