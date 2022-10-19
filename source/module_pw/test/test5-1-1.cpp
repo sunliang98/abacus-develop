@@ -51,7 +51,7 @@ TEST_F(PWTEST,test5_1_1)
     //some results for different number of processors
     int npw_per_ref[12][12]={
         {3375},
-        {1685,1680},
+        {1695,1680},
         {1125,1125,1125},
         {840,840,855,840},
         {675,675,675,675,675},
