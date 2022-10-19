@@ -1,5 +1,5 @@
 ATOMIC_SPECIES
-Al 27 al.lda.lps
+Al 26.98 al.lda.lps blps
 
 LATTICE_CONSTANT
 7.50241114482312  // add lattice constant

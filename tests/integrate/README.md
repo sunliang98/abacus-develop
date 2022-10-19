@@ -136,6 +136,11 @@ _MB    move ions method: bfgs
 _1O    first-order charge extrapolation
 _2O    second-order charge extrapolation
 
+---
+
+900-1000 Orbital free DFT properties
+
 _OF    orbital free density functional theory (OFDFT)
 _OP    optimization method used in OFDFT
 _KE     kinetic energy functional used in OFDFT
+_CO    convergence check

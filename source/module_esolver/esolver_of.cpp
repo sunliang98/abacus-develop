@@ -234,6 +234,8 @@ void ESolver_OF::Run(int istep, UnitCell_pseudo& ucell)
         this->iter++;
     }
 
+    this->afterOpt();
+
     ModuleBase::timer::tick("ESolver_OF", "Run");
 }
 
@@ -690,18 +692,19 @@ void ESolver_OF::updateRho()
             GlobalC::CHR.rho[is][ir] = this->pphi[is][ir] * this->pphi[is][ir];
         }
     }
-    if (ModuleSymmetry::Symmetry::symm_flag == 1)
-    {
-        Symmetry_rho srho;
-        for (int is = 0; is < GlobalV::NSPIN; is++)
-        {
-            srho.begin(is, GlobalC::CHR, this->pw_rho, GlobalC::Pgrid, GlobalC::symm);
-            for (int ibs = 0; ibs < this->nrxx; ++ibs)
-            {
-                this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
-            }
-        }
-    }
+    // ============================ for test ===========================
+    // if (ModuleSymmetry::Symmetry::symm_flag == 1)
+    // {
+    //     Symmetry_rho srho;
+    //     for (int is = 0; is < GlobalV::NSPIN; is++)
+    //     {
+    //         srho.begin(is, GlobalC::CHR, this->pw_rho, GlobalC::Pgrid, GlobalC::symm);
+    //         for (int ibs = 0; ibs < this->nrxx; ++ibs)
+    //         {
+    //             this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
+    //         }
+    //     }
+    // }
     // =============test for rho convergence criterion =================
     // for (int is = 0; is < GlobalV::NSPIN; ++is)
     // {

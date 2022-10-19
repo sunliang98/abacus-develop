@@ -4,8 +4,7 @@ suffix		autotest
 calculation ofdft
 ntype		1
 symmetry	1	
-pseudo_dir  ../tools/PP_ORB/
-pseudo_type blps
+pseudo_dir  ../../PP_ORB/
 pseudo_rcut 16
 nspin        1
 cal_force	1
