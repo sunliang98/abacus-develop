@@ -690,13 +690,16 @@ void ESolver_OF::updateRho()
             GlobalC::CHR.rho[is][ir] = this->pphi[is][ir] * this->pphi[is][ir];
         }
     }
-    Symmetry_rho srho;
-    for (int is = 0; is < GlobalV::NSPIN; is++)
+    if (ModuleSymmetry::Symmetry::symm_flag == 1)
     {
-        srho.begin(is, GlobalC::CHR, this->pw_rho, GlobalC::Pgrid, GlobalC::symm);
-        for (int ibs = 0; ibs < this->nrxx; ++ibs)
+        Symmetry_rho srho;
+        for (int is = 0; is < GlobalV::NSPIN; is++)
         {
-            this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
+            srho.begin(is, GlobalC::CHR, this->pw_rho, GlobalC::Pgrid, GlobalC::symm);
+            for (int ibs = 0; ibs < this->nrxx; ++ibs)
+            {
+                this->pphi[is][ibs] = sqrt(GlobalC::CHR.rho[is][ibs]);
+            }
         }
     }
     // =============test for rho convergence criterion =================
@@ -821,8 +824,8 @@ void ESolver_OF::printInfo()
     // =============================================================
 }
 
-void ESolver_OF::postprocess()
-{    
+void ESolver_OF::afterOpt()
+{
     if (this->conv)
     {
         GlobalV::ofs_running << "\n charge density convergence is achieved" << std::endl;
@@ -832,11 +835,6 @@ void ESolver_OF::postprocess()
     {
         GlobalV::ofs_running << " convergence has NOT been achieved!" << std::endl;
     }
-
-    GlobalV::ofs_running << "\n\n --------------------------------------------" << std::endl;
-    GlobalV::ofs_running << std::setprecision(16);
-    GlobalV::ofs_running << " !FINAL_ETOT_IS " << GlobalC::en.etot * ModuleBase::Ry_to_eV << " eV" << std::endl;
-    GlobalV::ofs_running << " --------------------------------------------\n\n" << std::endl;
 
     if (GlobalC::CHR.out_chg > 0)
     {
@@ -850,6 +848,15 @@ void ESolver_OF::postprocess()
             GlobalC::CHR.write_rho_cube(GlobalC::CHR.rho_save[is], is, ss1.str(), 3);
         }
     }
+}
+
+void ESolver_OF::postprocess()
+{    
+
+    GlobalV::ofs_running << "\n\n --------------------------------------------" << std::endl;
+    GlobalV::ofs_running << std::setprecision(16);
+    GlobalV::ofs_running << " !FINAL_ETOT_IS " << GlobalC::en.etot * ModuleBase::Ry_to_eV << " eV" << std::endl;
+    GlobalV::ofs_running << " --------------------------------------------\n\n" << std::endl;
     // =============== for test ===============
     // if (GlobalV::CAL_FORCE)
     // {

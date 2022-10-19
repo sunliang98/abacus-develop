@@ -15,7 +15,7 @@ void Print_Info::setup_parameters(UnitCell_pseudo &ucell, K_Vectors &kv)
 	        || GlobalV::CALCULATION=="istate" || GlobalV::CALCULATION=="ienvelope" || GlobalV::CALCULATION=="md"||GlobalV::CALCULATION.substr(0,3) == "sto")
 	{
 		std::cout << " ---------------------------------------------------------" << std::endl;
-		if(GlobalV::CALCULATION=="scf"||GlobalV::CALCULATION=="sto-scf")
+		if(GlobalV::CALCULATION=="scf"||GlobalV::CALCULATION=="sto-scf"||GlobalV::CALCULATION=="ofdft")
 		{
 			std::cout << " Self-consistent calculations for electrons" << std::endl;
 		}
@@ -248,7 +248,7 @@ void Print_Info::print_scf(const int &istep, const int &iter)
         GlobalV::ofs_running << "\n LCAO ALGORITHM ------------- ";
     }
 
-    if(GlobalV::CALCULATION=="scf"||GlobalV::CALCULATION=="sto-scf")
+    if(GlobalV::CALCULATION=="scf"||GlobalV::CALCULATION=="sto-scf"||GlobalV::CALCULATION=="ofdft")
     {
         GlobalV::ofs_running << "ELEC = " << std::setw(4) << unsigned(iter);
     }
@@ -283,7 +283,7 @@ void Print_Info::print_screen(const int &stress_step, const int &force_step, con
 		GlobalV::ofs_running << " RELAX CELL : " << unsigned(stress_step) << std::endl;
         GlobalV::ofs_running << " RELAX IONS : " << unsigned(force_step) << " (in total: " << unsigned(istep) << ")" << std::endl;
     }
-	else if(GlobalV::CALCULATION=="scf"||GlobalV::CALCULATION=="sto-scf") //add 4 lines 2015-09-06, xiaohui
+	else if(GlobalV::CALCULATION=="scf"||GlobalV::CALCULATION=="sto-scf"||GlobalV::CALCULATION=="ofdft") //add 4 lines 2015-09-06, xiaohui
 	{
         std::cout << " SELF-CONSISTENT : " << std::endl;
 		GlobalV::ofs_running << " SELF-CONSISTENT" << std::endl;

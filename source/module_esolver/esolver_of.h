@@ -143,6 +143,7 @@ private:
     void updateRho();
     bool checkExit();
     void printInfo();
+    void afterOpt();
 
     // tools
     void calV(double *ptempPhi, double *rdLdphi);
