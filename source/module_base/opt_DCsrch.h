@@ -8,7 +8,7 @@ namespace ModuleBase
 {
 
 // 
-// A interface of line seach
+// A interface of line search
 // 
 class Opt_DCsrch
 {

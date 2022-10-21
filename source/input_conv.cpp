@@ -534,7 +534,7 @@ void Input_Conv::Convert(void)
     GlobalV::nc_k = INPUT.nc_k;
 
     //-----------------------------------------------
-    // sunliang add for ofdft 20220-05-11
+    // sunliang add for ofdft 2022-05-11
     //-----------------------------------------------
     GlobalV::of_kinetic = INPUT.of_kinetic;
     GlobalV::of_method = INPUT.of_method;

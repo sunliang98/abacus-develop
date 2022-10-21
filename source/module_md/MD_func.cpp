@@ -201,7 +201,7 @@ void MD_func::InitVel(
     {
         RandomVel(unit_in.nat, temperature, allmass, frozen_freedom, frozen, ionmbl, vel);
     }
-	cout << "--------------------------------- INITVEL DONE ------------------------------------" << endl;
+	std::cout << "--------------------------------- INITVEL DONE ------------------------------------" << std::endl;
 }
 
 void MD_func::InitPos(
