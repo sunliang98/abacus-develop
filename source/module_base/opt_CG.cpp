@@ -11,9 +11,9 @@ Opt_CG::Opt_CG()
 
 Opt_CG::~Opt_CG()
 {
-    if (this->pb != NULL) delete this->pb;
-    if (this->pdirect_old != NULL) delete this->pdirect_old;
-    if (this->pgradient_old != NULL) delete this->pgradient_old;
+    if (this->pb != NULL) delete[] this->pb;
+    if (this->pdirect_old != NULL) delete[] this->pdirect_old;
+    if (this->pgradient_old != NULL) delete[] this->pgradient_old;
 }
 
 // 
@@ -23,7 +23,7 @@ void Opt_CG::init_b(
     double *pinp_b // b in the linear equation Ax = b
 )
 {
-    if (this->pb != NULL) delete this->pb;
+    if (this->pb != NULL) delete[] this->pb;
     this->pb = new double[this->nx];
     for (int i = 0; i < nx; ++i) this->pb[i] = pinp_b[i];
 }
@@ -36,8 +36,8 @@ void Opt_CG::allocate(
 )
 {
     this->nx = nx;
-    if (this->pdirect_old != NULL) delete this->pdirect_old;
-    if (this->pgradient_old != NULL) delete this->pgradient_old;
+    if (this->pdirect_old != NULL) delete[] this->pdirect_old;
+    if (this->pgradient_old != NULL) delete[] this->pgradient_old;
     this->pdirect_old = new double[this->nx];
     this->pgradient_old = new double[this->nx];
     ModuleBase::GlobalFunc::ZEROS(this->pdirect_old, this->nx);
