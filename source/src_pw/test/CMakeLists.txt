@@ -24,7 +24,8 @@ AddTest(
   # module_esolver
   ../../module_esolver/esolver.cpp  ../../module_esolver/esolver_ks.cpp ../../module_esolver/esolver_fp.cpp ../../module_esolver/esolver_ks_pw.cpp
   ../../module_esolver/esolver_ks_pw_tool.cpp ../../module_esolver/esolver_sdft_pw.cpp ../../module_esolver/esolver_sdft_pw_tool.cpp
-  ../../module_esolver/esolver_lj.cpp  ../../module_esolver/esolver_dp.cpp
+  ../../module_esolver/esolver_lj.cpp  ../../module_esolver/esolver_dp.cpp ../../module_esolver/esolver_of.cpp ../../module_esolver/kedf_tf.cpp
+  ../../module_esolver/kedf_vw.cpp ../../module_esolver/kedf_wt.cpp
   # module_hsolver module_elecstate module_psi module_hamilt
   ../../module_hsolver/diago_cg.cpp ../../module_hsolver/diago_david.cpp ../../module_hsolver/diago_iter_assist.cpp
   ../../module_hsolver/hsolver_pw.cpp ../../module_hsolver/hsolver_pw_sdft.cpp
@@ -35,7 +36,7 @@ AddTest(
   ../../src_io/numerical_basis.cpp ../../src_io/bessel_basis.cpp ../../src_io/numerical_descriptor.cpp ../../src_io/output.cpp
   ../../src_io/dos.cpp ../../src_io/energy_dos_pw.cpp ../../src_io/wf_io.cpp ../../src_io/rwstream.cpp
   ../../src_io/eximport.cpp ../../src_io/write_input.cpp ../../src_io/read_rho.cpp ../../src_io/write_rho.cpp
-  ../../src_io/write_pot.cpp  ../../src_io/write_rho_cube.cpp  ../../src_io/write_rho_dipole.cpp ../../src_io/optical.cpp
+  ../../src_io/write_pot.cpp  ../../src_io/write_rho_cube.cpp  ../../src_io/optical.cpp
   ../../src_io/cal_test.cpp  ../../src_io/winput.cpp ../../src_io/chi0_hilbert.cpp
   ../../src_io/chi0_standard.cpp  ../../src_io/epsilon0_pwscf.cpp  ../../src_io/epsilon0_vasp.cpp
   ../../src_io/to_wannier90.cpp  ../../src_io/unk_overlap_pw.cpp ../../src_io/berryphase.cpp
@@ -60,3 +61,11 @@ AddTest(
 if(${ENABLE_LIBXC})
     target_link_libraries(abacus_pw.exe Libxc::xc)
 endif()
+
+AddTest(
+  TARGET klist_test
+  LIBS ${math_libs} base symmetry
+  SOURCES klist_test.cpp ../klist.cpp ../../src_parallel/parallel_reduce.cpp ../../src_parallel/parallel_kpoints.cpp ../../src_parallel/parallel_global.cpp ../../src_parallel/parallel_common.cpp ../../src_io/output.cpp
+)
+
+install(FILES KPT KPT1 KPT2 DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

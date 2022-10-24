@@ -877,6 +877,7 @@ void HS_Matrix::save_HSR_sparse(
     ModuleBase::timer::tick("HS_Matrix","save_HSR_sparse");
 
     auto &all_R_coor_ptr = lm.all_R_coor;
+    auto &output_R_coor_ptr = lm.output_R_coor;
     auto &HR_sparse_ptr = lm.HR_sparse;
     auto &SR_sparse_ptr = lm.SR_sparse;
     auto &HR_soc_sparse_ptr = lm.HR_soc_sparse;
@@ -981,7 +982,7 @@ void HS_Matrix::save_HSR_sparse(
 
     std::stringstream ssh[2];
     std::stringstream sss;
-    if(GlobalV::CALCULATION == "md" || GlobalV::CALCULATION == "sto-md")
+    if(GlobalV::CALCULATION == "md" || GlobalV::CALCULATION == "sto-md" || GlobalV::CALCULATION == "of-md")
     {
         ssh[0] << GlobalV::global_matrix_dir << istep << "_" << HR_filename_up;
         ssh[1] << GlobalV::global_matrix_dir << istep << "_" << HR_filename_down;
@@ -1026,6 +1027,8 @@ void HS_Matrix::save_HSR_sparse(
         }
     }
 
+    output_R_coor_ptr.clear();
+
     count = 0;
     for (auto &R_coor : all_R_coor_ptr)
     {
@@ -1049,6 +1052,8 @@ void HS_Matrix::save_HSR_sparse(
                 continue;
             }
         }
+
+        output_R_coor_ptr.insert(R_coor);
 
         if (GlobalV::DRANK == 0)
         {
