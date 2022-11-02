@@ -1,17 +1,6 @@
 #include "nn_of.h"
 
-NN_OF::NN_OF()
-{
-    this->nrxx = 2;
-    this->ninpt = 6;
-
-    fc1 = register_module("fc1", torch::nn::Linear(this->ninpt, 10));
-    fc2 = register_module("fc2", torch::nn::Linear(10, 10));
-    fc3 = register_module("fc3", torch::nn::Linear(10, 10));
-    fc4 = register_module("fc4", torch::nn::Linear(10, 1));
-}
-
-void NN_OF::setPara(int nrxx, int ninpt)
+NN_OF::NN_OF(int nrxx, int ninpt)
 {
     this->nrxx = nrxx;
     this->ninpt = ninpt;
@@ -20,7 +9,23 @@ void NN_OF::setPara(int nrxx, int ninpt)
     this->F = torch::zeros({this->nrxx, 1});
     this->gradient = torch::zeros({this->nrxx, this->ninpt});
     this->potential = torch::zeros({this->nrxx, 1});
+
+    fc1 = register_module("fc1", torch::nn::Linear(this->ninpt, 10));
+    fc2 = register_module("fc2", torch::nn::Linear(10, 10));
+    fc3 = register_module("fc3", torch::nn::Linear(10, 10));
+    fc4 = register_module("fc4", torch::nn::Linear(10, 1));
 }
+
+// void NN_OF::setPara(int nrxx, int ninpt)
+// {
+//     this->nrxx = nrxx;
+//     this->ninpt = ninpt;
+
+//     this->inputs = torch::zeros({this->nrxx, this->ninpt});
+//     this->F = torch::zeros({this->nrxx, 1});
+//     this->gradient = torch::zeros({this->nrxx, this->ninpt});
+//     this->potential = torch::zeros({this->nrxx, 1});
+// }
 
 void NN_OF::setData(std::vector<double> gamma, std::vector<double> gammanl, std::vector<double> p, std::vector<double> pnl, std::vector<double> q, std::vector<double> qnl)
 {
@@ -41,7 +46,7 @@ torch::Tensor NN_OF::forward(torch::Tensor inpt) // will inpt be changed? no
     // dropout?
     inpt = torch::elu(fc2->forward(inpt));      // avoid overfitting (?)
     inpt = torch::elu(fc3->forward(inpt));      
-    inpt = torch::elu(fc4->forward(inpt));  // ensure 0 < F_ML < 1 (?)
+    inpt = torch::elu(fc4->forward(inpt));  // ensure 0 < F_ML < 1 (?) no
 
     // this->F[i].backward();
     // this->gradient[i] = inpt.grad();

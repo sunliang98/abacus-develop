@@ -12,6 +12,8 @@ list(APPEND objects
     kedf_tf.cpp
     kedf_vw.cpp
     kedf_wt.cpp
+    kedf_ml.cpp
+    ml-of/nn_of.cpp
 )
 if(ENABLE_LCAO)
   list(APPEND objects

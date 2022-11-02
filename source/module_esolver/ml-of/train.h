@@ -4,11 +4,12 @@
 
 class Train{
 public:
-    Train(){};
+    Train(int nrxx, int ninpt, int nbatch);
+    ~Train();
     
-    NN_OF nn;
+    NN_OF *nn;
 
-    void setPara(int nrxx, int ninpt, int nbatch);
+    // void setPara(int nrxx, int ninpt, int nbatch);
 
     void loadData();
 
@@ -44,7 +45,7 @@ class OF_data : public torch::data::Dataset<OF_data>
 private:
     torch::Tensor input;
     torch::Tensor target;
-    
+
 public:
     explicit OF_data(torch::Tensor &input, torch::Tensor &target)
     {

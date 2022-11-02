@@ -2,9 +2,10 @@
 #include "../module_base/opt_TN.hpp"
 #include "../module_base/opt_DCsrch.h"
 #include "../module_psi/psi.h"
-#include "./kedf_tf.h"
+// #include "./kedf_tf.h"
 #include "./kedf_vw.h"
-#include "./kedf_wt.h"
+// #include "./kedf_wt.h"
+#include "./kedf_ml.h"
 
 namespace ModuleESolver
 {
@@ -87,6 +88,7 @@ private:
     KEDF_TF tf;
     KEDF_vW vw;
     KEDF_WT wt;
+    KEDF_ML ml;
 
     // optimization methods
     ModuleBase::Opt_CG opt_cg;
