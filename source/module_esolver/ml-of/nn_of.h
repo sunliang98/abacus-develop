@@ -1,8 +1,8 @@
 #include <torch/torch.h>
 
-struct NN_OF:torch::nn::Module{
+struct NN_OFImpl:torch::nn::Module{
     // three hidden layers and one output layer
-    NN_OF(int nrxx, int ninpt);
+    NN_OFImpl(int nrxx, int ninpt);
 
     // void setPara(int nrxx, int ninpt);
 
@@ -12,16 +12,17 @@ struct NN_OF:torch::nn::Module{
 
     torch::nn::Linear fc1{nullptr}, fc2{nullptr}, fc3{nullptr}, fc4{nullptr};
 
-    void getGradient();
+    // void getGradient();
 
-    torch::Tensor getPotentail(torch::Tensor gradient, torch::Tensor inputs);
+    // torch::Tensor getPotentail(torch::Tensor gradient, torch::Tensor inputs);
 
     torch::Tensor inputs;
     torch::Tensor F; // enhancement factor, output of NN
     torch::Tensor gradient;
     torch::Tensor potential;
 
-    torch::Tensor normG;
+    // torch::Tensor normG;
     int nrxx = 10;
     int ninpt = 6;
 };
+TORCH_MODULE(NN_OF);

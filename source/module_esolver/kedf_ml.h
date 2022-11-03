@@ -23,21 +23,20 @@ public:
     ~KEDF_ML()
     {
         if (this->kernel != NULL) delete[] this->kernel;
-        delete this->nn;
     }
 
     void set_para(int nx, double dV, double nelec, double tf_weight, double vw_weight, ModulePW::PW_Basis *pw_rho);
 
-    double get_energy(const double * const * prho, KEDF_WT &wt, KEDF_TF &tf,  ModulePW::PW_Basis *pw_rho);
+    double get_energy(const double * const * prho, KEDF_WT &wt, KEDF_TF &tf, ModulePW::PW_Basis *pw_rho);
     // double get_energy_density(const double * const *prho, int is, int ir, ModulePW::PW_Basis *pw_rho);
-    // void ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential);
+    void ML_potential(const double * const * prho, KEDF_TF &tf, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential);
     // void get_stress(double cellVol, const double * const * prho, ModulePW::PW_Basis *pw_rho, double vw_weight);
     double MLkernel(double eta, double tf_weight, double vw_weight);
     // double diffLinhard(double eta, double vw_weight);
     void multiKernel(double *pinput, ModulePW::PW_Basis *pw_rho, double *routput);
 
     // output all parameters
-    void generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf,  ModulePW::PW_Basis *pw_rho);
+    void generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf, ModulePW::PW_Basis *pw_rho);
     // get input parameters
     void getGamma(const double * const *prho, std::vector<double> &rgamma);
     void getP(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &pnablaRho, std::vector<double> &rp);
@@ -50,6 +49,10 @@ public:
     void getF(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rF);
     // get intermediate variables of V_Pauli
     void getNablaRho(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &rnablaRho);
+
+    // tools
+    void Laplacian(double * pinput, ModulePW::PW_Basis *pw_rho, double * routput);
+    void divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * routput);
 
     int nx = 0;
     double dV = 0.;
@@ -65,5 +68,5 @@ public:
     double *kernel;
     // ModuleBase::matrix stress;
 
-    NN_OF *nn = nullptr;
+    std::shared_ptr<NN_OFImpl> nn;
 };

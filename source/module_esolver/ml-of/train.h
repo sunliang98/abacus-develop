@@ -7,7 +7,7 @@ public:
     Train(int nrxx, int ninpt, int nbatch);
     ~Train();
     
-    NN_OF *nn;
+    std::shared_ptr<NN_OFImpl> nn;
 
     // void setPara(int nrxx, int ninpt, int nbatch);
 

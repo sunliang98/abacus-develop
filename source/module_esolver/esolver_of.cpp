@@ -1090,6 +1090,18 @@ void ESolver_OF::kineticPotential(double **prho, double **pphiInpt, ModuleBase::
         }
         this->vw.vW_potential(pphiInpt, this->pw_rho, rpot);
     }
+    else if (this->of_kinetic == "ml")
+    {
+        this->ml.ML_potential(prho, this->tf, this->pw_rho, rpot);
+        for (int is = 0; is < GlobalV::NSPIN; ++is)
+        {
+            for (int ir = 0; ir < this->nrxx; ++ir)
+            {
+                rpot(is,ir) *= 2.0 * pphiInpt[is][ir];
+            }
+        }
+        this->vw.vW_potential(pphiInpt, this->pw_rho, rpot);
+    }
 }
 
 // Return the kinetic energy
@@ -1111,6 +1123,10 @@ double ESolver_OF::kineticEnergy()
     else if (this->of_kinetic == "tf+")
     {
         kinetic += this->tf.TFenergy + this->vw.vWenergy;
+    }
+    else if (this->of_kinetic == "ml")
+    {
+        kinetic += this->ml.MLenergy + this->vw.vWenergy;
     }
     return kinetic;
 }
