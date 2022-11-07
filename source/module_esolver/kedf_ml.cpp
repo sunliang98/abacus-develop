@@ -8,7 +8,7 @@ void KEDF_ML::set_para(int nx, double dV, double nelec, double tf_weight, double
     this->nx = nx;
     this->dV = dV;
     this->nn = std::make_shared<NN_OFImpl>(this->nx, /*ninpt*/3);
-    torch::load(this->nn, "net.pt");
+    if (GlobalV::of_kinetic == "ml") torch::load(this->nn, "net.pt");
 
     if (GlobalV::of_wt_rho0 != 0)
     {
@@ -56,7 +56,7 @@ double KEDF_ML::get_energy(const double * const * prho, KEDF_WT &wt, KEDF_TF &tf
     double energy = 0.;
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        energy += this->nn->F[ir,0].item<double>() * pow(prho[0][ir], 5./3.);
+        energy += this->nn->F[ir][0].item<double>() * pow(prho[0][ir], 5./3.);
     }
     cout << "energy" << energy << endl;
     energy *= this->dV * this->cTF;
@@ -67,8 +67,8 @@ double KEDF_ML::get_energy(const double * const * prho, KEDF_WT &wt, KEDF_TF &tf
 
 void KEDF_ML::ML_potential(const double * const * prho, KEDF_TF &tf, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential)
 {
-    cout << "rho\n";
-    cout << prho[0][0] << endl;
+    // cout << "rho\n";
+    // cout << prho[0][0] << endl;
     // cout << prho[0][10] << endl;
     // cout << prho[0][100] << endl;
 
@@ -88,20 +88,23 @@ void KEDF_ML::ML_potential(const double * const * prho, KEDF_TF &tf, ModulePW::P
     this->getQ(prho, pw_rho, q);
     this->getQnl(q, pw_rho, qnl);
 
+    this->nn->zero_grad();
     this->nn->inputs.requires_grad_(false);
     this->nn->setData(gamma, gammanl, p, pnl, q, qnl);
     this->nn->inputs.requires_grad_(true);
-    this->nn->zero_grad();
 
     this->nn->F = this->nn->forward(this->nn->inputs);
+    // cout << this->nn->inputs.grad();
+    if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
     // cout << "begin backward" << endl;
     this->nn->F.backward(torch::ones({this->nx, 1}));
-    // cout << "begin autograd" << endl;
     // cout << this->nn->inputs.grad();
     this->nn->gradient = this->nn->inputs.grad();
-    // cout << this->nn->gradient[0] << endl;
-    // cout << this->nn->gradient[10] << endl;
-    // cout << this->nn->gradient[100] << endl;
+
+    // for test =============================
+    // torch::Tensor enhancement = this->nn->F.reshape({this->nx});
+    // torch::Tensor potential = torch::zeros_like(enhancement);
+    // ======================================
 
     // get potential
     // cout << "begin potential" << endl;
@@ -140,17 +143,26 @@ void KEDF_ML::ML_potential(const double * const * prho, KEDF_TF &tf, ModulePW::P
                             - 5./3. * q[ir] * this->nn->gradient[ir][/* BE CAREFUL*/2].item<double>())
                             - 3./20. * pterm[ir] * 2
                             + 3./40. * qterm[ir] * 2;
+        // potential[ir] += tf.get_energy_density(prho, 0, ir) / prho[0][ir] *
+        //                     (5./3. * this->nn->F[ir].item<double>() 
+        //                     + 1./3. * gamma[ir] * this->nn->gradient[ir][/*BE CAREFUL*/0].item<double>()
+        //                     - 8./3. * p[ir] * this->nn->gradient[ir][/* BE CAREFUL */1].item<double>()
+        //                     - 5./3. * q[ir] * this->nn->gradient[ir][/* BE CAREFUL*/2].item<double>())
+        //                     - 3./20. * pterm[ir] * 2
+        //                     + 3./40. * qterm[ir] * 2;
     }
+    // this->dumpTensor(enhancement, "enhancement-test.npy");
+    // this->dumpTensor(potential, "potential-test.npy");
 
     // get energy
     double energy = 0.;
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        energy += this->nn->F[ir,0].item<double>() * pow(prho[0][ir], 5./3.);
+        energy += this->nn->F[ir][0].item<double>() * pow(prho[0][ir], 5./3.);
     }
-    cout << "energy" << energy << endl;
     energy *= this->dV * this->cTF;
     this->MLenergy = energy;
+    // exit(0);
     Parallel_Reduce::reduce_double_all(this->MLenergy);
 }
 
@@ -398,4 +410,14 @@ void KEDF_ML::divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * 
     }
 
     delete[] recipContainer;
+}
+
+void KEDF_ML::dumpTensor(const torch::Tensor &data, std::string filename)
+{
+    std::cout << "Dumping " << filename << std::endl;
+    std::vector<double> v(this->nx);
+    for (int ir = 0; ir < this->nx; ++ir) v[ir] = data[ir].item<double>();
+    // std::vector<double> v(data.data_ptr<float>(), data.data_ptr<float>() + data.numel()); // this works, but only supports float tensor
+    const long unsigned cshape[] = {(long unsigned) this->nx}; // shape
+    npy::SaveArrayAsNumpy(filename, false, 1, cshape, v);
 }

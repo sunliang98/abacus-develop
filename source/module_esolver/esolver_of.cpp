@@ -415,7 +415,7 @@ void ESolver_OF::solveV()
     delete[] tempTheta;
 
 // // ======================== for test ============================
-//     if (this->iter == 10)
+//     if (this->iter == 0)
 //     {
 //         for (int i = -100; i < 100; ++i)
 //         {
@@ -1119,6 +1119,10 @@ double ESolver_OF::kineticEnergy()
     else if (this->of_kinetic == "wt")
     {
         kinetic += this->tf.TFenergy + this->vw.vWenergy + this->wt.WTenergy;
+        // cout << "TF:" << tf.TFenergy << endl;
+        // cout << "WT:" << wt.WTenergy << endl;
+        // cout << "vW:" << vw.vWenergy << endl;
+        // cout << "WT+TF:" << tf.TFenergy + wt.WTenergy << endl;
     }
     else if (this->of_kinetic == "tf+")
     {
@@ -1127,6 +1131,8 @@ double ESolver_OF::kineticEnergy()
     else if (this->of_kinetic == "ml")
     {
         kinetic += this->ml.MLenergy + this->vw.vWenergy;
+        // cout << "ML:" << ml.MLenergy << endl;
+        // cout << "vW:" << vw.vWenergy << endl;
     }
     return kinetic;
 }

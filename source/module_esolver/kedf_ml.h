@@ -53,6 +53,7 @@ public:
     // tools
     void Laplacian(double * pinput, ModulePW::PW_Basis *pw_rho, double * routput);
     void divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * routput);
+    void dumpTensor(const torch::Tensor &data, std::string filename);
 
     int nx = 0;
     double dV = 0.;
