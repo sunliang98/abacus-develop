@@ -473,6 +473,15 @@ void Input::Default(void)
     of_read_kernel = false;
     of_kernel_file = "WTkernel.txt";
 
+    // ML KEDF sunliang add on 2022-11-07
+    of_ml_gene_data = false;
+    of_ml_local_test = false;
+    of_ml_gamma = false;
+    of_ml_p = false;
+    of_ml_q = false;
+    of_ml_gammanl = false;
+    of_ml_pnl = false;
+    of_ml_qnl = false;
     return;
 }
 
@@ -1723,6 +1732,38 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, of_kernel_file);
         }
+        else if (strcmp("of_ml_gene_data", word) == 0)
+        {
+            read_value(ifs, of_ml_gene_data);
+        }
+        else if (strcmp("of_ml_local_test", word) == 0)
+        {
+            read_value(ifs, of_ml_local_test);
+        }
+        else if (strcmp("of_ml_gamma", word) == 0)
+        {
+            read_value(ifs, of_ml_gamma);
+        }
+        else if (strcmp("of_ml_p", word) == 0)
+        {
+            read_value(ifs, of_ml_p);
+        }
+        else if (strcmp("of_ml_q", word) == 0)
+        {
+            read_value(ifs, of_ml_q);
+        }
+        else if (strcmp("of_ml_gammanl", word) == 0)
+        {
+            read_value(ifs, of_ml_gammanl);
+        }
+        else if (strcmp("of_ml_pnl", word) == 0)
+        {
+            read_value(ifs, of_ml_pnl);
+        }
+        else if (strcmp("of_ml_qnl", word) == 0)
+        {
+            read_value(ifs, of_ml_qnl);
+        }
         //----------------------------------------------------------------------------------
         else
         {
@@ -2467,6 +2508,16 @@ void Input::Bcast()
     Parallel_Common::bcast_int(of_full_pw_dim);
     Parallel_Common::bcast_bool(of_read_kernel);
     Parallel_Common::bcast_string(of_kernel_file);
+
+    // ML KEDF sunliang add on 2022-11-07
+    Parallel_Common::bcast_bool(of_ml_gene_data);
+    Parallel_Common::bcast_bool(of_ml_local_test);
+    Parallel_Common::bcast_bool(of_ml_gamma);
+    Parallel_Common::bcast_bool(of_ml_p);
+    Parallel_Common::bcast_bool(of_ml_q);
+    Parallel_Common::bcast_bool(of_ml_gammanl);
+    Parallel_Common::bcast_bool(of_ml_pnl);
+    Parallel_Common::bcast_bool(of_ml_qnl);
 
     return;
 }

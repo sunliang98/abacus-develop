@@ -16,34 +16,14 @@ NN_OFImpl::NN_OFImpl(int nrxx, int ninpt)
     fc4 = register_module("fc4", torch::nn::Linear(10, 1));
 }
 
-// void NN_OFImpl::setPara(int nrxx, int ninpt)
-// {
-//     this->nrxx = nrxx;
-//     this->ninpt = ninpt;
-
-//     this->inputs = torch::zeros({this->nrxx, this->ninpt});
-//     this->F = torch::zeros({this->nrxx, 1});
-//     this->gradient = torch::zeros({this->nrxx, this->ninpt});
-//     this->potential = torch::zeros({this->nrxx, 1});
-// }
-
-void NN_OFImpl::setData(std::vector<double> gamma, std::vector<double> gammanl, std::vector<double> p, std::vector<double> pnl, std::vector<double> q, std::vector<double> qnl)
+void NN_OFImpl::setData(std::map<std::string, int> &input_index, std::vector<double> &gamma, std::vector<double> &gammanl, std::vector<double> &p, std::vector<double> &pnl, std::vector<double> &q, std::vector<double> &qnl)
 {
-    for (int ir = 0; ir < this->nrxx; ++ir)
-    {
-        // this->inputs[ir][0] = gamma[ir];
-        // this->inputs[ir][1] = gammanl[ir];
-        // this->inputs[ir][2] = p[ir];
-        // this->inputs[ir][3] = pnl[ir];
-        // this->inputs[ir][4] = q[ir];
-        // this->inputs[ir][5] = qnl[ir];
-        this->inputs[ir][0] = gamma[ir];
-        // this->inputs[ir][1] = gammanl[ir];
-        this->inputs[ir][1] = p[ir];
-        // this->inputs[ir][3] = pnl[ir];
-        this->inputs[ir][2] = q[ir];
-        // this->inputs[ir][5] = qnl[ir];
-    }
+    if (input_index["gamma"] >= 0) this->inputs.index({"...", input_index["gamma"]}) = torch::tensor(gamma);
+    if (input_index["p"] >= 0) this->inputs.index({"...", input_index["p"]}) = torch::tensor(p);
+    if (input_index["q"] >= 0) this->inputs.index({"...", input_index["q"]}) = torch::tensor(q);
+    if (input_index["gammanl"] >= 0) this->inputs.index({"...", input_index["gammanl"]}) = torch::tensor(gammanl);
+    if (input_index["pnl"] >= 0) this->inputs.index({"...", input_index["pnl"]}) = torch::tensor(pnl);
+    if (input_index["qnl"] >= 0) this->inputs.index({"...", input_index["qnl"]}) = torch::tensor(qnl);
 }
 
 torch::Tensor NN_OFImpl::forward(torch::Tensor inpt) // will inpt be changed? no

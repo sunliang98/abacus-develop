@@ -453,6 +453,16 @@ class Input
     bool of_read_kernel; // If set to 1, the kernel of WT KEDF will be filled from file of_kernel_file, not from formula. Only usable for WT KEDF.
     string of_kernel_file; // The name of WT kernel file.
 
+    // ML KEDF, sunliang added on 2022-11-07
+    bool of_ml_gene_data; // Generate training data or not
+    bool of_ml_local_test;  // Read in the density, and output the F and Pauli potential of it
+    bool of_ml_gamma; // If the input variables contain gamma
+    bool of_ml_p; // If the input variables contain p
+    bool of_ml_q; // If the input variables contain q
+    bool of_ml_gammanl; // If the input variables contain gammanl
+    bool of_ml_pnl; // If the input variables contain pnl
+    bool of_ml_qnl; // If the input variables contain qnl
+
     //==========================================================
     // variables for test only
     //==========================================================

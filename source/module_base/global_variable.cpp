@@ -234,4 +234,13 @@ int of_full_pw_dim = 0;
 bool of_read_kernel = false;
 std::string of_kernel_file = "WTkernel.txt";
 
+bool of_ml_gene_data = false;
+bool of_ml_local_test = false;
+bool of_ml_gamma = false;
+bool of_ml_p = false;
+bool of_ml_q = false;
+bool of_ml_gammanl = false;
+bool of_ml_pnl = false;
+bool of_ml_qnl = false;
+
 } // namespace GlobalV

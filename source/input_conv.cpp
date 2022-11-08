@@ -552,6 +552,15 @@ void Input_Conv::Convert(void)
     GlobalV::of_read_kernel = INPUT.of_read_kernel;
     GlobalV::of_kernel_file = INPUT.of_kernel_file;
     
+    // sunliang add for ml kedf 2022-11-07
+    GlobalV::of_ml_gene_data = INPUT.of_ml_gene_data;
+    GlobalV::of_ml_local_test = INPUT.of_ml_local_test;
+    GlobalV::of_ml_gamma = INPUT.of_ml_gamma;
+    GlobalV::of_ml_p = INPUT.of_ml_p;
+    GlobalV::of_ml_q = INPUT.of_ml_q;
+    GlobalV::of_ml_gammanl = INPUT.of_ml_gammanl;
+    GlobalV::of_ml_pnl = INPUT.of_ml_pnl;
+    GlobalV::of_ml_qnl = INPUT.of_ml_qnl;
     ModuleBase::timer::tick("Input_Conv", "Convert");
     return;
 }

@@ -212,6 +212,8 @@ void ESolver_OF::Run(int istep, UnitCell_pseudo& ucell)
     this->beforeOpt();
     this->iter = 0;
 
+    if (GlobalV::of_ml_local_test) this->ml.localTest(GlobalC::CHR.rho, this->pw_rho);
+
     while(true)
     {
         // once we get a new rho and phi, update potential
@@ -851,6 +853,13 @@ void ESolver_OF::afterOpt()
             ss1 << GlobalV::global_out_dir << "tmp" << "_SPIN" << is + 1 << "_CHG.cube";
             GlobalC::CHR.write_rho_cube(GlobalC::CHR.rho[is], is, ss1.str(), 3);
         }
+    }
+
+    if (GlobalV::of_ml_gene_data)
+    {
+        // === temporary ===
+        assert(GlobalV::of_kinetic == "wt");
+        // =================
         std::cout << "Generating Training data..." << std::endl;
         this->ml.generateTrainData(GlobalC::CHR.rho, this->wt, this->tf, this->pw_rho);
     }
@@ -1092,7 +1101,7 @@ void ESolver_OF::kineticPotential(double **prho, double **pphiInpt, ModuleBase::
     }
     else if (this->of_kinetic == "ml")
     {
-        this->ml.ML_potential(prho, this->tf, this->pw_rho, rpot);
+        this->ml.ML_potential(prho, this->pw_rho, rpot);
         for (int is = 0; is < GlobalV::NSPIN; ++is)
         {
             for (int ir = 0; ir < this->nrxx; ++ir)

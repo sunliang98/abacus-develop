@@ -394,6 +394,16 @@ void Input::Print(const std::string &fn) const
     ModuleBase::GlobalFunc::OUTP(ofs, "of_read_kernel", of_read_kernel, "If set to 1, the kernel of WT KEDF will be filled from file of_kernel_file, not from formula. Only usable for WT KEDF");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_kernel_file", of_kernel_file, "The name of WT kernel file.");
 
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_gene_data", of_ml_gene_data, "Generate training data or not");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_local_test", of_ml_local_test, "Read in the density, and output the F and Pauli potential of it");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_gamma", of_ml_gamma, "If the input variables contain gamma");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_p", of_ml_p, "If the input variables contain p");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_q", of_ml_q, "If the input variables contain q");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_gammanl", of_ml_gammanl, "If the input variables contain gammanl");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_pnl", of_ml_pnl, "If the input variables contain pnl");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_qnl", of_ml_qnl, "If the input variables contain qnl");
+
+
     ofs << "\n#Parameters (19.dft+u)" << std::endl;
     ModuleBase::GlobalFunc::OUTP(ofs, "dft_plus_u", dft_plus_u, "true:DFT+U correction; false: standard DFT calcullation(default)");
     ModuleBase::GlobalFunc::OUTP(ofs, "dftu_type", dftu_type, "1:rotationally invarient formalism; 2:simplified form(default)");

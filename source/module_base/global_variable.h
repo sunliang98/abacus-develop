@@ -261,5 +261,15 @@ extern int of_full_pw_dim;  // If of_full_pw = 1, the dimention of FFT will be t
 extern bool of_read_kernel; // If set to 1, the kernel of WT KEDF will be filled from file of_kernel_file, not from formula. Only usable for WT KEDF.
 extern std::string of_kernel_file; // The name of WT kernel file.
 
+// ml kedf sunliang add on 2022-11-07
+extern bool of_ml_gene_data; // Generate training data or not
+extern bool of_ml_local_test;  // Read in the density, and output the F and Pauli potential of it
+extern bool of_ml_gamma; // If the input variables contain gamma
+extern bool of_ml_p; // If the input variables contain p
+extern bool of_ml_q; // If the input variables contain q
+extern bool of_ml_gammanl; // If the input variables contain gammanl
+extern bool of_ml_pnl; // If the input variables contain pnl
+extern bool of_ml_qnl; // If the input variables contain qnl
+
 } // namespace GlobalV
 #endif
