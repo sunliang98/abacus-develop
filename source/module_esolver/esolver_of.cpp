@@ -419,9 +419,9 @@ void ESolver_OF::solveV()
 // // ======================== for test ============================
 //     if (this->iter == 0)
 //     {
-//         for (int i = -100; i < 100; ++i)
+//         for (int i = -1000; i < 1000; ++i)
 //         {
-//             this->theta[0] = 0.001 * i;
+//             this->theta[0] = 0.0001 * i;
 //             for (int ir = 0; ir < this->nrxx; ++ir)
 //             {
 //                 ptempPhi[0][ir] = this->pphi[0][ir] * cos(this->theta[0]) + this->pdirect[0][ir] * sin(this->theta[0]);

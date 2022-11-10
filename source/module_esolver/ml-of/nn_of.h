@@ -6,7 +6,25 @@ struct NN_OFImpl:torch::nn::Module{
 
     // void setPara(int nrxx, int ninpt);
 
-    void setData(std::map<std::string, int> &input_index, std::vector<double> &gamma, std::vector<double> &gammanl, std::vector<double> &p, std::vector<double> &pnl, std::vector<double> &q, std::vector<double> &qnl);
+    void setData(
+        std::map<std::string, int> &input_index, 
+        std::vector<double> &gamma, 
+        std::vector<double> &gammanl, 
+        std::vector<double> &p, 
+        std::vector<double> &pnl, 
+        std::vector<double> &q, 
+        std::vector<double> &qnl
+    );
+
+    void setData(
+        std::map<std::string, int> &input_index, 
+        torch::Tensor &gamma, 
+        torch::Tensor &gammanl, 
+        torch::Tensor &p, 
+        torch::Tensor &pnl, 
+        torch::Tensor &q, 
+        torch::Tensor &qnl
+    );
 
     torch::Tensor forward(torch::Tensor inpt);
 

@@ -1,6 +1,8 @@
+#ifndef TRAIN
+#define TRAIN
+
 #include <torch/torch.h>
 #include "./nn_of.h"
-#include "/home/dell/2_software/libnpy/libnpy/include/npy.hpp"
 
 class Train{
 public:
@@ -9,54 +11,65 @@ public:
     
     std::shared_ptr<NN_OFImpl> nn;
 
-    // void setPara(int nx, int ninpt, int nbatch);
-
-    void readInput();
-
-    void loadData();
-
     void initNN();
 
     torch::Tensor lossFunction(torch::Tensor enhancement, torch::Tensor target);
     // double lostFunction(torch::Tensor potentialML, torch::Tensor target);
 
     void train();
-
     void dump();
 
     int nx = 1;
+    int nx_train = 1;
     int nx_vali = 1;
     int ninput = 6;
 
-    // training set =============================
-    std::vector<double> rho;
+    //----------- training set -----------
+    torch::Tensor rho;
     // inputs
-    std::vector<double> gamma;
-    std::vector<double> p;
-    std::vector<double> q;
-    std::vector<double> gammanl;
-    std::vector<double> pnl;
-    std::vector<double> qnl;
-    std::vector<std::vector<double> > nablaRho;
+    torch::Tensor gamma;
+    torch::Tensor p;
+    torch::Tensor q;
+    torch::Tensor gammanl;
+    torch::Tensor pnl;
+    torch::Tensor qnl;
+    torch::Tensor nablaRho;
     // target
     torch::Tensor enhancement;
-    // ==========================================
+    // fft grid
+    std::vector<std::vector<torch::Tensor>> fft_grid_train; // ntrain*3*fftdim*fftdim*fftdim
+    std::vector<torch::Tensor> fft_gg_train;
+    std::vector<torch::Tensor> fft_kernel_train;
+    // others
+    double *train_volume = nullptr;
+    // torch::Tensor fft_grid_train;
+    //------------------------------------
 
-    // validation set ===========================
-    std::vector<double> rho_vali;
+    //---------validation set ------------
+    torch::Tensor rho_vali;
     // inputs
-    std::vector<double> gamma_vali;
-    std::vector<double> p_vali;
-    std::vector<double> q_vali;
-    std::vector<double> gammanl_vali;
-    std::vector<double> pnl_vali;
-    std::vector<double> qnl_vali;
-    std::vector<std::vector<double> > nablaRho_vali;
+    torch::Tensor gamma_vali;
+    torch::Tensor p_vali;
+    torch::Tensor q_vali;
+    torch::Tensor gammanl_vali;
+    torch::Tensor pnl_vali;
+    torch::Tensor qnl_vali;
+    torch::Tensor nablaRho_vali;
+    torch::Tensor input_vali;
     // target
     torch::Tensor enhancement_vali;
-    torch::Tensor input_vali;
-    // ==========================================
+    // fft grid
+    std::vector<std::vector<torch::Tensor>> fft_grid_vali; // ntrain*3*fftdim*fftdim*fftdim
+    std::vector<torch::Tensor> fft_gg_vali;
+    std::vector<torch::Tensor> fft_kernel_vali;
+    // others
+    double *vali_volume = nullptr;
+    // ------------------------------------
 
+// ============= 1. train_input.cpp ===========
+// ---------- read in the settings from nnINPUT --------
+public:
+    void readInput();
 private:
     template <class T>
     static void read_value(std::ifstream &ifs, T &var)
@@ -65,21 +78,6 @@ private:
         ifs.ignore(150, '\n');
         return;
     }
-
-    void loadData(
-    std::string dir, 
-    int nx,
-    std::vector<double> &rho,
-    std::vector<double> &gamma,
-    std::vector<double> &p,
-    std::vector<double> &q,
-    std::vector<double> &gammanl,
-    std::vector<double> &pnl,
-    std::vector<double> &qnl,
-    std::vector<std::vector<double> > &nablaRho,
-    torch::Tensor &enhancement
-    );
-
     // input variables
     int fftdim = 0;
     int nbatch = 0;
@@ -104,6 +102,115 @@ private:
     bool ml_qnl = false;
 
     std::map<std::string, int> nn_input_index;
+
+// =========== 2. train_data.cpp ===========
+// --------- load the data from .npy files ------
+public:
+    void loadData();
+private:
+    void loadData(
+        std::string dir, 
+        int nx,
+        torch::Tensor &rho,
+        torch::Tensor &gamma,
+        torch::Tensor &p,
+        torch::Tensor &q,
+        torch::Tensor &gammanl,
+        torch::Tensor &pnl,
+        torch::Tensor &qnl,
+        torch::Tensor &nablaRho,
+        torch::Tensor &enhancement
+    );
+    void loadTensor(
+        std::string file,
+        std::vector<long unsigned int> cshape,
+        bool fortran_order, 
+        std::vector<double> &container,
+        torch::Tensor &data
+    );
+// -------- dump Tensor into .npy files ---------
+    void dumpTensor(const torch::Tensor &data, std::string filename, int nx);
+
+// ============== 3. train_ff.cpp ==============
+// ------------ set up grid of FFT ----------
+private:
+    void setUpFFT();
+    void initGrid();
+    void initGrid_(
+        const int fftdim,
+        const int nstru,
+        const std::string *cell,
+        const double *a,
+        double *volume,
+        std::vector<std::vector<torch::Tensor>> &grid, 
+        std::vector<torch::Tensor> &gg
+    );
+    void initScRecipGrid(
+        const int fftdim, 
+        const double a, 
+        const int index, 
+        double *volume,
+        std::vector<std::vector<torch::Tensor>> &grid, 
+        std::vector<torch::Tensor> &gg
+    );
+    void initFccRecipGrid(
+        const int fftdim, 
+        const double a, 
+        const int index, 
+        double *volume,
+        std::vector<std::vector<torch::Tensor>> &grid, 
+        std::vector<torch::Tensor> &gg
+    );
+    void initBccRecipGrid(
+        const int fftdim, 
+        const double a, 
+        const int index, 
+        double *volume,
+        std::vector<std::vector<torch::Tensor>> &grid, 
+        std::vector<torch::Tensor> &gg
+    );
+// ------------ fill the kernel in reciprocal space ----------
+    void fillKernel();
+    void fiilKernel_(
+        const int fftdim,
+        const int nstru,
+        const torch::Tensor &rho,
+        const double* volume,
+        const std::string *cell,
+        const std::vector<torch::Tensor> &fft_gg,
+        std::vector<torch::Tensor> &fft_kernel
+    );
+    double MLkernel(double eta, double tf_weight = 1., double vw_weight = 1.);
+
+// ============= 4. train_pot.cpp ===============
+private:
+
+    torch::Tensor potGammaTerm(
+        const torch::Tensor &gamma,
+        const torch::Tensor &dFdgamma
+    );
+    torch::Tensor potPTerm1(
+        const torch::Tensor &p,
+        const torch::Tensor &dFdp
+    );
+    torch::Tensor potQTerm1(
+        const torch::Tensor &q,
+        const torch::Tensor &dFdq
+    );
+    void potGammanlTerm(const torch::Tensor &rho, torch::Tensor &rGammanlTerm);
+    void potPPnlTerm(const torch::Tensor &rho, torch::Tensor &rPPnlTerm);
+    void potQQnlTerm(const torch::Tensor &rho, torch::Tensor &rQQnlTerm);
+
+    // Tools for getting potential
+    torch::Tensor multiKernel(
+        const torch::Tensor &pinput,
+        const torch::Tensor &kernel
+    );
+    void Laplacian(torch::Tensor &pinput, torch::Tensor &routput);
+    void divergence(torch::Tensor &pinput, torch::Tensor  &routput);
+
+    const double cTF = 3.0/10.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0) * 2; // 10/3*(3*pi^2)^{2/3}, multiply by 2 to convert unit from Hartree to Ry, finally in Ry*Bohr^(-2)
+    const double pqcoef = 1.0 / (4.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0)); // coefficient of p and q
 };
 
 class OF_data : public torch::data::Dataset<OF_data>
@@ -129,3 +236,5 @@ public:
         return this->input.size(0);
     }
 };
+
+#endif

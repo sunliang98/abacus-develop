@@ -429,7 +429,8 @@ void KEDF_ML::potQQnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho
         tempQ[ir] = (GlobalV::of_ml_q)? 3./40. * this->nn->gradient[ir][this->nn_input_index["q"]].item<double>() * /*Ha2Ry*/ 2. : 0.;
         if (GlobalV::of_ml_qnl)
         {
-            tempQ[ir] += - this->pqcoef / pow(prho[0][ir], 5./3.) * dFdqnl[ir];
+            // tempQ[ir] += - this->pqcoef / pow(prho[0][ir], 5./3.) * dFdqnl[ir];
+            tempQ[ir] += this->pqcoef / pow(prho[0][ir], 5./3.) * dFdqnl[ir];
         }
     }
     this->Laplacian(tempQ, pw_rho, rQQnlTerm.data());
