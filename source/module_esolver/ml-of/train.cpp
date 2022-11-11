@@ -15,7 +15,7 @@ Train::~Train()
 
 void Train::initNN()
 {
-    if (this->nvalidation > 0) this->setUpFFT();
+    if (this->loss == "potential") this->setUpFFT();
     this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
     this->nn->setData(this->nn_input_index, this->gamma, this->gammanl, this->p, this->pnl, this->q, this->qnl);
 }
@@ -66,14 +66,76 @@ void Train::train()
     }
 }
 
+void Train::potTest()
+{
+    if (this->loss == "potential") this->setUpFFT();
+    this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
+    torch::load(this->nn, "net.pt");
+    this->nn->setData(this->nn_input_index, this->gamma, this->gammanl, this->p, this->pnl, this->q, this->qnl);
+
+    this->nn->inputs.requires_grad_(true);
+    this->nn->F = this->nn->forward(this->nn->inputs);
+    if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
+    // cout << "begin backward" << endl;
+    this->nn->F.backward(torch::ones({this->nx_train, 1}));
+    // cout << this->nn->inputs.grad();
+    this->nn->gradient = this->nn->inputs.grad();
+    // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
+    std::cout << "begin potential" << std::endl;
+    // std::cout << "nablaRho size" << gamma.reshape({this->fftdim, this->fftdim, this->fftdim}) << std::endl;
+    torch::Tensor pot = this->getPot(
+        rho.reshape({this->fftdim, this->fftdim, this->fftdim}),
+        nablaRho.reshape({3, this->fftdim, this->fftdim, this->fftdim}),
+        this->cTF * torch::pow(rho.reshape({this->fftdim, this->fftdim, this->fftdim}), 5./3.),
+        gamma.reshape({this->fftdim, this->fftdim, this->fftdim}),
+        p.reshape({this->fftdim, this->fftdim, this->fftdim}),
+        q.reshape({this->fftdim, this->fftdim, this->fftdim}),
+        this->nn->F.reshape({this->fftdim, this->fftdim, this->fftdim}),
+        this->nn->gradient,
+        this->fft_kernel_train[0],
+        this->fft_grid_train[0],
+        this->fft_gg_train[0]
+    );
+
+    this->dumpTensor(pot.reshape({this->nx_train}), "pot_bcc.npy", this->nx_train);
+    this->dumpTensor(this->nn->F.reshape({this->nx_train}), "F_bcc.npy", this->nx_train);
+    // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
+
+    this->nn->zero_grad();
+    this->input_vali.requires_grad_(true);
+    this->nn->F = this->nn->forward(this->input_vali);
+    if (this->input_vali.grad().numel()) this->input_vali.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
+    // cout << "begin backward" << endl;
+    this->nn->F.backward(torch::ones({this->nx_vali, 1}));
+    // cout << this->nn->inputs.grad();
+    this->nn->gradient = this->input_vali.grad();
+    torch::Tensor pot_vali = this->getPot(
+        rho_vali.reshape({this->fftdim, this->fftdim, this->fftdim}),
+        nablaRho_vali.reshape({3, this->fftdim, this->fftdim, this->fftdim}),
+        this->cTF * torch::pow(rho_vali.reshape({this->fftdim, this->fftdim, this->fftdim}), 5./3.),
+        gamma_vali.reshape({this->fftdim, this->fftdim, this->fftdim}),
+        p_vali.reshape({this->fftdim, this->fftdim, this->fftdim}),
+        q_vali.reshape({this->fftdim, this->fftdim, this->fftdim}),
+        this->nn->F.reshape({this->fftdim, this->fftdim, this->fftdim}),
+        this->nn->gradient,
+        this->fft_kernel_vali[0],
+        this->fft_grid_vali[0],
+        this->fft_gg_vali[0]
+    );
+    std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
+    this->dumpTensor(pot_vali.reshape({this->nx_vali}), "pot_fcc.npy", this->nx_vali);
+    this->dumpTensor(this->nn->F.reshape({this->nx_vali}), "F_fcc.npy", this->nx_vali);
+}
+
 int main()
 {
     // train test
     Train train;
     train.readInput();
     train.loadData();
-    train.initNN();
-    train.train();
+    // train.initNN();
+    // train.train();
+    train.potTest();
 
     // load test
     // std::shared_ptr<NN_OFImpl> nn = std::make_shared<NN_OFImpl>(64000, 6);

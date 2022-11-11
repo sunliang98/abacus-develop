@@ -183,31 +183,79 @@ private:
     double MLkernel(double eta, double tf_weight = 1., double vw_weight = 1.);
 
 // ============= 4. train_pot.cpp ===============
+public:
+    void potTest();
 private:
+
+    torch::Tensor getPot(
+        const torch::Tensor &rho,
+        const torch::Tensor &nablaRho,
+        const torch::Tensor &tauTF,
+        const torch::Tensor &gamma,
+        const torch::Tensor &p,
+        const torch::Tensor &q,
+        const torch::Tensor &F,
+        const torch::Tensor &gradient,
+        const torch::Tensor &kernel,
+        const std::vector<torch::Tensor> &grid,
+        const torch::Tensor &gg
+    );
 
     torch::Tensor potGammaTerm(
         const torch::Tensor &gamma,
-        const torch::Tensor &dFdgamma
+        const torch::Tensor &gradient
     );
     torch::Tensor potPTerm1(
         const torch::Tensor &p,
-        const torch::Tensor &dFdp
+        const torch::Tensor &gradient
     );
     torch::Tensor potQTerm1(
         const torch::Tensor &q,
-        const torch::Tensor &dFdq
+        const torch::Tensor &gradient
     );
-    void potGammanlTerm(const torch::Tensor &rho, torch::Tensor &rGammanlTerm);
-    void potPPnlTerm(const torch::Tensor &rho, torch::Tensor &rPPnlTerm);
-    void potQQnlTerm(const torch::Tensor &rho, torch::Tensor &rQQnlTerm);
+    // void potGammanlTerm(const torch::Tensor &rho, torch::Tensor &rGammanlTerm);
+    torch::Tensor potGammanlTerm(
+        const torch::Tensor &rho,
+        const torch::Tensor &gamma,
+        const torch::Tensor &kernel,
+        const torch::Tensor &tauTF,
+        const torch::Tensor &gradient
+    );
+    // void potPPnlTerm(const torch::Tensor &rho, torch::Tensor &rPPnlTerm);
+    torch::Tensor potPPnlTerm(
+        const torch::Tensor &rho,
+        const torch::Tensor &nablaRho,
+        const torch::Tensor &p,
+        const torch::Tensor &kernel,
+        const torch::Tensor &tauTF,
+        const torch::Tensor &gradient,
+        const std::vector<torch::Tensor> &grid
+    );
+    // void potQQnlTerm(const torch::Tensor &rho, torch::Tensor &rQQnlTerm);
+    torch::Tensor potQQnlTerm(
+        const torch::Tensor &rho,
+        const torch::Tensor &q,
+        const torch::Tensor &kernel,
+        const torch::Tensor &tauTF,
+        const torch::Tensor &gradient,
+        const torch::Tensor &gg    
+    );
 
     // Tools for getting potential
     torch::Tensor multiKernel(
         const torch::Tensor &pinput,
         const torch::Tensor &kernel
     );
-    void Laplacian(torch::Tensor &pinput, torch::Tensor &routput);
-    void divergence(torch::Tensor &pinput, torch::Tensor  &routput);
+    // void Laplacian(torch::Tensor &pinput, torch::Tensor &routput);
+    // void divergence(torch::Tensor &pinput, torch::Tensor  &routput);
+    torch::Tensor divergence(
+        const torch::Tensor &input,
+        const std::vector<torch::Tensor> &grid
+    );
+    torch::Tensor Laplacian(
+        const torch::Tensor &input,
+        const torch::Tensor &gg
+    );
 
     const double cTF = 3.0/10.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0) * 2; // 10/3*(3*pi^2)^{2/3}, multiply by 2 to convert unit from Hartree to Ry, finally in Ry*Bohr^(-2)
     const double pqcoef = 1.0 / (4.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0)); // coefficient of p and q

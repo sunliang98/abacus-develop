@@ -198,8 +198,21 @@ void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF
     npy::SaveArrayAsNumpy("enhancement.npy", false, 1, cshape, container);
 }
 
-void KEDF_ML::localTest(const double * const *prho, ModulePW::PW_Basis *pw_rho)
+void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
 {
+    // // for test =====================
+    // std::vector<long unsigned int> cshape = {(long unsigned) this->nx};
+    // bool fortran_order = false;
+
+    // std::vector<double> temp_prho(this->nx);
+    // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/1_validation_set_bccAl/reference/rho.npy", cshape, fortran_order, temp_prho);
+    // // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", cshape, fortran_order, temp_prho);
+    // double ** prho = new double *[1];
+    // prho[0] = new double[this->nx];
+    // for (int ir = 0; ir < this->nx; ++ir) prho[0][ir] = temp_prho[ir];
+    // std::cout << "Load rho done" << std::endl;
+    // // ==============================
+
     this->updateInput(prho, pw_rho);
 
     this->nn->zero_grad();
@@ -211,6 +224,7 @@ void KEDF_ML::localTest(const double * const *prho, ModulePW::PW_Basis *pw_rho)
     if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
     this->nn->F.backward(torch::ones({this->nx, 1}));
     this->nn->gradient = this->nn->inputs.grad();
+    // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
 
     torch::Tensor enhancement = this->nn->F.reshape({this->nx});
     torch::Tensor potential = torch::zeros_like(enhancement);
@@ -429,7 +443,6 @@ void KEDF_ML::potQQnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho
         tempQ[ir] = (GlobalV::of_ml_q)? 3./40. * this->nn->gradient[ir][this->nn_input_index["q"]].item<double>() * /*Ha2Ry*/ 2. : 0.;
         if (GlobalV::of_ml_qnl)
         {
-            // tempQ[ir] += - this->pqcoef / pow(prho[0][ir], 5./3.) * dFdqnl[ir];
             tempQ[ir] += this->pqcoef / pow(prho[0][ir], 5./3.) * dFdqnl[ir];
         }
     }
