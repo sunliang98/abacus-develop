@@ -5,19 +5,31 @@
 
 Train::~Train()
 {
+    delete[] this->train_dir;
     delete[] this->train_cell;
     delete[] this->train_a;
     delete[] this->train_volume;
+    delete[] this->validation_dir;
     delete[] this->validation_cell;
     delete[] this->validation_a;
     delete[] this->vali_volume;
 }
 
-void Train::initNN()
+void Train::init()
 {
     if (this->loss == "potential") this->setUpFFT();
     this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
-    this->nn->setData(this->nn_input_index, this->gamma, this->gammanl, this->p, this->pnl, this->q, this->qnl);
+    this->nn->setData(this->nn_input_index,
+                      this->gamma.reshape({this->nx_train}),
+                      this->gammanl.reshape({this->nx_train}), 
+                      this->p.reshape({this->nx_train}), 
+                      this->pnl.reshape({this->nx_train}), 
+                      this->q.reshape({this->nx_train}), 
+                      this->qnl.reshape({this->nx_train}));
+    if (this->loss == "potential")
+    {
+        this->nn->inputs.requires_grad_(true);
+    }
 }
 
 torch::Tensor Train::lossFunction(torch::Tensor enhancement, torch::Tensor target)
@@ -71,7 +83,14 @@ void Train::potTest()
     if (this->loss == "potential") this->setUpFFT();
     this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
     torch::load(this->nn, "net.pt");
-    this->nn->setData(this->nn_input_index, this->gamma, this->gammanl, this->p, this->pnl, this->q, this->qnl);
+    // this->nn->setData(this->nn_input_index, this->gamma, this->gammanl, this->p, this->pnl, this->q, this->qnl);
+    this->nn->setData(this->nn_input_index,
+                      this->gamma.reshape({this->nx_train}),
+                      this->gammanl.reshape({this->nx_train}), 
+                      this->p.reshape({this->nx_train}), 
+                      this->pnl.reshape({this->nx_train}), 
+                      this->q.reshape({this->nx_train}), 
+                      this->qnl.reshape({this->nx_train}));
 
     this->nn->inputs.requires_grad_(true);
     this->nn->F = this->nn->forward(this->nn->inputs);
@@ -82,23 +101,26 @@ void Train::potTest()
     this->nn->gradient = this->nn->inputs.grad();
     // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
     std::cout << "begin potential" << std::endl;
-    // std::cout << "nablaRho size" << gamma.reshape({this->fftdim, this->fftdim, this->fftdim}) << std::endl;
-    torch::Tensor pot = this->getPot(
-        rho.reshape({this->fftdim, this->fftdim, this->fftdim}),
-        nablaRho.reshape({3, this->fftdim, this->fftdim, this->fftdim}),
-        this->cTF * torch::pow(rho.reshape({this->fftdim, this->fftdim, this->fftdim}), 5./3.),
-        gamma.reshape({this->fftdim, this->fftdim, this->fftdim}),
-        p.reshape({this->fftdim, this->fftdim, this->fftdim}),
-        q.reshape({this->fftdim, this->fftdim, this->fftdim}),
-        this->nn->F.reshape({this->fftdim, this->fftdim, this->fftdim}),
-        this->nn->gradient,
-        this->fft_kernel_train[0],
-        this->fft_grid_train[0],
-        this->fft_gg_train[0]
-    );
 
-    this->dumpTensor(pot.reshape({this->nx_train}), "pot_bcc.npy", this->nx_train);
-    this->dumpTensor(this->nn->F.reshape({this->nx_train}), "F_bcc.npy", this->nx_train);
+    for (int ii = 0; ii < this->ntrain; ++ii)
+    {
+        torch::Tensor pot = this->getPot(
+            rho[ii],
+            nablaRho[ii],
+            this->cTF * torch::pow(rho[ii], 5./3.),
+            gamma[ii],
+            p[ii],
+            q[ii],
+            torch::slice(this->nn->F, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
+            torch::slice(this->nn->gradient, 0, ii*this->nx, (ii + 1)*this->nx),
+            this->fft_kernel_train[ii],
+            this->fft_grid_train[ii],
+            this->fft_gg_train[ii]
+        );
+        this->dumpTensor(pot.reshape({this->nx}), "pot_fcc.npy", this->nx);
+        this->dumpTensor(torch::slice(this->nn->F, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
+    }
+
     // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
 
     this->nn->zero_grad();
@@ -110,12 +132,12 @@ void Train::potTest()
     // cout << this->nn->inputs.grad();
     this->nn->gradient = this->input_vali.grad();
     torch::Tensor pot_vali = this->getPot(
-        rho_vali.reshape({this->fftdim, this->fftdim, this->fftdim}),
-        nablaRho_vali.reshape({3, this->fftdim, this->fftdim, this->fftdim}),
-        this->cTF * torch::pow(rho_vali.reshape({this->fftdim, this->fftdim, this->fftdim}), 5./3.),
-        gamma_vali.reshape({this->fftdim, this->fftdim, this->fftdim}),
-        p_vali.reshape({this->fftdim, this->fftdim, this->fftdim}),
-        q_vali.reshape({this->fftdim, this->fftdim, this->fftdim}),
+        rho_vali[0],
+        nablaRho_vali[0],
+        this->cTF * torch::pow(rho_vali[0], 5./3.),
+        gamma_vali[0],
+        p_vali[0],
+        q_vali[0],
         this->nn->F.reshape({this->fftdim, this->fftdim, this->fftdim}),
         this->nn->gradient,
         this->fft_kernel_vali[0],
@@ -123,8 +145,8 @@ void Train::potTest()
         this->fft_gg_vali[0]
     );
     std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
-    this->dumpTensor(pot_vali.reshape({this->nx_vali}), "pot_fcc.npy", this->nx_vali);
-    this->dumpTensor(this->nn->F.reshape({this->nx_vali}), "F_fcc.npy", this->nx_vali);
+    this->dumpTensor(pot_vali.reshape({this->nx_vali}), "pot_bcc.npy", this->nx_vali);
+    this->dumpTensor(this->nn->F.reshape({this->nx_vali}), "F_bcc.npy", this->nx_vali);
 }
 
 int main()
@@ -133,7 +155,7 @@ int main()
     Train train;
     train.readInput();
     train.loadData();
-    // train.initNN();
+    // train.init();
     // train.train();
     train.potTest();
 

@@ -30,6 +30,7 @@ void Train::readInput()
         else if (strcmp("ntrain", word) == 0)
         {
             this->read_value(ifs, this->ntrain);
+            this->train_dir = new std::string[this->ntrain];
             this->train_cell = new std::string[this->ntrain];
             this->train_a = new double[this->ntrain];
             this->train_volume = new double[this->ntrain];
@@ -39,6 +40,7 @@ void Train::readInput()
             this->read_value(ifs, this->nvalidation);
             if (this->nvalidation > 0)
             {
+                this->validation_dir = new std::string[this->nvalidation];
                 this->validation_cell = new std::string[this->nvalidation];
                 this->validation_a = new double[this->nvalidation];
                 this->vali_volume = new double[this->nvalidation];
@@ -46,7 +48,10 @@ void Train::readInput()
         }
         else if (strcmp("train_dir", word) == 0)
         {
-            this->read_value(ifs, this->train_dir);
+            for (int i = 0; i < this->ntrain; ++i)
+            {
+                ifs >> this->train_dir[i];
+            }
         }
         else if (strcmp("train_cell", word) == 0)
         {
@@ -64,18 +69,21 @@ void Train::readInput()
         }
         else if (strcmp("validation_dir", word) == 0)
         {
-            this->read_value(ifs, this->validation_dir);
+            for (int i = 0; i < this->nvalidation; ++i)
+            {
+                ifs >> this->validation_dir[i];
+            }
         }
         else if (strcmp("validation_cell", word) == 0 && this->nvalidation > 0)
         {
-            for (int i = 0; i < this->ntrain; ++i)
+            for (int i = 0; i < this->nvalidation; ++i)
             {
                 ifs >> this->validation_cell[i];
             }
         }
         else if (strcmp("validation_a", word) == 0 && this->nvalidation > 0)
         {
-            for (int i = 0; i < this->ntrain; ++i)
+            for (int i = 0; i < this->nvalidation; ++i)
             {
                 ifs >> this->validation_a[i];
             }
@@ -151,12 +159,16 @@ void Train::readInput()
 
     this->ninput = 0;
 
-    this->rho = torch::zeros({this->nx_train});
-    if (this->nvalidation > 0) this->rho_vali = torch::zeros({this->nx_vali});
+    this->rho = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    if (this->nvalidation > 0) this->rho_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+    this->enhancement = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    if (this->nvalidation > 0) this->enhancement_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+    this->pauli = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    if (this->nvalidation > 0) this->pauli_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
 
     if (this->ml_gamma || this->ml_gammanl){
-        this->gamma = torch::zeros({this->nx_train});
-        if (this->nvalidation > 0) this->gamma_vali = torch::zeros({this->nx_vali});
+        this->gamma = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+        if (this->nvalidation > 0) this->gamma_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         if (this->ml_gamma)
         {
             this->nn_input_index["gamma"] = this->ninput; 
@@ -164,10 +176,10 @@ void Train::readInput()
         } 
     }    
     if (this->ml_p || this->ml_pnl){
-        this->p = torch::zeros({this->nx_train});
-        this->nablaRho = torch::zeros({3, this->nx_train});
-        if (this->nvalidation > 0) this->p_vali = torch::zeros({this->nx_vali});
-        if (this->nvalidation > 0) this->nablaRho_vali = torch::zeros({3, this->nx_vali});
+        this->p = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+        this->nablaRho = torch::zeros({this->ntrain, 3, this->fftdim, this->fftdim, this->fftdim});
+        if (this->nvalidation > 0) this->p_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+        if (this->nvalidation > 0) this->nablaRho_vali = torch::zeros({this->nvalidation, 3, this->fftdim, this->fftdim, this->fftdim});
         if (this->ml_p)
         {
             this->nn_input_index["p"] = this->ninput;
@@ -175,8 +187,8 @@ void Train::readInput()
         }
     }
     if (this->ml_q || this->ml_qnl){
-        this->q = torch::zeros({this->nx_train});
-        if (this->nvalidation > 0) this->q_vali = torch::zeros({this->nx_vali});
+        this->q = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+        if (this->nvalidation > 0) this->q_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         if (this->ml_q)
         {
             this->nn_input_index["q"] = this->ninput;
@@ -184,22 +196,23 @@ void Train::readInput()
         }
     }
     if (this->ml_gammanl){
-        this->gammanl = torch::zeros({this->nx_train});
-        if (this->nvalidation > 0) this->gammanl_vali = torch::zeros({this->nx_vali});
+        this->gammanl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+        if (this->nvalidation > 0) this->gammanl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         this->nn_input_index["gammanl"] = this->ninput;
         this->ninput++;
     }
     if (this->ml_pnl){
-        this->pnl = torch::zeros({this->nx_train});
-        if (this->nvalidation > 0) this->pnl_vali = torch::zeros({this->nx_vali});
+        this->pnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+        if (this->nvalidation > 0) this->pnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         this->nn_input_index["pnl"] = this->ninput;
         this->ninput++;
     }
     if (this->ml_qnl){
-        this->qnl = torch::zeros({this->nx_train});
-        if (this->nvalidation > 0) this->qnl_vali = torch::zeros({this->nx_vali});
+        this->qnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+        if (this->nvalidation > 0) this->qnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         this->nn_input_index["qnl"] = this->ninput;
         this->ninput++;
     }
+
     std::cout << "ninput" << this->ninput << std::endl;
 }

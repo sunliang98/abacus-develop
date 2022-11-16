@@ -35,12 +35,12 @@ void NN_OFImpl::setData(
 
 void NN_OFImpl::setData(
     std::map<std::string, int> &input_index, 
-    torch::Tensor &gamma, 
-    torch::Tensor &gammanl, 
-    torch::Tensor &p, 
-    torch::Tensor &pnl, 
-    torch::Tensor &q, 
-    torch::Tensor &qnl
+    torch::Tensor gamma, 
+    torch::Tensor gammanl, 
+    torch::Tensor p, 
+    torch::Tensor pnl, 
+    torch::Tensor q, 
+    torch::Tensor qnl
 )
 {
     if (input_index["gamma"] >= 0) this->inputs.index({"...", input_index["gamma"]}) = gamma.clone();

@@ -5,8 +5,8 @@ void Train::setUpFFT()
 {
     this->initGrid();
     this->fillKernel();
-    this->dumpTensor(this->fft_kernel_train[0].reshape({this->nx_train}), "kernel_fcc.npy", this->nx_train);
-    this->dumpTensor(this->fft_kernel_vali[0].reshape({this->nx_vali}), "kernel_bcc.npy", this->nx_vali);
+    this->dumpTensor(this->fft_kernel_train[0].reshape({this->nx}), "kernel_fcc.npy", this->nx);
+    // this->dumpTensor(this->fft_kernel_vali[0].reshape({this->nx}), "kernel_bcc.npy", this->nx);
 }
 
 void Train::initGrid()
@@ -121,7 +121,7 @@ void Train::fiilKernel_(
     double eta = 0.;
     for (int it = 0; it < nstru; ++it)
     {
-        rho0 = torch::sum(torch::slice(rho, 0, it * this->nx, (it+1)*this->nx)).item<double>()/this->nx;
+        rho0 = torch::sum(rho[it]).item<double>()/this->nx;
         std::cout << "There are " << rho0 * volume[it] << " electrons in " << cell[it] << " strcture." << std::endl;
         tkF = 2. * pow(3. * pow(M_PI, 2) * rho0, 1./3.);
         fft_kernel[it] = torch::zeros({this->fftdim, this->fftdim, this->fftdim});

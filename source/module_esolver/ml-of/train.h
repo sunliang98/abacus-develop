@@ -11,10 +11,11 @@ public:
     
     std::shared_ptr<NN_OFImpl> nn;
 
-    void initNN();
+    void init();
 
     torch::Tensor lossFunction(torch::Tensor enhancement, torch::Tensor target);
     // double lostFunction(torch::Tensor potentialML, torch::Tensor target);
+    // torch::Tensor potLossFunction()
 
     void train();
     void dump();
@@ -36,13 +37,13 @@ public:
     torch::Tensor nablaRho;
     // target
     torch::Tensor enhancement;
+    torch::Tensor pauli;
     // fft grid
     std::vector<std::vector<torch::Tensor>> fft_grid_train; // ntrain*3*fftdim*fftdim*fftdim
     std::vector<torch::Tensor> fft_gg_train;
     std::vector<torch::Tensor> fft_kernel_train;
     // others
     double *train_volume = nullptr;
-    // torch::Tensor fft_grid_train;
     //------------------------------------
 
     //---------validation set ------------
@@ -58,6 +59,7 @@ public:
     torch::Tensor input_vali;
     // target
     torch::Tensor enhancement_vali;
+    torch::Tensor pauli_vali;
     // fft grid
     std::vector<std::vector<torch::Tensor>> fft_grid_vali; // ntrain*3*fftdim*fftdim*fftdim
     std::vector<torch::Tensor> fft_gg_vali;
@@ -83,10 +85,10 @@ private:
     int nbatch = 0;
     int ntrain = 1;
     int nvalidation = 0;
-    std::string train_dir = ".";
+    std::string *train_dir = nullptr;
     std::string *train_cell = nullptr;
     double *train_a = nullptr;
-    std::string validation_dir = ".";
+    std::string *validation_dir = nullptr;
     std::string *validation_cell = nullptr;
     double *validation_a = nullptr;
     std::string loss = "energy";
@@ -109,8 +111,9 @@ public:
     void loadData();
 private:
     void loadData(
-        std::string dir, 
+        std::string *dir, 
         int nx,
+        int nDataSet,
         torch::Tensor &rho,
         torch::Tensor &gamma,
         torch::Tensor &p,
@@ -119,13 +122,15 @@ private:
         torch::Tensor &pnl,
         torch::Tensor &qnl,
         torch::Tensor &nablaRho,
-        torch::Tensor &enhancement
+        torch::Tensor &enhancement,
+        torch::Tensor &pauli
     );
     void loadTensor(
         std::string file,
         std::vector<long unsigned int> cshape,
         bool fortran_order, 
         std::vector<double> &container,
+        int index,
         torch::Tensor &data
     );
 // -------- dump Tensor into .npy files ---------
