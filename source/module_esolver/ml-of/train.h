@@ -74,7 +74,7 @@ public:
 // ---------- read in the settings from nnINPUT --------
 public:
     void readInput();
-private:
+
     template <class T>
     static void read_value(std::ifstream &ifs, T &var)
     {
@@ -128,6 +128,8 @@ private:
         torch::Tensor &enhancement,
         torch::Tensor &pauli
     );
+    
+public:
     void loadTensor(
         std::string file,
         std::vector<long unsigned int> cshape,
@@ -141,8 +143,9 @@ private:
 
 // ============== 3. train_ff.cpp ==============
 // ------------ set up grid of FFT ----------
-private:
+public:
     void setUpFFT();
+private:
     void initGrid();
     void initGrid_(
         const int fftdim,
@@ -193,8 +196,6 @@ private:
 // ============= 4. train_pot.cpp ===============
 public:
     void potTest();
-private:
-
     torch::Tensor getPot(
         const torch::Tensor &rho,
         const torch::Tensor &nablaRho,
@@ -208,6 +209,7 @@ private:
         const std::vector<torch::Tensor> &grid,
         const torch::Tensor &gg
     );
+private:
 
     torch::Tensor potGammaTerm(
         const torch::Tensor &gamma,

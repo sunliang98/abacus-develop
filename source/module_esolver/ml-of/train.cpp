@@ -22,10 +22,10 @@ void Train::init()
     // this->nn->to(device);
     this->nn->setData(this->nn_input_index,
                       this->gamma.reshape({this->nx_train}),
-                      this->gammanl.reshape({this->nx_train}), 
                       this->p.reshape({this->nx_train}), 
-                      this->pnl.reshape({this->nx_train}), 
                       this->q.reshape({this->nx_train}), 
+                      this->gammanl.reshape({this->nx_train}), 
+                      this->pnl.reshape({this->nx_train}), 
                       this->qnl.reshape({this->nx_train}));
     if (this->loss == "potential") this->nn->inputs.requires_grad_(true);
 }
@@ -95,7 +95,7 @@ void Train::train()
                     this->gamma[batch_index],
                     this->p[batch_index],
                     this->q[batch_index],
-                    torch::slice(this->nn->F, 0, batch_index*this->nx, (batch_index + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
+                    torch::slice(prediction, 0, batch_index*this->nx, (batch_index + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
                     torch::slice(this->nn->gradient, 0, batch_index*this->nx, (batch_index + 1)*this->nx),
                     this->fft_kernel_train[batch_index],
                     this->fft_grid_train[batch_index],
@@ -148,23 +148,26 @@ void Train::potTest()
     // // this->nn->setData(this->nn_input_index, this->gamma, this->gammanl, this->p, this->pnl, this->q, this->qnl);
     // this->nn->setData(this->nn_input_index,
     //                   this->gamma.reshape({this->nx_train}),
-    //                   this->gammanl.reshape({this->nx_train}), 
     //                   this->p.reshape({this->nx_train}), 
-    //                   this->pnl.reshape({this->nx_train}), 
     //                   this->q.reshape({this->nx_train}), 
+    //                   this->gammanl.reshape({this->nx_train}), 
+    //                   this->pnl.reshape({this->nx_train}), 
     //                   this->qnl.reshape({this->nx_train}));
 
     // this->nn->inputs.requires_grad_(true);
-    // this->nn->F = this->nn->forward(this->nn->inputs);
+    // // this->nn->F = this->nn->forward(this->nn->inputs);
+    // torch::Tensor prediction = this->nn->forward(this->nn->inputs);
     // if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
     // // cout << "begin backward" << endl;
-    // this->nn->F.backward(torch::ones({this->nx_train, 1}));
+    // // this->nn->F.backward(torch::ones({this->nx_train, 1}));
     // // cout << this->nn->inputs.grad();
-    // this->nn->gradient = this->nn->inputs.grad();
+    // // this->nn->gradient = this->nn->inputs.grad();
+    // this->nn->gradient = torch::autograd::grad({prediction}, {this->nn->inputs},
+    //                                         {torch::ones_like(prediction)}, true, true)[0];
     // // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
     // std::cout << "begin potential" << std::endl;
 
-    // for (int ii = 0; ii < this->ntrain; ++ii)
+    // for (int ii = 0; ii < 1; ++ii)
     // {
     //     torch::Tensor pot = this->getPot(
     //         rho[ii],
@@ -173,15 +176,17 @@ void Train::potTest()
     //         gamma[ii],
     //         p[ii],
     //         q[ii],
-    //         torch::slice(this->nn->F, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
+    //         torch::slice(prediction, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
+    //         // torch::slice(this->nn->F, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
     //         torch::slice(this->nn->gradient, 0, ii*this->nx, (ii + 1)*this->nx),
     //         this->fft_kernel_train[ii],
     //         this->fft_grid_train[ii],
     //         this->fft_gg_train[ii]
     //     );
     //     this->dumpTensor(pot.reshape({this->nx}), "pot_fcc.npy", this->nx);
-    //     this->dumpTensor(torch::slice(this->nn->F, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
-    // }
+    //     this->dumpTensor(torch::slice(prediction, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
+    //     // this->dumpTensor(torch::slice(this->nn->F, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
+    }
 
     // // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
 
@@ -211,38 +216,3 @@ void Train::potTest()
     // this->dumpTensor(this->nn->F.reshape({this->nx_vali}), "F_bcc.npy", this->nx_vali);
 }
 
-int main()
-{
-    // train test
-    Train train;
-    train.readInput();
-    train.loadData();
-    train.init();
-    train.train();
-    // train.potTest();
-
-    // torch::Tensor x = torch::ones({2,2});
-    // x[0][0] = 0.;
-    // x[1][0] = 2.;
-    // x[1][1] = 3.;
-    // x.requires_grad_(true);
-    // std::cout << "x" << x << std::endl;
-    // torch::Tensor y = x * x + x.t() * x.t();
-    // std::cout << "y" << y << std::endl;
-    // std::vector<torch::Tensor> tmp_pot;
-    // std::vector<torch::Tensor> tmp_ipt;
-    // std::vector<torch::Tensor> tmp_eye;
-    // tmp_pot.push_back(y);
-    // tmp_ipt.push_back(x);
-    // tmp_eye.push_back(x);
-    // // tmp_eye.push_back(torch::ones_like(y));
-    // std::vector<torch::Tensor> tmp_grad;
-    // tmp_grad = torch::autograd::grad(tmp_pot, tmp_ipt, tmp_eye, true, true, true);
-    // std::cout << tmp_grad[0] << std::endl;
-
-    // load test
-    // std::shared_ptr<NN_OFImpl> nn = std::make_shared<NN_OFImpl>(64000, 6);
-    // torch::load(nn, "./net.pt");
-    // nn->setData(train.gamma, train.gammanl, train.p, train.pnl, train.q, train.qnl);
-    // std::cout << nn->forward(nn->inputs);
-}

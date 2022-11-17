@@ -19,10 +19,10 @@ NN_OFImpl::NN_OFImpl(int nrxx, int ninpt)
 void NN_OFImpl::setData(
     std::map<std::string, int> &input_index, 
     std::vector<double> &gamma, 
-    std::vector<double> &gammanl, 
     std::vector<double> &p, 
-    std::vector<double> &pnl, 
     std::vector<double> &q, 
+    std::vector<double> &gammanl, 
+    std::vector<double> &pnl, 
     std::vector<double> &qnl)
 {
     if (input_index["gamma"] >= 0) this->inputs.index({"...", input_index["gamma"]}) = torch::tensor(gamma);
@@ -36,10 +36,10 @@ void NN_OFImpl::setData(
 void NN_OFImpl::setData(
     std::map<std::string, int> &input_index, 
     torch::Tensor gamma, 
-    torch::Tensor gammanl, 
     torch::Tensor p, 
-    torch::Tensor pnl, 
     torch::Tensor q, 
+    torch::Tensor gammanl, 
+    torch::Tensor pnl, 
     torch::Tensor qnl
 )
 {

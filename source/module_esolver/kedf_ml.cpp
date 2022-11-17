@@ -82,7 +82,7 @@ void KEDF_ML::set_para(int nx, double dV, double nelec, double tf_weight, double
 double KEDF_ML::get_energy(const double * const * prho, ModulePW::PW_Basis *pw_rho)
 {
     this->updateInput(prho, pw_rho);
-    this->nn->setData(this->nn_input_index, this->gamma, this->gammanl, this->p, this->pnl, this->q, this->qnl);
+    this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl);
 
     this->nn->F = this->nn->forward(this->nn->inputs);
 
@@ -104,7 +104,7 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
 
     this->nn->zero_grad();
     this->nn->inputs.requires_grad_(false);
-    this->nn->setData(this->nn_input_index, this->gamma, this->gammanl, this->p, this->pnl, this->q, this->qnl);
+    this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl);
     this->nn->inputs.requires_grad_(true);
 
     this->nn->F = this->nn->forward(this->nn->inputs);
@@ -200,24 +200,24 @@ void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF
 
 void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
 {
-    // // for test =====================
-    // std::vector<long unsigned int> cshape = {(long unsigned) this->nx};
-    // bool fortran_order = false;
+    // for test =====================
+    std::vector<long unsigned int> cshape = {(long unsigned) this->nx};
+    bool fortran_order = false;
 
-    // std::vector<double> temp_prho(this->nx);
+    std::vector<double> temp_prho(this->nx);
     // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/1_validation_set_bccAl/reference/rho.npy", cshape, fortran_order, temp_prho);
-    // // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", cshape, fortran_order, temp_prho);
-    // double ** prho = new double *[1];
-    // prho[0] = new double[this->nx];
-    // for (int ir = 0; ir < this->nx; ++ir) prho[0][ir] = temp_prho[ir];
-    // std::cout << "Load rho done" << std::endl;
-    // // ==============================
+    npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", cshape, fortran_order, temp_prho);
+    double ** prho = new double *[1];
+    prho[0] = new double[this->nx];
+    for (int ir = 0; ir < this->nx; ++ir) prho[0][ir] = temp_prho[ir];
+    std::cout << "Load rho done" << std::endl;
+    // ==============================
 
     this->updateInput(prho, pw_rho);
 
     this->nn->zero_grad();
     this->nn->inputs.requires_grad_(false);
-    this->nn->setData(this->nn_input_index, this->gamma, this->gammanl, this->p, this->pnl, this->q, this->qnl);
+    this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl);
     this->nn->inputs.requires_grad_(true);
 
     this->nn->F = this->nn->forward(this->nn->inputs);
