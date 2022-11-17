@@ -3,6 +3,7 @@
 
 void Train::loadData()
 {
+    this->initData();
     this->loadData(this->train_dir, this->nx_train, this->ntrain, this->rho, this->gamma, this->p, this->q,
                    this->gammanl, this->pnl, this->qnl, this->nablaRho, this->enhancement, this->pauli);
     if (this->nvalidation > 0)
@@ -17,7 +18,93 @@ void Train::loadData()
         if (this->nn_input_index["pnl"] >= 0) this->input_vali.index({"...", this->nn_input_index["pnl"]}) = pnl_vali.reshape({this->nx_vali}).clone();
         if (this->nn_input_index["qnl"] >= 0) this->input_vali.index({"...", this->nn_input_index["qnl"]}) = qnl_vali.reshape({this->nx_vali}).clone();
     }
-    std::cout << "Load train set done" << std::endl;
+    std::cout << "Load data done" << std::endl;
+}
+
+void Train::initData()
+{
+    this->nx = pow(this->fftdim, 3);
+    this->nx_train = this->nx * this->ntrain;
+    this->nx_vali = this->nx * this->nvalidation;
+    this->nn_input_index = {{"gamma", -1}, {"p", -1}, {"q", -1}, {"gammanl", -1}, {"pnl", -1}, {"qnl", -1}};
+
+    this->fft_grid_train = std::vector<std::vector<torch::Tensor>>(this->ntrain);
+    this->fft_gg_train = std::vector<torch::Tensor>(this->ntrain);
+    this->fft_kernel_train = std::vector<torch::Tensor>(this->ntrain);
+    for (int i = 0; i < this->ntrain; ++i)
+    {
+        this->fft_grid_train[i] = std::vector<torch::Tensor>(3);
+    }
+
+    this->fft_grid_vali = std::vector<std::vector<torch::Tensor>>(this->nvalidation);
+    this->fft_gg_vali = std::vector<torch::Tensor>(this->nvalidation);
+    this->fft_kernel_vali = std::vector<torch::Tensor>(this->nvalidation);
+    for (int i = 0; i < this->nvalidation; ++i)
+    {
+        this->fft_grid_vali[i] = std::vector<torch::Tensor>(3);
+    }
+
+    this->ninput = 0;
+
+    this->rho = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    this->enhancement = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    this->pauli = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    this->gamma = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    this->p = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    this->nablaRho = torch::zeros({this->ntrain, 3, this->fftdim, this->fftdim, this->fftdim});
+    this->q = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    this->gammanl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    this->pnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    this->qnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    if (this->nvalidation > 0)
+    {
+        this->rho_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+        this->enhancement_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+        this->pauli_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+        this->gamma_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+        this->p_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+        this->nablaRho_vali = torch::zeros({this->nvalidation, 3, this->fftdim, this->fftdim, this->fftdim});
+        this->q_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+        this->gammanl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+        this->pnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+        this->qnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+    }
+
+    if (this->ml_gamma || this->ml_gammanl){
+        if (this->ml_gamma)
+        {
+            this->nn_input_index["gamma"] = this->ninput; 
+            this->ninput++;
+        } 
+    }    
+    if (this->ml_p || this->ml_pnl){
+        if (this->ml_p)
+        {
+            this->nn_input_index["p"] = this->ninput;
+            this->ninput++;
+        }
+    }
+    if (this->ml_q || this->ml_qnl){
+        if (this->ml_q)
+        {
+            this->nn_input_index["q"] = this->ninput;
+            this->ninput++;
+        }
+    }
+    if (this->ml_gammanl){
+        this->nn_input_index["gammanl"] = this->ninput;
+        this->ninput++;
+    }
+    if (this->ml_pnl){
+        this->nn_input_index["pnl"] = this->ninput;
+        this->ninput++;
+    }
+    if (this->ml_qnl){
+        this->nn_input_index["qnl"] = this->ninput;
+        this->ninput++;
+    }
+
+    std::cout << "ninput = " << this->ninput << std::endl;
 }
 
 void Train::loadData(
@@ -45,37 +132,27 @@ void Train::loadData(
     for (int idata = 0; idata < nDataSet; ++idata)
     {
         this->loadTensor(dir[idata] + "/rho.npy", cshape, fortran_order, container, idata, rho);
-        std::cout << "rho done" << std::endl;
         if (this->ml_gamma || this->ml_gammanl) this->loadTensor(dir[idata] + "/gamma.npy", cshape, fortran_order, container, idata, gamma);
-        std::cout << "gamma done" << std::endl;
         if (this->ml_gammanl) this->loadTensor(dir[idata] + "/gammanl.npy", cshape, fortran_order, container, idata, gammanl);
-        std::cout << "gammanl done" << std::endl;
         if (this->ml_p || this->ml_pnl)
         {
             this->loadTensor(dir[idata] + "/p.npy", cshape, fortran_order, container, idata, p);
-            std::cout << "p done" << std::endl;
             npy::LoadArrayFromNumpy(dir[idata] + "/nablaRhox.npy", cshape, fortran_order, container);
             nablaRho[idata][0] = torch::tensor(container).reshape({this->fftdim, this->fftdim, this->fftdim});
             npy::LoadArrayFromNumpy(dir[idata] + "/nablaRhoy.npy", cshape, fortran_order, container);
             nablaRho[idata][1] = torch::tensor(container).reshape({this->fftdim, this->fftdim, this->fftdim});
             npy::LoadArrayFromNumpy(dir[idata] + "/nablaRhoz.npy", cshape, fortran_order, container);
             nablaRho[idata][2] = torch::tensor(container).reshape({this->fftdim, this->fftdim, this->fftdim});
-            std::cout << "nabla rho done" << std::endl;
         }
         if (this->ml_pnl) this->loadTensor(dir[idata] + "/pnl.npy", cshape, fortran_order, container, idata, pnl);
-        std::cout << "pnl done" << std::endl;
         if (this->ml_q || this->ml_qnl) this->loadTensor(dir[idata] + "/q.npy", cshape, fortran_order, container, idata, q);
-        std::cout << "q done" << std::endl;
         if (this->ml_qnl) this->loadTensor(dir[idata] + "/qnl.npy", cshape, fortran_order, container, idata, qnl);
-        std::cout << "qnl done" << std::endl;
 
         this->loadTensor(dir[idata] + "/enhancement.npy", cshape, fortran_order, container, idata, enhancement);
-        // enhancement.resize_({nx, 1});
 
         if (this->loss == "potential")
         {
             this->loadTensor(dir[idata] + "/pauli.npy", cshape, fortran_order, container, idata, pauli);
-            // pauli.resize_({nx, 1});
         }
     }
     enhancement.resize_({nx, 1});

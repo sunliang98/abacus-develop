@@ -25,7 +25,7 @@ torch::Tensor Train::potGammaTerm(
     const torch::Tensor &gradient
 )
 {
-    std::cout << "potGammaTerm" << std::endl;
+    // std::cout << "potGammaTerm" << std::endl;
     return (this->ml_gamma) ? 1./3. * gamma * gradient.index({"...", this->nn_input_index["gamma"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) : torch::zeros_like(gamma);
 }
 
@@ -34,7 +34,7 @@ torch::Tensor Train::potPTerm1(
     const torch::Tensor &gradient
 )
 {
-    std::cout << "potPTerm1" << std::endl;
+    // std::cout << "potPTerm1" << std::endl;
     return (this->ml_p) ? - 8./3. * p * gradient.index({"...", this->nn_input_index["p"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) : torch::zeros_like(p);
 }
 
@@ -43,7 +43,7 @@ torch::Tensor Train::potQTerm1(
     const torch::Tensor &gradient
 )
 {
-    std::cout << "potQTerm1" << std::endl;
+    // std::cout << "potQTerm1" << std::endl;
     return (this->ml_q) ? - 5./3. * q * gradient.index({"...", this->nn_input_index["q"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) : torch::zeros_like(q);
 }
 
@@ -55,7 +55,7 @@ torch::Tensor Train::potGammanlTerm(
     const torch::Tensor &gradient
 )
 {
-    std::cout << "potGmmamnlTerm" << std::endl;
+    // std::cout << "potGmmamnlTerm" << std::endl;
     if (!this->ml_gammanl) return torch::zeros_like(gamma);
     else return 1./3. * gamma / rho * torch::real(torch::fft::ifftn(torch::fft::fftn(gradient.index({"...", this->nn_input_index["gammanl"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) * tauTF) * kernel));
 }
@@ -70,7 +70,7 @@ torch::Tensor Train::potPPnlTerm(
     const std::vector<torch::Tensor> &grid
 )
 {
-    std::cout << "potPPnlTerm" << std::endl;
+    // std::cout << "potPPnlTerm" << std::endl;
     if (!this->ml_p && !this->ml_pnl) return torch::zeros_like(p);
     torch::Tensor dFdpnl_nl = torch::zeros_like(p);
     if (this->ml_gammanl) dFdpnl_nl = torch::real(torch::fft::ifftn(torch::fft::fftn(gradient.index({"...", this->nn_input_index["pnl"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) * tauTF) * kernel));
@@ -81,13 +81,13 @@ torch::Tensor Train::potPPnlTerm(
         temp[i] = (this->ml_p) ? -3./20. * gradient.index({"...", this->nn_input_index["p"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) * nablaRho[i] / rho * /*Ha to Ry*/2. : torch::zeros_like(nablaRho[i]);
         if (this->ml_pnl) temp[i] += - this->pqcoef * 2. * nablaRho[i] / torch::pow(rho, 8./3.) * dFdpnl_nl;
     }
-    std::cout << torch::slice(temp[0][0][0], 0, 0, 10);
+    // std::cout << torch::slice(temp[0][0][0], 0, 0, 10);
     torch::Tensor result = this->divergence(temp, grid);
 
     if (this->ml_pnl) result += -8./3. * p / rho * dFdpnl_nl;
-    std::cout << torch::slice(result[0][0], 0, 20) << std::endl;
+    // std::cout << torch::slice(result[0][0], 0, 20) << std::endl;
     
-    std::cout << "potPPnlTerm done" << std::endl;
+    // std::cout << "potPPnlTerm done" << std::endl;
     return result;
 }
 
@@ -100,7 +100,7 @@ torch::Tensor Train::potQQnlTerm(
     const torch::Tensor &gg    
 )
 {
-    std::cout << "potQQnlTerm" << std::endl;
+    // std::cout << "potQQnlTerm" << std::endl;
     if (!this->ml_q && !this->ml_qnl) return torch::zeros_like(q);
     torch::Tensor dFdqnl_nl = torch::zeros_like(q);
     if (this->ml_gammanl) dFdqnl_nl = torch::real(torch::fft::ifftn(torch::fft::fftn(gradient.index({"...", this->nn_input_index["qnl"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) * tauTF) * kernel));
@@ -111,7 +111,7 @@ torch::Tensor Train::potQQnlTerm(
 
     if (this->ml_qnl) result += - 5./3. * q / rho * dFdqnl_nl;
 
-    std::cout << "potQQnlTerm done" << std::endl;
+    // std::cout << "potQQnlTerm done" << std::endl;
     return result;
 }
 

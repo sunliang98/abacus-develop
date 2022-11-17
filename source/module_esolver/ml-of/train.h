@@ -25,6 +25,8 @@ public:
     int nx_vali = 1;
     int ninput = 6;
 
+    // torch::Device device = torch::Device(torch::kCUDA);
+
     //----------- training set -----------
     torch::Tensor rho;
     // inputs
@@ -110,6 +112,7 @@ private:
 public:
     void loadData();
 private:
+    void initData();
     void loadData(
         std::string *dir, 
         int nx,

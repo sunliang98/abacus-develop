@@ -5,7 +5,7 @@ void Train::setUpFFT()
 {
     this->initGrid();
     this->fillKernel();
-    this->dumpTensor(this->fft_kernel_train[0].reshape({this->nx}), "kernel_fcc.npy", this->nx);
+    // this->dumpTensor(this->fft_kernel_train[0].reshape({this->nx}), "kernel_fcc.npy", this->nx);
     // this->dumpTensor(this->fft_kernel_vali[0].reshape({this->nx}), "kernel_bcc.npy", this->nx);
 }
 
@@ -63,18 +63,18 @@ void Train::initFccRecipGrid(
     std::vector<torch::Tensor> &gg
 )
 {
-    std::cout << "init grid" << std::endl;
+    // std::cout << "init grid" << std::endl;
     volume[index] = pow(a, 3) / 4.;
     double coef = 1./sqrt(2.);
-    std::cout << "fftfreq" << std::endl;
+    // std::cout << "fftfreq" << std::endl;
     torch::Tensor fre = torch::fft::fftfreq(fftdim, a * coef/fftdim) * 2. * M_PI;
     auto originalGrid = torch::meshgrid({fre, fre, fre});
     grid[index][0] = coef * (-originalGrid[0] + originalGrid[1] + originalGrid[2]);
     grid[index][1] = coef * (originalGrid[0] - originalGrid[1] + originalGrid[2]);
     grid[index][2] = coef * (originalGrid[0] + originalGrid[1] - originalGrid[2]);
-    std::cout << "gg" << std::endl;
+    // std::cout << "gg" << std::endl;
     gg[index] = grid[index][0] * grid[index][0] + grid[index][1] * grid[index][1] + grid[index][2] * grid[index][2];
-    std::cout << "init grid done" << std::endl;
+    std::cout << "Init grid done" << std::endl;
 }
 
 void Train::initBccRecipGrid(
@@ -98,12 +98,12 @@ void Train::initBccRecipGrid(
 
 void Train::fillKernel()
 {
-    std::cout << "fill kernel" << std::endl;
     this->fiilKernel_(this->fftdim, this->ntrain, this->rho, this->train_volume, this->train_cell, this->fft_gg_train, this->fft_kernel_train);
     if (this->nvalidation > 0)
     {
         this->fiilKernel_(this->fftdim, this->nvalidation, this->rho_vali, this->vali_volume, this->validation_cell, this->fft_gg_vali, this->fft_kernel_vali);
     }
+    std::cout << "Fill kernel done" << std::endl;
 }
 
 void Train::fiilKernel_(
