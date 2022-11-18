@@ -27,7 +27,7 @@ void Train::init()
                       this->gammanl.reshape({this->nx_train}), 
                       this->pnl.reshape({this->nx_train}), 
                       this->qnl.reshape({this->nx_train}));
-    if (this->loss == "potential") this->nn->inputs.requires_grad_(true);
+    // if (this->loss == "potential") this->nn->inputs.requires_grad_(true);
 }
 
 torch::Tensor Train::lossFunction(torch::Tensor enhancement, torch::Tensor target)
@@ -64,9 +64,9 @@ void Train::train()
         for (auto& batch : *data_loader)
         {
             optimizer.zero_grad();
-            torch::Tensor prediction = this->nn->forward(batch.data);
             if (this->loss == "energy")
             {
+                torch::Tensor prediction = this->nn->forward(batch.data);
                 startL = clock();
                 torch::Tensor loss = this->lossFunction(prediction, batch.target);
                 lossTrain = loss.item<double>();
@@ -80,10 +80,14 @@ void Train::train()
             }
             else if (this->loss == "potential")
             {
+                torch::Tensor inpt = torch::slice(this->nn->inputs, 0, batch_index*this->nx, (batch_index + 1)*this->nx);
+                inpt.requires_grad_(true);
+                torch::Tensor prediction = this->nn->forward(inpt);
                 startFB = clock();
-                if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
-                this->nn->gradient = torch::autograd::grad({prediction}, {this->nn->inputs},
+                torch::Tensor gradient = torch::autograd::grad({prediction}, {inpt},
                                                            {torch::ones_like(prediction)}, true, true)[0];
+                // std::cout << gradient.requires_grad() << std::endl;
+                // gradient.requires_grad_(true);
                 endFB = clock();
                 totFback += endFB - startFB;
 
@@ -96,7 +100,7 @@ void Train::train()
                     this->p[batch_index],
                     this->q[batch_index],
                     torch::slice(prediction, 0, batch_index*this->nx, (batch_index + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
-                    torch::slice(this->nn->gradient, 0, batch_index*this->nx, (batch_index + 1)*this->nx),
+                    gradient,
                     this->fft_kernel_train[batch_index],
                     this->fft_grid_train[batch_index],
                     this->fft_gg_train[batch_index]
@@ -110,24 +114,27 @@ void Train::train()
                 loss.backward();
                 endLB = clock();
                 totLback += endLB - startLB;
+                // this->dumpTensor(pot.reshape({this->nx}), "pot_fcc.npy", this->nx);
+                // this->dumpTensor(torch::slice(prediction, 0, batch_index*this->nx, (batch_index + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
             }
             
+            if (epoch % this->dump_fre == 0)
+            {
+                std::stringstream file;
+                file << "model/net" << epoch << ".pt";
+                torch::save(this->nn, file.str());
+            }
+            if (epoch % this->print_fre == 0) {
+                if (this->nvalidation > 0)
+                {
+                    torch::Tensor valid_pre = this->nn->forward(this->input_vali);
+                    lossVali = this->lossFunction(valid_pre, this->enhancement_vali).item<double>();
+                }
+                std::cout << std::setiosflags(std::ios::scientific) << std::setprecision(3) << epoch << std::setw(12) << lossTrain <<  std::setw(12) << lossVali << std::endl;
+            }
+
             optimizer.step();
             batch_index += 1;
-        }
-        if (epoch % this->dump_fre == 0)
-        {
-            std::stringstream file;
-            file << "model/net" << epoch << ".pt";
-            torch::save(this->nn, file.str());
-        }
-        if (epoch % this->print_fre == 0) {
-            if (this->nvalidation > 0)
-            {
-                torch::Tensor valid_pre = this->nn->forward(this->input_vali);
-                lossVali = this->lossFunction(valid_pre, this->enhancement_vali).item<double>();
-            }
-            std::cout << std::setiosflags(std::ios::scientific) << std::setprecision(3) << epoch << std::setw(12) << lossTrain <<  std::setw(12) << lossVali << std::endl;
         }
     }
     end = clock();
@@ -142,52 +149,66 @@ void Train::train()
 
 void Train::potTest()
 {
-    // if (this->loss == "potential") this->setUpFFT();
-    // this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
-    // torch::load(this->nn, "net.pt");
-    // // this->nn->setData(this->nn_input_index, this->gamma, this->gammanl, this->p, this->pnl, this->q, this->qnl);
-    // this->nn->setData(this->nn_input_index,
-    //                   this->gamma.reshape({this->nx_train}),
-    //                   this->p.reshape({this->nx_train}), 
-    //                   this->q.reshape({this->nx_train}), 
-    //                   this->gammanl.reshape({this->nx_train}), 
-    //                   this->pnl.reshape({this->nx_train}), 
-    //                   this->qnl.reshape({this->nx_train}));
+    time_t start, end;
+    if (this->loss == "potential") this->setUpFFT();
+    this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
+    torch::load(this->nn, "net.pt");
 
-    // this->nn->inputs.requires_grad_(true);
-    // // this->nn->F = this->nn->forward(this->nn->inputs);
-    // torch::Tensor prediction = this->nn->forward(this->nn->inputs);
-    // if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
-    // // cout << "begin backward" << endl;
-    // // this->nn->F.backward(torch::ones({this->nx_train, 1}));
-    // // cout << this->nn->inputs.grad();
-    // // this->nn->gradient = this->nn->inputs.grad();
-    // this->nn->gradient = torch::autograd::grad({prediction}, {this->nn->inputs},
-    //                                         {torch::ones_like(prediction)}, true, true)[0];
-    // // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
-    // std::cout << "begin potential" << std::endl;
+    this->nn->setData(this->nn_input_index,
+                      this->gamma.reshape({this->nx_train}),
+                      this->p.reshape({this->nx_train}), 
+                      this->q.reshape({this->nx_train}), 
+                      this->gammanl.reshape({this->nx_train}), 
+                      this->pnl.reshape({this->nx_train}), 
+                      this->qnl.reshape({this->nx_train}));
+    this->nn->inputs.requires_grad_(true);
 
-    // for (int ii = 0; ii < 1; ++ii)
-    // {
-    //     torch::Tensor pot = this->getPot(
-    //         rho[ii],
-    //         nablaRho[ii],
-    //         this->cTF * torch::pow(rho[ii], 5./3.),
-    //         gamma[ii],
-    //         p[ii],
-    //         q[ii],
-    //         torch::slice(prediction, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
-    //         // torch::slice(this->nn->F, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
-    //         torch::slice(this->nn->gradient, 0, ii*this->nx, (ii + 1)*this->nx),
-    //         this->fft_kernel_train[ii],
-    //         this->fft_grid_train[ii],
-    //         this->fft_gg_train[ii]
-    //     );
-    //     this->dumpTensor(pot.reshape({this->nx}), "pot_fcc.npy", this->nx);
-    //     this->dumpTensor(torch::slice(prediction, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
-    //     // this->dumpTensor(torch::slice(this->nn->F, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
+    torch::Tensor target = (this->loss=="energy") ? this->enhancement : this->pauli;
+    auto dataset = OF_data(this->nn->inputs, target).map(torch::data::transforms::Stack<>());
+    auto data_loader = torch::data::make_data_loader(dataset, this->nbatch);
+    if (this->loss == "potential") this->pauli.resize_({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+
+    for (auto& batch : *data_loader)
+    {
+        for (int ii = 0; ii < 1; ++ii)
+        {
+        torch::Tensor inpts = torch::slice(this->nn->inputs, 0, ii*this->nx, (ii + 1)*this->nx);
+        inpts.requires_grad_(true);
+        torch::Tensor prediction = this->nn->forward(inpts);
+
+        start = clock();
+        this->nn->gradient = torch::autograd::grad({prediction}, {inpts},
+                                                {torch::ones_like(prediction)}, true, true)[0];
+        end = clock();
+        std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
+        
+        std::cout << "begin potential" << std::endl;
+        torch::Tensor tauTF = this->cTF * torch::pow(rho, 5./3.);
+
+            torch::Tensor pot = this->getPot(
+                rho[ii],
+                nablaRho[ii],
+                tauTF[ii],
+                gamma[ii],
+                p[ii],
+                q[ii],
+                torch::slice(prediction, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
+                torch::slice(this->nn->gradient, 0, ii*this->nx, (ii + 1)*this->nx),
+                this->fft_kernel_train[ii],
+                this->fft_grid_train[ii],
+                this->fft_gg_train[ii]
+            );
+            torch::Tensor loss = this->lossFunction(pot, this->pauli[ii]);
+            double lossTrain = loss.item<double>();
+            std::cout << "loss = " << lossTrain << std::endl;
+            this->dumpTensor(pot.reshape({this->nx}), "pot_fcc.npy", this->nx);
+            this->dumpTensor(torch::slice(prediction, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
+            // this->dumpTensor(torch::slice(this->nn->F, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
+
+        }
+        std::cout << std::setiosflags(std::ios::scientific) <<  std::setprecision(12) << this->nn->parameters() << std::endl;
+
     }
-
     // // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
 
     // this->nn->zero_grad();

@@ -73,7 +73,7 @@ torch::Tensor Train::potPPnlTerm(
     // std::cout << "potPPnlTerm" << std::endl;
     if (!this->ml_p && !this->ml_pnl) return torch::zeros_like(p);
     torch::Tensor dFdpnl_nl = torch::zeros_like(p);
-    if (this->ml_gammanl) dFdpnl_nl = torch::real(torch::fft::ifftn(torch::fft::fftn(gradient.index({"...", this->nn_input_index["pnl"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) * tauTF) * kernel));
+    if (this->ml_pnl) dFdpnl_nl = torch::real(torch::fft::ifftn(torch::fft::fftn(gradient.index({"...", this->nn_input_index["pnl"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) * tauTF) * kernel));
 
     torch::Tensor temp = torch::zeros_like(nablaRho);
     for (int i = 0; i < 3; ++i)
@@ -103,7 +103,7 @@ torch::Tensor Train::potQQnlTerm(
     // std::cout << "potQQnlTerm" << std::endl;
     if (!this->ml_q && !this->ml_qnl) return torch::zeros_like(q);
     torch::Tensor dFdqnl_nl = torch::zeros_like(q);
-    if (this->ml_gammanl) dFdqnl_nl = torch::real(torch::fft::ifftn(torch::fft::fftn(gradient.index({"...", this->nn_input_index["qnl"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) * tauTF) * kernel));
+    if (this->ml_qnl) dFdqnl_nl = torch::real(torch::fft::ifftn(torch::fft::fftn(gradient.index({"...", this->nn_input_index["qnl"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) * tauTF) * kernel));
 
     torch::Tensor temp = (this->ml_q) ? 3./40. * gradient.index({"...", this->nn_input_index["q"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) * /*Ha2Ry*/2. : torch::zeros_like(q);
     if (this->ml_qnl) temp += this->pqcoef / torch::pow(rho, 5./3.) * dFdqnl_nl;
