@@ -1,6 +1,4 @@
-add_library(
-    planewave
-    OBJECT
+list(APPEND objects
     fft.cpp
     pw_basis.cpp
     pw_basis_k.cpp
@@ -11,6 +9,12 @@ add_library(
     pw_init.cpp
     pw_transform.cpp
     pw_transform_k.cpp
+)
+
+add_library(
+    planewave
+    OBJECT
+    ${objects}
 )
 
 if(ENABLE_COVERAGE)
