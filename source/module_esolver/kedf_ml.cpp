@@ -226,7 +226,7 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
     // start = clock();
     this->nn->F.backward(torch::ones({this->nx, 1}));
-    end = clock();
+    // end = clock();
     // std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
     this->nn->gradient = this->nn->inputs.grad();
     // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;

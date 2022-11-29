@@ -17,7 +17,7 @@ Train::~Train()
 
 void Train::init()
 {
-    if (this->loss == "potential") this->setUpFFT();
+    if (this->loss == "potential" || this->loss == "both") this->setUpFFT();
     this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
     // this->nn->to(device);
     this->nn->setData(this->nn_input_index,
@@ -27,7 +27,7 @@ void Train::init()
                       this->gammanl.reshape({this->nx_train}), 
                       this->pnl.reshape({this->nx_train}), 
                       this->qnl.reshape({this->nx_train}));
-    // if (this->loss == "potential") this->nn->inputs.requires_grad_(true);
+    // if (this->loss == "potential" || this->loss == "both") this->nn->inputs.requires_grad_(true);
 }
 
 torch::Tensor Train::lossFunction(torch::Tensor enhancement, torch::Tensor target)
@@ -50,7 +50,10 @@ void Train::train()
     torch::Tensor target = (this->loss=="energy") ? this->enhancement : this->pauli;
     auto dataset = OF_data(this->nn->inputs, target).map(torch::data::transforms::Stack<>());
     auto data_loader = torch::data::make_data_loader(dataset, this->nbatch);
-    if (this->loss == "potential") this->pauli.resize_({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    if (this->loss == "potential" || this->loss == "both")
+    {
+        this->pauli.resize_({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    }
 
     torch::optim::SGD optimizer(this->nn->parameters(), this->step_length);
     std::cout << "Epoch\tLoss\tValidation\n";
@@ -78,7 +81,7 @@ void Train::train()
                 endLB = clock();
                 totLback += endLB - startLB;
             }
-            else if (this->loss == "potential")
+            else if (this->loss == "potential" || this->loss == "both")
             {
                 torch::Tensor inpt = torch::slice(this->nn->inputs, 0, batch_index*this->nx, (batch_index + 1)*this->nx);
                 inpt.requires_grad_(true);
@@ -99,13 +102,17 @@ void Train::train()
                     this->gamma[batch_index],
                     this->p[batch_index],
                     this->q[batch_index],
-                    torch::slice(prediction, 0, batch_index*this->nx, (batch_index + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
+                    prediction.reshape({this->fftdim, this->fftdim, this->fftdim}),
                     gradient,
                     this->fft_kernel_train[batch_index],
                     this->fft_grid_train[batch_index],
                     this->fft_gg_train[batch_index]
                 );
                 torch::Tensor loss = this->lossFunction(pot, this->pauli[batch_index]);
+                if (this->loss == "both")
+                {
+                    loss = loss + this->lossFunction(prediction, torch::slice(this->enhancement, 0, batch_index*this->nx, (batch_index + 1)*this->nx));
+                }
                 lossTrain = loss.item<double>();
                 endL = clock();
                 totLoss += endL - startL;
@@ -150,7 +157,7 @@ void Train::train()
 void Train::potTest()
 {
     time_t start, end;
-    if (this->loss == "potential") this->setUpFFT();
+    if (this->loss == "potential" || this->loss == "both") this->setUpFFT();
     this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
     torch::load(this->nn, "net.pt");
 
@@ -166,7 +173,7 @@ void Train::potTest()
     torch::Tensor target = (this->loss=="energy") ? this->enhancement : this->pauli;
     auto dataset = OF_data(this->nn->inputs, target).map(torch::data::transforms::Stack<>());
     auto data_loader = torch::data::make_data_loader(dataset, this->nbatch);
-    if (this->loss == "potential") this->pauli.resize_({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    if (this->loss == "potential" || this->loss == "both") this->pauli.resize_({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
 
     for (auto& batch : *data_loader)
     {
@@ -177,7 +184,7 @@ void Train::potTest()
         torch::Tensor prediction = this->nn->forward(inpts);
 
         start = clock();
-        this->nn->gradient = torch::autograd::grad({prediction}, {inpts},
+        torch::Tensor gradient = torch::autograd::grad({prediction}, {inpts},
                                                 {torch::ones_like(prediction)}, true, true)[0];
         end = clock();
         std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
@@ -193,12 +200,13 @@ void Train::potTest()
                 p[ii],
                 q[ii],
                 torch::slice(prediction, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
-                torch::slice(this->nn->gradient, 0, ii*this->nx, (ii + 1)*this->nx),
+                gradient,
                 this->fft_kernel_train[ii],
                 this->fft_grid_train[ii],
                 this->fft_gg_train[ii]
             );
             torch::Tensor loss = this->lossFunction(pot, this->pauli[ii]);
+            loss = loss + this->lossFunction(prediction, torch::slice(this->enhancement, 0, ii*this->nx, (ii + 1)*this->nx));
             double lossTrain = loss.item<double>();
             std::cout << "loss = " << lossTrain << std::endl;
             this->dumpTensor(pot.reshape({this->nx}), "pot_fcc.npy", this->nx);
@@ -206,7 +214,7 @@ void Train::potTest()
             // this->dumpTensor(torch::slice(this->nn->F, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
 
         }
-        std::cout << std::setiosflags(std::ios::scientific) <<  std::setprecision(12) << this->nn->parameters() << std::endl;
+        // std::cout << std::setiosflags(std::ios::scientific) <<  std::setprecision(12) << this->nn->parameters() << std::endl;
 
     }
     // // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;

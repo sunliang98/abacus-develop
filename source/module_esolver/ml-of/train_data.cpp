@@ -150,7 +150,7 @@ void Train::loadData(
 
         this->loadTensor(dir[idata] + "/enhancement.npy", cshape, fortran_order, container, idata, enhancement);
 
-        if (this->loss == "potential")
+        if (this->loss == "potential" || this->loss == "both")
         {
             this->loadTensor(dir[idata] + "/pauli.npy", cshape, fortran_order, container, idata, pauli);
         }

@@ -858,7 +858,7 @@ void ESolver_OF::afterOpt()
     if (GlobalV::of_ml_gene_data)
     {
         // === temporary ===
-        assert(GlobalV::of_kinetic == "wt");
+        assert(GlobalV::of_kinetic == "wt" || GlobalV::of_kinetic == "ml");
         // =================
         std::cout << "Generating Training data..." << std::endl;
         this->ml.generateTrainData(GlobalC::CHR.rho, this->wt, this->tf, this->pw_rho);
