@@ -474,8 +474,9 @@ calculations.
 - **Type**: Integer
 - **Description**: Number of Kohn-Sham orbitals to calculate. It is recommended you setup this value, especially when you use smearing techniques, more bands should be included.
 - **Default**:
-  - nspin=1: 1.2\*occupied_bands, occupied_bands+10)
-  - nspin=2: max(1.2\*nelec, nelec+20)
+  - nspin=1: 1.2\*occupied_bands, occupied_bands + 10)
+  - nspin=2: max(1.2\*nelec_spin, nelec_spin + 10) , nelec_spin = max(nelec_spin_up, nelec_spin_down)
+  - nspin=4: 1.2\*nelec, nelec + 20)
 
 ### nbands_istate
 
@@ -675,7 +676,7 @@ These variables are used to control the geometry relaxation.
 
 ### cal_force
 
-- **Description**: If set to 1, calculate the force at the end of the electronic iteration. 0 means the force calculation is turned off.
+- **Description**: If set to 1, calculate the force at the end of the electronic iteration. 0 means the force calculation is turned off. It is automatically set to 1 if `calculation` is `cell-relax`, `relax`, or `md`.
 - **Default**: 0
 
 ### force_thr
@@ -729,7 +730,7 @@ These variables are used to control the geometry relaxation.
 ### cal_stress
 
 - **Type**: Integer
-- **Description**: If set to 1, calculate the stress at the end of the electronic iteration. 0 means the stress calculation is turned off.
+- **Description**: If set to 1, calculate the stress at the end of the electronic iteration. 0 means the stress calculation is turned off. It is automatically set to 1 if `calculation` is `cell-relax`.
 - **Default**: 0
 
 ### stress_thr
