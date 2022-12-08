@@ -7,33 +7,29 @@
 
 #include "../module_base/complexmatrix.h"
 #include "../module_base/vector3.h"
-#include "../src_pw/hamilt.h"
-#include "../module_xc/exx_global.h"
+#include "../module_xc/exx_info.h"
 #include "../module_pw/pw_basis_k.h"
+#include "module_elecstate/elecstate.h"
 
 class K_Vectors;
 class wavefunc;
-class UnitCell_pseudo;
+class UnitCell;
 
 class Exx_Lip
 {
 public:
-	Exx_Lip( const Exx_Global::Exx_Info &info_global );
+	Exx_Lip( const Exx_Info::Exx_Info_Lip &info_in );
 	~Exx_Lip();
 
-	struct Exx_Info
-	{
-		const Exx_Global::Hybrid_Type &hybrid_type;
+	const Exx_Info::Exx_Info_Lip &info;
 
-		const double &hse_omega;
-
-		double lambda;
-
-		Exx_Info( const Exx_Global::Exx_Info &info_global );
-	};
-	Exx_Info info;
-
-	void init(K_Vectors *kv_ptr_in, wavefunc *wf_ptr_in, ModulePW::PW_Basis_K *wfc_basis_in, ModulePW::PW_Basis *rho_basis_in, UnitCell_pseudo *ucell_ptr_in);
+	void init(
+		K_Vectors *kv_ptr_in, 
+		wavefunc *wf_ptr_in, 
+		ModulePW::PW_Basis_K *wfc_basis_in, 
+		ModulePW::PW_Basis *rho_basis_in, 
+		UnitCell *ucell_ptr_in,
+		const elecstate::ElecState* pelec_in);
 	void cal_exx();
 	const std::complex<double> * const * const * get_exx_matrix() const { return exx_matrix; }
 	double get_exx_energy() const { return exx_energy; }
@@ -51,7 +47,8 @@ private:
 		K_Vectors *kv_ptr;
 		wavefunc *wf_ptr;
 		ModuleBase::matrix wf_wg;
-		ModuleBase::ComplexMatrix *hvec_array;		
+		ModuleBase::ComplexMatrix *hvec_array;	
+		const elecstate::ElecState* pelec;	
 	} *k_pack, *q_pack;
 
 	int iq_vecik;
@@ -79,22 +76,13 @@ private:
 	void sum_all(int ik);
 	void exx_energy_cal();
 	void read_q_pack();
-
-// mohan comment out 2021-02-24
-	friend void Hamilt_PW::diagH_subspace(
-		const int ik,
-		const int nstart,
-		const int n_band,
-		const ModuleBase::ComplexMatrix &psi,
-		ModuleBase::ComplexMatrix &evc,
-		double *en);	
 	
 public:
 
 	ModulePW::PW_Basis *rho_basis;
 	ModulePW::PW_Basis_K *wfc_basis;
 
-	UnitCell_pseudo *ucell_ptr;
+	UnitCell *ucell_ptr;
 };
 
 

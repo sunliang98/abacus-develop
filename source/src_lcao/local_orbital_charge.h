@@ -11,6 +11,7 @@
 #include "src_lcao/local_orbital_wfc.h"
 #include "src_lcao/LCAO_hamilt.h"
 #include "module_psi/psi.h"
+#include "module_elecstate/elecstate.h"
 
 class Local_Orbital_Charge
 {
@@ -21,6 +22,7 @@ class Local_Orbital_Charge
 
 	// mohan added 2021-02-08
     void allocate_dm_wfc(const int& lgd,
+        elecstate::ElecState* pelec,
         Local_Orbital_wfc &lowf,
         psi::Psi<double>* psid,
         psi::Psi<std::complex<double>>* psi);
@@ -28,13 +30,10 @@ class Local_Orbital_Charge
 	//-----------------
 	// in DM_gamma.cpp
 	//-----------------
-	void allocate_gamma(const int &lgd, psi::Psi<double>* psid);
+	void allocate_gamma(const int &lgd, psi::Psi<double>* psid, elecstate::ElecState* pelec);
 
-    void gamma_file(psi::Psi<double>* psid, Local_Orbital_wfc &lowf);
+    void gamma_file(psi::Psi<double>* psid, Local_Orbital_wfc &lowf, elecstate::ElecState* pelec);
     void cal_dk_gamma_from_2D_pub(void);
-    //transformation from 2d block to grid, only gamma_only used it now
-    //template<typename T>
-    void dm2dToGrid(const psi::Psi<double>& dm2d, double** dm_grid);
 
 	//-----------------
 	// in DM_k.cpp
@@ -48,8 +47,10 @@ class Local_Orbital_Charge
 
 	// whether to printout density matrix
     static int out_dm; // output density matrix or not.
+    static int out_dm1;
 
 	void write_dm(const int &is, const int &iter, const std::string &fn, const int &precision);
+    void write_dm1(const int &is, const int &istep, double** dm2d);
 
 	void read_dm(const int &is, const std::string &fn);
 
@@ -91,8 +92,6 @@ private:
 	// whether the DM(R) array has been allocated
 	bool init_DM_R;
 
-	void cal_dk_gamma(void);
-
 	// mohan add 2010-09-06
 	int lgd_last;// sub-FFT-mesh orbitals number in previous step.
 	int lgd_now;// sub-FFT-mesh orbitals number in this step.
@@ -118,6 +117,12 @@ private:
     int *receiver_size_process;
     int *receiver_displacement_process;
     double* receiver_buffer;
+
+    std::map<Abfs::Vector3_Order<int>, std::map<size_t, std::map<size_t, double>>> DMR_sparse;
+
+    void get_dm_sparse(const int &is, double** dm2d);
+    void write_dm_sparse(const int &is, const int &istep);
+    void destroy_dm_sparse();
 
 #ifdef __MPI
     int setAlltoallvParameter(MPI_Comm comm_2D, int blacs_ctxt, int nblk);

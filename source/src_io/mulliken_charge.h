@@ -9,8 +9,6 @@
 #include "../module_neighbor/sltk_grid_driver.h"
 #include "../src_lcao/LCAO_matrix.h"
 #include "../src_lcao/global_fp.h"
-#include "../src_pdiag/pdiag_double.h"
-#include "../src_pdiag/GenELPA.h"
 #endif
 #include "../module_base/lapack_connector.h"
 #include "../module_base/scalapack_connector.h"
@@ -36,9 +34,9 @@ class Mulliken_Charge
 
 	std::complex<double> *mug;
 
-	void cal_mulliken(LCAO_Hamilt &uhm);
+	void cal_mulliken(LCAO_Hamilt &uhm, const ModuleBase::matrix& wg);
 
-	void stdout_mulliken(LCAO_Hamilt &uhm );
+	void stdout_mulliken(LCAO_Hamilt &uhm, const ModuleBase::matrix &wg);
 
 	private:
 

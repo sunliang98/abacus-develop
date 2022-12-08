@@ -1,20 +1,23 @@
 #include "./stress_func.h"
 #include "./H_Ewald_pw.h"
 #include "../module_base/timer.h"
+#include "../module_base/tool_threading.h"
 #include "global.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 //calcualte the Ewald stress term in PW and LCAO
 void Stress_Func::stress_ewa(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_basis, const bool is_pw)
 {
-    ModuleBase::timer::tick("Stress_Func","stress_ew");
+    ModuleBase::TITLE("Stress_Func","stress_ewa");
+    ModuleBase::timer::tick("Stress_Func","stress_ewa");
 
     double charge=0;
     for(int it=0; it < GlobalC::ucell.ntype; it++)
 	{
-		for(int i=0; i<GlobalC::ucell.atoms[it].na; i++)
-		{
-			charge = charge + GlobalC::ucell.atoms[it].zv;
-		}
+		charge = charge + GlobalC::ucell.atoms[it].ncpp.zv * GlobalC::ucell.atoms[it].na;
 	}
     //choose alpha in order to have convergence in the sum over G
     //upperbound is a safe upper bound for the error ON THE ENERGY
@@ -48,11 +51,30 @@ void Stress_Func::stress_ewa(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_
     if (INPUT.gamma_only && is_pw) fact=2.0;
 //    else fact=1.0;
 
+#ifdef _OPENMP
+#pragma omp parallel
+{
+    int num_threads = omp_get_num_threads();
+    int thread_id = omp_get_thread_num();
+	ModuleBase::matrix local_sigma(3, 3);
+	double local_sdewald = 0.0;
+#else
+    int num_threads = 1;
+    int thread_id = 0;
+	ModuleBase::matrix& local_sigma = sigma;
+	double& local_sdewald = sdewald;
+#endif
+
+	// Calculate ig range of this thread, avoid thread sync
+	int ig, ig_end;
+	ModuleBase::TASK_DIST_1D(num_threads, thread_id, rho_basis->npw, ig, ig_end);
+	ig_end = ig + ig_end;
+
     double g2,g2a;
     double arg;
     std::complex<double> rhostar;
     double sewald;
-    for(int ig = 0; ig < rho_basis->npw; ig++)
+    for(; ig < ig_end; ig++)
 	{
 		if(ig == ig0)  continue;
 		g2 = rho_basis->gg[ig]* GlobalC::ucell.tpiba2;
@@ -63,33 +85,26 @@ void Stress_Func::stress_ewa(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_
 			for(int i=0; i<GlobalC::ucell.atoms[it].na; i++)
 			{
 				arg = (rho_basis->gcar[ig] * GlobalC::ucell.atoms[it].tau[i]) * (ModuleBase::TWO_PI);
-				rhostar = rhostar + std::complex<double>(GlobalC::ucell.atoms[it].zv * cos(arg),GlobalC::ucell.atoms[it].zv * sin(arg));
+				rhostar = rhostar + std::complex<double>(GlobalC::ucell.atoms[it].ncpp.zv * cos(arg),GlobalC::ucell.atoms[it].ncpp.zv * sin(arg));
 			}
 		}
 		rhostar /= GlobalC::ucell.omega;
 		sewald = fact* (ModuleBase::TWO_PI) * ModuleBase::e2 * exp(-g2a) / g2 * pow(abs(rhostar),2);
-		sdewald = sdewald - sewald;
+		local_sdewald -= sewald;
 		for(int l=0;l<3;l++)
 		{
 			for(int m=0;m<l+1;m++)
 			{
-				sigma(l, m) += sewald * GlobalC::ucell.tpiba2 * 2.0 * rho_basis->gcar[ig][l] * rho_basis->gcar[ig][m] / g2 * (g2a + 1);
+				local_sigma(l, m) += sewald * GlobalC::ucell.tpiba2 * 2.0 * rho_basis->gcar[ig][l] * rho_basis->gcar[ig][m] / g2 * (g2a + 1);
 			}
 		}
 	}
 
-	for(int l=0;l<3;l++)
-	{
-		sigma(l,l) +=sdewald;
-	}
     //R-space sum here (only for the processor that contains G=0) 
     int mxr = 50;
     int *irr;
     ModuleBase::Vector3<double> *r;
     double *r2;
-    r  = new ModuleBase::Vector3<double>[mxr];
-    r2 = new double[mxr];
-    irr = new int[mxr];
     double rr;
     ModuleBase::Vector3<double> d_tau;
     double r0[3];
@@ -98,40 +113,79 @@ void Stress_Func::stress_ewa(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_
     double fac;
 	if(ig0 >= 0)
 	{
-		rmax = 4.0/sqrt(alpha)/GlobalC::ucell.lat0;
-		//with this choice terms up to ZiZj*erfc(5) are counted (erfc(5)=2*10^-1)
-		for(int it=0; it < GlobalC::ucell.ntype; it++)
+		r = new ModuleBase::Vector3<double>[mxr];
+		r2 = new double[mxr];
+		irr = new int[mxr];
+
+		double sqa = sqrt(alpha);
+		double sq8a_2pi = sqrt(8 * alpha / (ModuleBase::TWO_PI));
+		rmax = 4.0/sqa/GlobalC::ucell.lat0;
+
+		// collapse it, ia, jt, ja loop into a single loop
+		long long ijat, ijat_end;
+		int it, i, jt, j;
+		ModuleBase::TASK_DIST_1D(num_threads, thread_id, (long long)GlobalC::ucell.nat * GlobalC::ucell.nat, ijat, ijat_end);
+		ijat_end = ijat + ijat_end;
+		GlobalC::ucell.ijat2iaitjajt(ijat, &i, &it, &j, &jt);
+
+		while (ijat < ijat_end)
 		{
-			for(int i=0; i<GlobalC::ucell.atoms[it].na; i++)
+			//calculate tau[na]-tau[nb]
+			d_tau = GlobalC::ucell.atoms[it].tau[i] - GlobalC::ucell.atoms[jt].tau[j];
+			//generates nearest-neighbors shells 
+			H_Ewald_pw::rgen(d_tau, rmax, irr, GlobalC::ucell.latvec, GlobalC::ucell.G, r, r2, nrm);
+			for(int nr=0 ; nr<nrm ; nr++)
 			{
-				for(int jt=0; jt < GlobalC::ucell.ntype; jt++)
+				rr=sqrt(r2[nr]) * GlobalC::ucell.lat0;
+				fac = -ModuleBase::e2/2.0/GlobalC::ucell.omega*pow(GlobalC::ucell.lat0,2)*GlobalC::ucell.atoms[it].ncpp.zv * GlobalC::ucell.atoms[jt].ncpp.zv / pow(rr,3) * (erfc(sqa*rr)+rr * sq8a_2pi *  exp(-alpha * pow(rr,2)));
+				for(int l=0; l<3; l++)
 				{
-					for(int j=0; j<GlobalC::ucell.atoms[jt].na; j++)
+					for(int m=0; m<l+1; m++)
 					{
-						//calculate tau[na]-tau[nb]
-						d_tau = GlobalC::ucell.atoms[it].tau[i] - GlobalC::ucell.atoms[jt].tau[j];
-						//generates nearest-neighbors shells 
-						H_Ewald_pw::rgen(d_tau, rmax, irr, GlobalC::ucell.latvec, GlobalC::ucell.G, r, r2, nrm);
-						for(int nr=0 ; nr<nrm ; nr++)
-						{
-							rr=sqrt(r2[nr]) * GlobalC::ucell.lat0;
-							fac = -ModuleBase::e2/2.0/GlobalC::ucell.omega*pow(GlobalC::ucell.lat0,2)*GlobalC::ucell.atoms[it].zv * GlobalC::ucell.atoms[jt].zv / pow(rr,3) * (erfc(sqrt(alpha)*rr)+rr * sqrt(8 * alpha / (ModuleBase::TWO_PI)) * exp(-alpha * pow(rr,2)));
-							for(int l=0; l<3; l++)
-							{
-								for(int m=0; m<l+1; m++)
-								{
-									r0[0] = r[nr].x;
-									r0[1] = r[nr].y;
-									r0[2] = r[nr].z;
-									sigma(l,m) += fac * r0[l] * r0[m];
-								}//end m
-							}//end l
-						}//end nr
-					}//end j
-				}//end jt
-			}//end i
-		}//end it
+						r0[0] = r[nr].x;
+						r0[1] = r[nr].y;
+						r0[2] = r[nr].z;
+						local_sigma(l,m) += fac * r0[l] * r0[m];
+					}//end m
+				}//end l
+			}//end nr
+
+			++ijat;
+			GlobalC::ucell.step_jajtiait(&j, &jt, &i, &it);
+		}
+
+		delete[] r;
+		delete[] r2;
+		delete[] irr;
 	}//end if
+
+#ifdef _OPENMP
+	#pragma omp critical(stress_ewa_reduce)
+	{
+		sdewald += local_sdewald;
+		for(int l=0;l<3;l++)
+		{
+			for(int m=0;m<l+1;m++)
+			{
+				sigma(l,m) += local_sigma(l,m);
+			}
+		}
+	}
+}
+#endif
+
+	for(int l=0;l<3;l++)
+	{
+		sigma(l,l) +=sdewald;
+	}
+	for(int l=0;l<3;l++)
+	{
+		for(int m=0;m<l+1;m++)
+		{
+			sigma(l,m)=-sigma(l,m);
+			Parallel_Reduce::reduce_double_pool( sigma(l,m) );
+		}
+	}
 	for(int l=0;l<3;l++)
 	{
 		for(int m=0;m<l+1;m++)
@@ -139,20 +193,9 @@ void Stress_Func::stress_ewa(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_
 			sigma(m,l)=sigma(l,m);
 		}
 	}
-	for(int l=0;l<3;l++)
-	{
-		for(int m=0;m<3;m++)
-		{
-			sigma(l,m)=-sigma(l,m);
-			Parallel_Reduce::reduce_double_pool( sigma(l,m) );
-		}
-	}
 
-	delete[] r;
-	delete[] r2;
-	delete[] irr;
 	// this->print(GlobalV::ofs_running, "ewald stress", stression);
-	ModuleBase::timer::tick("Stress_Func","stress_ew");
+	ModuleBase::timer::tick("Stress_Func","stress_ewa");
 
 	return;
 }

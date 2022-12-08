@@ -5,8 +5,9 @@
 #include "global.h"
 
 //NLCC term, need to be tested
-void Stress_Func::stress_cc(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_basis, const bool is_pw)
+void Stress_Func::stress_cc(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_basis, const bool is_pw, const Charge* const chr)
 {
+    ModuleBase::TITLE("Stress_Func","stress_cc");
 	ModuleBase::timer::tick("Stress_Func","stress_cc");
         
 	double fact=1.0;
@@ -16,13 +17,13 @@ void Stress_Func::stress_cc(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_b
 		fact = 2.0; //is_pw:PW basis, gamma_only need to double.
 	}
 
-	std::complex<double> sigmadiag;
+	double sigmadiag;
 	double* rhocg;
 
 	int judge=0;
 	for(int nt=0;nt<GlobalC::ucell.ntype;nt++)
 	{
-		if(GlobalC::ucell.atoms[nt].nlcc) 
+		if(GlobalC::ucell.atoms[nt].ncpp.nlcc) 
 		{
 			judge++;
 		}
@@ -36,12 +37,12 @@ void Stress_Func::stress_cc(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_b
 
 	//recalculate the exchange-correlation potential
 	ModuleBase::matrix vxc;
-	if(XC_Functional::get_func_type() == 3)
+	if(XC_Functional::get_func_type() == 3 || XC_Functional::get_func_type() == 5)
 	{
 #ifdef USE_LIBXC
     	const auto etxc_vtxc_v = XC_Functional::v_xc_meta(
             rho_basis->nrxx, rho_basis->nxyz, GlobalC::ucell.omega,
-            GlobalC::CHR.rho, GlobalC::CHR.rho_core, GlobalC::CHR.kin_r);
+            chr);
         
         GlobalC::en.etxc = std::get<0>(etxc_vtxc_v);
         GlobalC::en.vtxc = std::get<1>(etxc_vtxc_v);
@@ -52,7 +53,7 @@ void Stress_Func::stress_cc(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_b
 	}
 	else
 	{
-    	const auto etxc_vtxc_v = XC_Functional::v_xc(rho_basis->nrxx, rho_basis->nxyz, GlobalC::ucell.omega, GlobalC::CHR.rho, GlobalC::CHR.rho_core);
+    	const auto etxc_vtxc_v = XC_Functional::v_xc(rho_basis->nrxx, rho_basis->nxyz, GlobalC::ucell.omega, chr);
 		GlobalC::en.etxc    = std::get<0>(etxc_vtxc_v);			// may delete?
 		GlobalC::en.vtxc    = std::get<1>(etxc_vtxc_v);			// may delete?
 		vxc = std::get<2>(etxc_vtxc_v);
@@ -60,10 +61,11 @@ void Stress_Func::stress_cc(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_b
 
 	std::complex<double> * psic = new std::complex<double> [rho_basis->nmaxgr];
 
-	ModuleBase::GlobalFunc::ZEROS(psic, rho_basis->nrxx);
-
 	if(GlobalV::NSPIN==1||GlobalV::NSPIN==4)
 	{
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static, 1024)
+#endif
 		for(int ir=0;ir<rho_basis->nrxx;ir++)
 		{
 			// psic[ir] = vxc(0,ir);
@@ -72,6 +74,9 @@ void Stress_Func::stress_cc(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_b
 	}
 	else
 	{
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static, 1024)
+#endif
 		for(int ir=0;ir<rho_basis->nrxx;ir++)
 		{
 			psic[ir] = 0.5 * (vxc(0, ir) + vxc(1, ir));
@@ -83,41 +88,53 @@ void Stress_Func::stress_cc(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_b
 
 	//psic cantains now Vxc(G)
 	rhocg= new double [rho_basis->ngg];
-	ModuleBase::GlobalFunc::ZEROS(rhocg, rho_basis->ngg);
 
 	sigmadiag=0.0;
 	for(int nt=0;nt<GlobalC::ucell.ntype;nt++)
 	{
-		if(GlobalC::ucell.atoms[nt].nlcc)
+		if(GlobalC::ucell.atoms[nt].ncpp.nlcc)
 		{
 			//drhoc();
-			GlobalC::CHR.non_linear_core_correction(
+			chr->non_linear_core_correction(
 				GlobalC::ppcell.numeric,
-				GlobalC::ucell.atoms[nt].msh,
-				GlobalC::ucell.atoms[nt].r,
-				GlobalC::ucell.atoms[nt].rab,
-				GlobalC::ucell.atoms[nt].rho_atc,
+				GlobalC::ucell.atoms[nt].ncpp.msh,
+				GlobalC::ucell.atoms[nt].ncpp.r,
+				GlobalC::ucell.atoms[nt].ncpp.rab,
+				GlobalC::ucell.atoms[nt].ncpp.rho_atc,
 				rhocg,
 				rho_basis);
 
 
 			//diagonal term 
+#ifdef _OPENMP
+#pragma omp parallel for reduction(+:sigmadiag) schedule(static, 256)
+#endif
 			for(int ig = 0;ig< rho_basis->npw;ig++)
 			{
+				std::complex<double> local_sigmadiag;
 				if(rho_basis->ig_gge0==ig)
-					sigmadiag += conj(psic[ig] ) * GlobalC::sf.strucFac (nt, ig) * rhocg[rho_basis->ig2igg[ig]];
+					local_sigmadiag = conj(psic[ig] ) * GlobalC::sf.strucFac (nt, ig) * rhocg[rho_basis->ig2igg[ig]];
 				else
-					sigmadiag += conj(psic[ig] ) * GlobalC::sf.strucFac (nt, ig) * rhocg[rho_basis->ig2igg[ig]] * fact;
+					local_sigmadiag = conj(psic[ig] ) * GlobalC::sf.strucFac (nt, ig) * rhocg[rho_basis->ig2igg[ig]] * fact;
+				sigmadiag += local_sigmadiag.real();
 			}
 			this->deriv_drhoc (
 				GlobalC::ppcell.numeric,
-				GlobalC::ucell.atoms[nt].msh,
-				GlobalC::ucell.atoms[nt].r,
-				GlobalC::ucell.atoms[nt].rab,
-				GlobalC::ucell.atoms[nt].rho_atc,
+				GlobalC::ucell.atoms[nt].ncpp.msh,
+				GlobalC::ucell.atoms[nt].ncpp.r,
+				GlobalC::ucell.atoms[nt].ncpp.rab,
+				GlobalC::ucell.atoms[nt].ncpp.rho_atc,
 				rhocg,
 				rho_basis);
 			// non diagonal term (g=0 contribution missing)
+#ifdef _OPENMP
+#pragma omp parallel
+{
+			ModuleBase::matrix local_sigma(3, 3);
+			#pragma omp for
+#else
+			ModuleBase::matrix& local_sigma = sigma;
+#endif
 			for(int ig = 0;ig< rho_basis->npw;ig++)
 			{
 				const double norm_g = sqrt(rho_basis->gg[ig]);
@@ -129,16 +146,29 @@ void Stress_Func::stress_cc(ModuleBase::matrix& sigma, ModulePW::PW_Basis* rho_b
 						const std::complex<double> t = conj(psic[ig]) * GlobalC::sf.strucFac(nt, ig) * rhocg[rho_basis->ig2igg[ig]] * GlobalC::ucell.tpiba *
 												  rho_basis->gcar[ig][l] * rho_basis->gcar[ig][m] / norm_g * fact;
 						//						sigmacc [l][ m] += t.real();
-						sigma(l,m) += t.real();
+						local_sigma(l,m) += t.real();
 					}//end m
 				}//end l
 			}//end ng
+#ifdef _OPENMP
+			#pragma omp critical(stress_cc_reduce)
+			{
+				for(int l=0;l<3;l++)
+				{
+					for(int m=0;m<3;m++)
+					{
+						sigma(l,m) += local_sigma(l,m);
+					}
+				}
+			}
+}
+#endif
 		}//end if
 	}//end nt
 
 	for(int l = 0;l< 3;l++)
 	{
-		sigma(l,l) += sigmadiag.real();
+		sigma(l,l) += sigmadiag;
 //		sigmacc [l][ l] += sigmadiag.real();
 	}
 	for(int l = 0;l< 3;l++)
@@ -168,13 +198,6 @@ void Stress_Func::deriv_drhoc
 	ModulePW::PW_Basis* rho_basis
 )
 {
-
-	double gx = 0, rhocg1 = 0;
-	// the modulus of g for a given shell
-	// the fourier transform
-	double *aux = new double[ mesh];
-	// auxiliary memory for integration
-
 	int  igl0;
 	// counter on radial mesh points
 	// counter on g shells
@@ -192,10 +215,22 @@ void Stress_Func::deriv_drhoc
 	{
 		igl0 = 0;
 	}
+#ifdef _OPENMP
+#pragma omp parallel
+{
+#endif
+	double gx = 0, rhocg1 = 0;
+	// the modulus of g for a given shell
+	// the fourier transform
+	double *aux = new double[ mesh];
+	// auxiliary memory for integration
+
 	//
 	// G <> 0 term
 	//
-	
+#ifdef _OPENMP
+#pragma omp for
+#endif
 	for(int igl = igl0;igl< rho_basis->ngg;igl++)
 	{
 		gx = sqrt(rho_basis->gg_uniq[igl] * GlobalC::ucell.tpiba2);
@@ -208,6 +243,8 @@ void Stress_Func::deriv_drhoc
 	}//igl
 	
 	delete [] aux;
-
+#ifdef _OPENMP
+}
+#endif
 	return;
 }

@@ -2,7 +2,7 @@
 #include "MD_func.h"
 #include "../module_base/timer.h"
 
-Verlet::Verlet(MD_parameters& MD_para_in, UnitCell_pseudo &unit_in) : MDrun(MD_para_in, unit_in){}
+Verlet::Verlet(MD_parameters& MD_para_in, UnitCell &unit_in) : MDrun(MD_para_in, unit_in){}
 
 Verlet::~Verlet(){}
 
@@ -40,26 +40,26 @@ void Verlet::second_half()
 void Verlet::apply_thermostat()
 {
     double t_target = 0;
-    temperature_ = MD_func::current_temp(ucell.nat, frozen_freedom_, allmass, vel);
+    t_current = MD_func::current_temp(kinetic, ucell.nat, frozen_freedom_, allmass, vel);
 
-    if(mdp.md_thermostat == "NVE"){}
-    else if(mdp.md_thermostat == "Rescaling")
+    if(mdp.md_thermostat == "nve"){}
+    else if(mdp.md_thermostat == "rescaling")
     {
-        t_target = MD_func::target_temp(step_ + step_rst_, mdp.md_tfirst, mdp.md_tlast) * ModuleBase::Hartree_to_K;
-        if(abs(t_target - temperature_) > mdp.md_tolerance)
+        t_target = MD_func::target_temp(step_ + step_rst_, mdp.md_tfirst, mdp.md_tlast);
+        if(abs(t_target - t_current) * ModuleBase::Hartree_to_K > mdp.md_tolerance)
         {
-            thermalize(0, temperature_, t_target);
+            thermalize(0, t_current, t_target);
         }
     }
-    else if(mdp.md_thermostat == "Rescale_v")
+    else if(mdp.md_thermostat == "rescale_v")
     {
         if((step_+step_rst_) % mdp.md_nraise == 0)
         {
-            t_target = MD_func::target_temp(step_ + step_rst_, mdp.md_tfirst, mdp.md_tlast) * ModuleBase::Hartree_to_K;
-            thermalize(0, temperature_, t_target);
+            t_target = MD_func::target_temp(step_ + step_rst_, mdp.md_tfirst, mdp.md_tlast);
+            thermalize(0, t_current, t_target);
         }
     }
-    else if(mdp.md_thermostat == "Anderson")
+    else if(mdp.md_thermostat == "anderson")
     {
         if(GlobalV::MY_RANK==0)
         {
@@ -83,10 +83,10 @@ void Verlet::apply_thermostat()
         MPI_Bcast(vel, ucell.nat*3, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 #endif
     }
-    else if(mdp.md_thermostat == "Berendsen")
+    else if(mdp.md_thermostat == "berendsen")
     {
-        t_target = MD_func::target_temp(step_ + step_rst_, mdp.md_tfirst, mdp.md_tlast) * ModuleBase::Hartree_to_K;
-        thermalize(mdp.md_nraise, temperature_, t_target);
+        t_target = MD_func::target_temp(step_ + step_rst_, mdp.md_tfirst, mdp.md_tlast);
+        thermalize(mdp.md_nraise, t_current, t_target);
     }
     else
     {

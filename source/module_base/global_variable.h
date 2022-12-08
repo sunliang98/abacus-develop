@@ -29,6 +29,7 @@ extern double PSEUDORCUT;
 extern bool PSEUDO_MESH;
 
 extern std::string CALCULATION; // 2 "scf";"nscf" ;"symmetry"
+extern std::string ESOLVER_TYPE;
 extern int EFIELD_FLAG; // 5 add electric field
 extern int DIP_COR_FLAG; // 7 add dipole correction
 extern bool GATE_FLAG;     // add gate field
@@ -37,7 +38,8 @@ extern double NELEC;
 extern std::string DFT_FUNCTIONAL; // 6.5 change the DFT functional from input file.
 extern double XC_TEMPERATURE;
 extern int NSPIN; // 7
-extern bool TWO_EFERMI; // 7.5 mohan add 2011-04-03, two fermi energy, exist if magnetization is fixed.
+extern bool TWO_EFERMI; // 7.5 two fermi energy, exist if nupdown isn't zero.
+extern double nupdown;
 extern int CURRENT_SPIN; // 8
 extern int CURRENT_K; // 8
 
@@ -52,6 +54,11 @@ extern std::string RELAX_METHOD;
 extern std::string OUT_LEVEL;
 extern int OUT_FREQ_ELEC;
 extern int OUT_FREQ_ION;
+
+extern double relax_scale_force;
+extern bool relax_new;
+
+extern bool fixed_atoms;
 
 extern int RELAX_NMAX; // 8.3
 extern int SCF_NMAX; // 8.4
@@ -163,6 +170,7 @@ extern std::string global_matrix_dir; // liuyu add 2022-09-19 for HS matrix outp
 extern std::ofstream ofs_running;
 extern std::ofstream ofs_warning;
 extern std::ofstream ofs_info;
+extern std::ofstream ofs_device;
 
 //==========================================================
 // EXPLAIN : test level for each class
@@ -225,9 +233,6 @@ extern int bessel_lmax; // lmax used in descriptor, mohan added 2021-01-03
 extern double bessel_rcut;
 extern double bessel_tol;
 
-// method for dealing with non-local potential in Hamiltonian matrix, 0 for old, 1 for new
-extern int vnl_method;
-
 // whether or not output information for each element
 extern bool out_element_info;
 
@@ -270,6 +275,21 @@ extern bool of_ml_q; // If the input variables contain q
 extern bool of_ml_gammanl; // If the input variables contain gammanl
 extern bool of_ml_pnl; // If the input variables contain pnl
 extern bool of_ml_qnl; // If the input variables contain qnl
+
+//==========================================================
+// device flags
+//==========================================================
+extern std::string device_flag;
+extern std::string chg_extrap;
+extern int out_pot;
+
+extern std::string init_chg; //  output charge if out_chg > 0, and output every "out_chg" elec step.
+extern int out_chg;
+
+//Note : this is different from the capitalized NELEC
+//NELEC gives the total charge of the system
+//while nelec is the total number of valence electrons 
+extern double nelec;
 
 } // namespace GlobalV
 #endif

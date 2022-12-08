@@ -1,10 +1,15 @@
+#ifndef ESOLVER_OF_H
+#define ESOLVER_OF_H
+
 #include "esolver_fp.h"
 #include "../module_base/opt_TN.hpp"
 #include "../module_base/opt_DCsrch.h"
 #include "../module_psi/psi.h"
-// #include "./kedf_tf.h"
-#include "./kedf_vw.h"
-// #include "./kedf_wt.h"
+#include "../src_pw/charge_extra.h"    // liuyu add 2022-11-07
+#include "../module_hamilt/of_pw/kedf_tf.h"
+#include "../module_hamilt/of_pw/kedf_vw.h"
+#include "../module_hamilt/of_pw/kedf_wt.h"
+#include "src_pw/charge.h"
 #include "./kedf_ml.h"
 
 namespace ModuleESolver
@@ -71,8 +76,8 @@ public:
         if (this->opt_cg_mag != NULL) delete this->opt_cg_mag;
     }
 
-    virtual void Init(Input &inp, UnitCell_pseudo &ucell) override;
-    virtual void Run(int istep, UnitCell_pseudo& ucell) override;
+    virtual void Init(Input &inp, UnitCell &ucell) override;
+    virtual void Run(int istep, UnitCell& ucell) override;
     virtual void postprocess() override;
 
     virtual void cal_Energy(double& etot) override;
@@ -89,6 +94,9 @@ private:
     KEDF_vW vw;
     KEDF_WT wt;
     KEDF_ML ml;
+
+    // charge extrapolation liuyu add 2022-11-07
+    Charge_Extra CE;
 
     // optimization methods
     ModuleBase::Opt_CG opt_cg;
@@ -138,7 +146,7 @@ private:
     double normdLdphi = 100.;
 
     // main process of OFDFT
-    void beforeOpt();
+    void beforeOpt(const int istep);
     void updateV();
     void solveV();
     void getNextDirect();
@@ -149,7 +157,7 @@ private:
 
     // tools
     void calV(double *ptempPhi, double *rdLdphi);
-    void caldEdtheta(double **ptempPhi, double **ptempRho, double *ptheta, double *rdEdtheta);
+    void caldEdtheta(double **ptempPhi, Charge* ptempRho, double *ptheta, double *rdEdtheta);
     double cal_mu(double *pphi, double *pdEdphi, double nelec);
     double inner_product(double *pa, double *pb, int length, double dV=1)
     {
@@ -164,3 +172,5 @@ private:
     double kineticEnergy();
 };
 }
+
+#endif

@@ -15,9 +15,7 @@ class Force_Stress_LCAO
 {
 	// mohan add 2021-02-09
 	friend class md;
-	friend class Run_MD_LCAO;
 	friend void Input_Conv::Convert();
-	friend class Update_input;
 	friend class ions;
 	friend class MD_func;
 
@@ -32,6 +30,7 @@ class Force_Stress_LCAO
 		const bool istestf, 
         const bool istests,
         Local_Orbital_Charge& loc,
+		const elecstate::ElecState* pelec,
         const psi::Psi<double>* psid,
 		const psi::Psi<std::complex<double>>* psi,
         LCAO_Hamilt &uhm,
@@ -44,7 +43,7 @@ private:
 	Force_LCAO_k flk;
 //	Force_LCAO_gamma flg;
 	Stress_Func sc_pw;
-	Forces f_pw;
+	Forces<double> f_pw;
 	
 	void print_force(const std::string &name, ModuleBase::matrix& f, const bool screen, bool ry)const;
 	void printforce_total (const bool ry, const bool istestf, ModuleBase::matrix& fcs);
@@ -56,13 +55,15 @@ private:
 		ModuleBase::matrix &fvl_dvl, 
 		ModuleBase::matrix &fewalds, 
 		ModuleBase::matrix &fcc, 
-		ModuleBase::matrix &fscc);
+		ModuleBase::matrix &fscc,
+		const Charge* const chr);
 
 	void calForceStressIntegralPart(
 		const bool isGammaOnly,
 		const bool isforce,
         const bool isstress,
         Local_Orbital_Charge& loc,
+		const elecstate::ElecState* pelec,
         const psi::Psi<double>* psid,
 		const psi::Psi<std::complex<double>>* psi,
         ModuleBase::matrix& foverlap,
@@ -87,7 +88,8 @@ private:
 		ModuleBase::matrix &sigmahar,
 		ModuleBase::matrix &sigmaewa,
 		ModuleBase::matrix &sigmacc,
-		ModuleBase::matrix &sigmaxc);
+		ModuleBase::matrix &sigmaxc,
+		const Charge* const chr);
 	
 	static double force_invalid_threshold_ev;
 	static double output_acc; // control the accuracy

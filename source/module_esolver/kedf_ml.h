@@ -1,8 +1,8 @@
 // #include <stdio.h>
 // #include <math.h>
 #include <vector>
-#include "./kedf_wt.h"
-#include "./kedf_tf.h"
+#include "../module_hamilt/of_pw/kedf_wt.h"
+#include "../module_hamilt/of_pw/kedf_tf.h"
 // #include "npy.hpp"
 // #include "/home/dell/2_software/libnpy/libnpy/include/npy.hpp"
 #include "./ml-of/nn_of.h"
