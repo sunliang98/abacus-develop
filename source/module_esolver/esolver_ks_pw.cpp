@@ -28,6 +28,7 @@
 #include "src_io/berryphase.h"
 #include "module_psi/include/device.h"
 #include "module_hsolver/include/math_kernel.h"
+#include "./ml_data.h"
 
 namespace ModuleESolver
 {
@@ -671,6 +672,15 @@ namespace ModuleESolver
         if(INPUT.cal_cond)
 	    {
             this->KG(INPUT.cond_nche,INPUT.cond_fwhm,INPUT.cond_wcut,INPUT.cond_dw,INPUT.cond_wenlarge, this->pelec->wg);
+        }
+
+        if(GlobalV::of_ml_gene_data == 1)
+        {
+            this->pelec->pot->update_from_charge(this->pelec->charge, &GlobalC::ucell);
+
+            ML_data ml_data;
+            ml_data.set_para(this->pelec->charge->nrxx, GlobalV::nelec, GlobalV::of_tf_weight, GlobalV::of_vw_weight, this->pw_rho);
+            ml_data.generateTrainData_KS(this->kspw_psi, this->pelec, this->pw_wfc, this->pw_rho, this->pelec->pot->get_effective_v(0));
         }
     }
 

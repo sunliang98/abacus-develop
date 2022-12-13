@@ -3,7 +3,6 @@
 #include <vector>
 #include "../module_hamilt/of_pw/kedf_wt.h"
 #include "../module_hamilt/of_pw/kedf_tf.h"
-// #include "npy.hpp"
 // #include "/home/dell/2_software/libnpy/libnpy/include/npy.hpp"
 #include "./ml-of/nn_of.h"
 // #include "../module_base/timer.h"
@@ -11,18 +10,21 @@
 // #include "../module_base/global_variable.h"
 // #include "../module_base/matrix.h"
 // #include "../module_pw/pw_basis.h"
+#include "./ml_data.h"
 
 class KEDF_ML
 {
 public:
     KEDF_ML()
     {
-        this->kernel = NULL;
+        // this->kernel = NULL;
+        this->ml_data = new ML_data;
         // this->stress.create(3,3);
     }
     ~KEDF_ML()
     {
-        if (this->kernel != NULL) delete[] this->kernel;
+        delete[] this->ml_data;
+        // if (this->kernel != NULL) delete[] this->kernel;
     }
 
     void set_para(int nx, double dV, double nelec, double tf_weight, double vw_weight, ModulePW::PW_Basis *pw_rho);
@@ -64,6 +66,8 @@ public:
     void divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * routput);
     void dumpTensor(const torch::Tensor &data, std::string filename);
     void updateInput(const double * const * prho, ModulePW::PW_Basis *pw_rho);
+
+    ML_data *ml_data = nullptr;
 
     int nx = 0;
     double dV = 0.;
