@@ -482,7 +482,7 @@ void ESolver_OF::solveV()
 //             for (int ir = 0; ir < this->nrxx; ++ir)
 //             {
 //                 ptempPhi[0][ir] = this->pphi[0][ir] * cos(this->theta[0]) + this->pdirect[0][ir] * sin(this->theta[0]);
-//                 ptempRho[0][ir] = ptempPhi[0][ir] * ptempPhi[0][ir];
+//                 ptempRho->rho[0][ir] = ptempPhi[0][ir] * ptempPhi[0][ir];
 //             }
 //             this->caldEdtheta(ptempPhi, ptempRho, this->theta, dEdtheta);
 //             GlobalC::en.calculate_etot();
@@ -490,7 +490,7 @@ void ESolver_OF::solveV()
 //             double eKE = 0.;
 //             double ePP = 0.;
 //             eKE = this->kineticEnergy();
-//             ePP = this->inner_product(GlobalC::pot.vltot, ptempRho[0], this->nrxx, this->dV);
+//             ePP = this->inner_product(this->pelec->pot->get_fixed_v(), ptempRho->rho[0], this->nrxx, this->dV);
 //             Parallel_Reduce::reduce_double_all(ePP);
 //             E += eKE + ePP;
 //             GlobalV::ofs_warning << i << "    " << dEdtheta[0] << "    " << E << endl;
@@ -918,11 +918,22 @@ void ESolver_OF::afterOpt()
 
     if (GlobalV::of_ml_gene_data)
     {
+        this->pelec->pot->update_from_charge(pelec->charge, &GlobalC::ucell); // Hartree + XC + external
+        this->kineticPotential(pelec->charge->rho, this->pphi, this->pelec->pot->get_effective_v()); // (kinetic + Hartree + XC + external) * 2 * phi
+        
+        const double* vr_eff = this->pelec->pot->get_effective_v(0);
+        for (int ir = 0; ir < this->nrxx; ++ir)
+        {
+            this->pdEdphi[0][ir] = vr_eff[ir];
+        }
+        this->mu[0] = this->cal_mu(this->pphi[0], this->pdEdphi[0], this->nelec[0]);
+
         // === temporary ===
         assert(GlobalV::of_kinetic == "wt" || GlobalV::of_kinetic == "ml");
         // =================
         std::cout << "Generating Training data..." << std::endl;
-        this->ml.generateTrainData(pelec->charge->rho, this->wt, this->tf, this->pw_rho);
+        std::cout << "mu = " << this->mu[0] << std::endl;
+        this->ml.generateTrainData(pelec->charge->rho, this->wt, this->tf, this->pw_rho, vr_eff);
     }
 }
 

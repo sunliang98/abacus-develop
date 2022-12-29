@@ -10,13 +10,19 @@ class ML_data{
 public:
     void set_para(int nx, double nelec, double tf_weight, double vw_weight, ModulePW::PW_Basis *pw_rho);
     // output all parameters
-    void generateTrainData_WT(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf, ModulePW::PW_Basis *pw_rho);
+    void generateTrainData_WT(
+        const double * const *prho, 
+        KEDF_WT &wt, 
+        KEDF_TF &tf, 
+        ModulePW::PW_Basis *pw_rho,
+        const double *veff
+    );
     void generateTrainData_KS(
         psi::Psi<std::complex<double>> *psi,
         elecstate::ElecState *pelec,
         ModulePW::PW_Basis_K *pw_psi,
         ModulePW::PW_Basis *pw_rho,
-        double *veff
+        const double *veff
     );
     // get input parameters
     void getGamma(const double * const *prho, std::vector<double> &rgamma);

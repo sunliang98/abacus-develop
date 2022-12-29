@@ -127,9 +127,9 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     Parallel_Reduce::reduce_double_all(this->MLenergy);
 }
 
-void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf,  ModulePW::PW_Basis *pw_rho)
+void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf,  ModulePW::PW_Basis *pw_rho, const double *veff)
 {
-    this->ml_data->generateTrainData_WT(prho, wt, tf, pw_rho);
+    this->ml_data->generateTrainData_WT(prho, wt, tf, pw_rho, veff);
 }
 
 void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
@@ -142,7 +142,10 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     std::vector<double> temp_prho(this->nx);
     // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/1_validation_set_bccAl/reference/rho.npy", cshape, fortran_order, temp_prho);
     // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", cshape, fortran_order, temp_prho);
-    this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", temp_prho);
+    // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", temp_prho);
+    // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/1_ks/1_fccAl-2022-12-12/rho.npy", temp_prho);
+    // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/1_ks/2_bccAl_27dim-2022-12-12/rho.npy", temp_prho);
+    this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/2_ks-pbe/1_fccAl-eq-2022-12-27/rho.npy", temp_prho);
     double ** prho = new double *[1];
     prho[0] = new double[this->nx];
     for (int ir = 0; ir < this->nx; ++ir) prho[0][ir] = temp_prho[ir];

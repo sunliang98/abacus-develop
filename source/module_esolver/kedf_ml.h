@@ -36,7 +36,7 @@ public:
     // double diffLinhard(double eta, double vw_weight);
 
     // output all parameters
-    void generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf, ModulePW::PW_Basis *pw_rho);
+    void generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf, ModulePW::PW_Basis *pw_rho, const double *veff);
     void localTest(const double * const *prho, ModulePW::PW_Basis *pw_rho);
     // get input parameters
     void getGamma(const double * const *prho, std::vector<double> &rgamma);

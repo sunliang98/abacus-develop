@@ -34,7 +34,13 @@ void ML_data::set_para(int nx, double nelec, double tf_weight, double vw_weight,
     }
 }
 
-void ML_data::generateTrainData_WT(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf,  ModulePW::PW_Basis *pw_rho)
+void ML_data::generateTrainData_WT(
+    const double * const *prho, 
+    KEDF_WT &wt, 
+    KEDF_TF &tf, 
+    ModulePW::PW_Basis *pw_rho,
+    const double* veff    
+)
 {
     // container which will contain gamma, p, q in turn
     std::vector<double> container(this->nx);
@@ -87,6 +93,12 @@ void ML_data::generateTrainData_WT(const double * const *prho, KEDF_WT &wt, KEDF
     // Pauli potential
     this->getPauli_WT(wt, tf, prho, pw_rho, container);
     npy::SaveArrayAsNumpy("pauli.npy", false, 1, cshape, container);
+
+    for (int ir = 0; ir < this->nx; ++ir)
+    {
+        container[ir] = veff[ir];
+    }
+    npy::SaveArrayAsNumpy("veff.npy", false, 1, cshape, container);
 }
 
 void ML_data::generateTrainData_KS(
@@ -94,7 +106,7 @@ void ML_data::generateTrainData_KS(
     elecstate::ElecState *pelec,
     ModulePW::PW_Basis_K *pw_psi,
     ModulePW::PW_Basis *pw_rho,
-    double* veff
+    const double* veff
 )
 {
     // container which will contain gamma, p, q in turn
@@ -303,6 +315,23 @@ void ML_data::getF_KS1(
 
             pw_psi->recip_to_real(dev, &psi->operator()(ibnd,0), wfcr, ik);
             const double w1 = pelec->wg(ik, ibnd) / GlobalC::ucell.omega;
+            
+            // output one wf, to check KS equation
+            if (ik == 0 && ibnd == 0)
+            {
+                std::vector<double> wf_real = std::vector<double>(this->nx);
+                std::vector<double> wf_imag = std::vector<double>(this->nx);
+                for (int ir = 0; ir < this->nx; ++ir)
+                {
+                    wf_real[ir] = wfcr[ir].real();
+                    wf_imag[ir] = wfcr[ir].imag();
+                }
+                const long unsigned cshape[] = {(long unsigned) this->nx}; // shape of container and containernl
+                npy::SaveArrayAsNumpy("wfc_real.npy", false, 1, cshape, wf_real);
+                npy::SaveArrayAsNumpy("wfc_imag.npy", false, 1, cshape, wf_imag);
+                std::cout << "eigenvalue of wfc is " << pelec->ekb(ik, ibnd) << std::endl;
+                std::cout << "wg of wfc is " << pelec->wg(ik, ibnd) << std::endl;
+            }
 
             if (w1 != 0.0)
             {
