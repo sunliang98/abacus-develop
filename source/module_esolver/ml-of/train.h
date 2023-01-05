@@ -13,7 +13,7 @@ public:
 
     void init();
 
-    torch::Tensor lossFunction(torch::Tensor enhancement, torch::Tensor target);
+    torch::Tensor lossFunction(torch::Tensor enhancement, torch::Tensor target, torch::Tensor coef = torch::ones(1));
     // double lostFunction(torch::Tensor potentialML, torch::Tensor target);
     // torch::Tensor potLossFunction()
 
@@ -40,6 +40,8 @@ public:
     // target
     torch::Tensor enhancement;
     torch::Tensor pauli;
+    torch::Tensor enhancement_mean;
+    torch::Tensor pauli_mean;
     // fft grid
     std::vector<std::vector<torch::Tensor>> fft_grid_train; // ntrain*3*fftdim*fftdim*fftdim
     std::vector<torch::Tensor> fft_gg_train;
@@ -62,12 +64,20 @@ public:
     // target
     torch::Tensor enhancement_vali;
     torch::Tensor pauli_vali;
+    torch::Tensor enhancement_mean_vali;
+    torch::Tensor pauli_mean_vali;
     // fft grid
     std::vector<std::vector<torch::Tensor>> fft_grid_vali; // ntrain*3*fftdim*fftdim*fftdim
     std::vector<torch::Tensor> fft_gg_vali;
     std::vector<torch::Tensor> fft_kernel_vali;
     // others
     double *vali_volume = nullptr;
+    // ------------------------------------
+
+    // -------- free electron gas ---------
+    torch::Tensor feg_inpt;
+    torch::Tensor feg_predict;
+    torch::Tensor feg_dFdgamma;
     // ------------------------------------
 
 // ============= 1. train_input.cpp ===========
@@ -105,6 +115,8 @@ public:
     bool ml_pnl = false;
     bool ml_qnl = false;
 
+    int feg_limit = 0; // Free Electron Gas
+
     std::map<std::string, int> nn_input_index;
 
 // =========== 2. train_data.cpp ===========
@@ -126,7 +138,9 @@ private:
         torch::Tensor &qnl,
         torch::Tensor &nablaRho,
         torch::Tensor &enhancement,
-        torch::Tensor &pauli
+        torch::Tensor &enhancement_mean,
+        torch::Tensor &pauli,
+        torch::Tensor &pauli_mean
     );
     
 public:

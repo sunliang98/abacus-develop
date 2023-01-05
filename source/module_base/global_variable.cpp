@@ -246,6 +246,7 @@ bool of_ml_q = false;
 bool of_ml_gammanl = false;
 bool of_ml_pnl = false;
 bool of_ml_qnl = false;
+int of_ml_feg = 0;
 
 // denghui added for device flag
 std::string device_flag = "unknown";

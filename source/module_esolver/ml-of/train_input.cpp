@@ -132,6 +132,10 @@ void Train::readInput()
         {
             this->read_value(ifs, this->ml_qnl);
         }
+        else if (strcmp("feg_limit", word) == 0)
+        {
+            this->read_value(ifs, this->feg_limit);
+        }
     }
     std::cout << "Read nnINPUT done" << std::endl;
 }

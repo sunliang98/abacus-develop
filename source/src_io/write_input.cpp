@@ -414,6 +414,7 @@ void Input::Print(const std::string &fn) const
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_gammanl", of_ml_gammanl, "If the input variables contain gammanl");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_pnl", of_ml_pnl, "If the input variables contain pnl");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_qnl", of_ml_qnl, "If the input variables contain qnl");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_feg", of_ml_feg, "if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0");
 
 
     ofs << "\n#Parameters (19.dft+u)" << std::endl;

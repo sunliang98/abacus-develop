@@ -82,6 +82,7 @@ public:
     double MLenergy = 0.;
     double *kernel;
     // ModuleBase::matrix stress;
+    double feq_net_F = 0.;
 
     // informations about input
     int ninput = 0;

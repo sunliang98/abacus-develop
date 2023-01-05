@@ -488,6 +488,7 @@ void Input::Default(void)
     of_ml_gammanl = false;
     of_ml_pnl = false;
     of_ml_qnl = false;
+    of_ml_feg = 0;
     //==========================================================
     //    OFDFT sunliang added on 2022-11-15
     //==========================================================
@@ -1813,6 +1814,10 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, of_ml_qnl);
         }
+        else if (strcmp("of_ml_feg", word) == 0)
+        {
+            read_value(ifs, of_ml_feg);
+        }
         //----------------------------------------------------------------------------------
         //    device control denghui added on 2022-11-05
         //----------------------------------------------------------------------------------     
@@ -2608,6 +2613,7 @@ void Input::Bcast()
     Parallel_Common::bcast_bool(of_ml_gammanl);
     Parallel_Common::bcast_bool(of_ml_pnl);
     Parallel_Common::bcast_bool(of_ml_qnl);
+    Parallel_Common::bcast_int(of_ml_feg);
 
     return;
 }

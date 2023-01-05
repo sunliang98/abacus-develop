@@ -593,6 +593,7 @@ void Input_Conv::Convert(void)
     GlobalV::of_ml_gammanl = INPUT.of_ml_gammanl;
     GlobalV::of_ml_pnl = INPUT.of_ml_pnl;
     GlobalV::of_ml_qnl = INPUT.of_ml_qnl;
+    GlobalV::of_ml_feg = INPUT.of_ml_feg;
     ModuleBase::timer::tick("Input_Conv", "Convert");
     return;
 }

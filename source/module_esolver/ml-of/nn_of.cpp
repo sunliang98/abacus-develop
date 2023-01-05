@@ -14,6 +14,11 @@ NN_OFImpl::NN_OFImpl(int nrxx, int ninpt)
     fc2 = register_module("fc2", torch::nn::Linear(10, 10));
     fc3 = register_module("fc3", torch::nn::Linear(10, 10));
     fc4 = register_module("fc4", torch::nn::Linear(10, 1));
+
+    // fc1 = register_module("fc1", torch::nn::Linear(ninpt, 15));
+    // fc2 = register_module("fc2", torch::nn::Linear(15, 15));
+    // fc3 = register_module("fc3", torch::nn::Linear(15, 15));
+    // fc4 = register_module("fc4", torch::nn::Linear(15, 1));
 }
 
 void NN_OFImpl::setData(

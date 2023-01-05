@@ -478,6 +478,7 @@ class Input
     bool of_ml_gammanl; // If the input variables contain gammanl
     bool of_ml_pnl; // If the input variables contain pnl
     bool of_ml_qnl; // If the input variables contain qnl
+    int of_ml_feg; // if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0
 
     //==========================================================
     //    device control denghui added on 2022-11-15

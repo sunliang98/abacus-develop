@@ -55,6 +55,20 @@ void KEDF_ML::set_para(int nx, double dV, double nelec, double tf_weight, double
     {
         this->nn = std::make_shared<NN_OFImpl>(this->nx, this->ninput);
         torch::load(this->nn, "net.pt");
+        if (GlobalV::of_ml_feg == 1)
+        {
+            torch::Tensor feg_inpt = torch::zeros(this->ninput);
+            if (GlobalV::of_ml_gamma) feg_inpt[this->nn_input_index["gamma"]] = 1.;
+            if (GlobalV::of_ml_p) feg_inpt[this->nn_input_index["p"]] = 0.;
+            if (GlobalV::of_ml_q) feg_inpt[this->nn_input_index["q"]] = 0.;
+            if (GlobalV::of_ml_gammanl) feg_inpt[this->nn_input_index["gammanl"]] = 0.;
+            if (GlobalV::of_ml_pnl) feg_inpt[this->nn_input_index["pnl"]] = 0.;
+            if (GlobalV::of_ml_qnl) feg_inpt[this->nn_input_index["qnl"]] = 0.;
+
+            feg_inpt.requires_grad_(true);
+
+            this->feq_net_F = this->nn->forward(feg_inpt).item<double>();
+        }
     } 
     
     if (GlobalV::of_kinetic == "ml" || GlobalV::of_ml_gene_data == 1)
@@ -69,6 +83,10 @@ double KEDF_ML::get_energy(const double * const * prho, ModulePW::PW_Basis *pw_r
     this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl);
 
     this->nn->F = this->nn->forward(this->nn->inputs);
+    if (GlobalV::of_ml_feg == 1)
+    {
+        this->nn->F = this->nn->F - this->feq_net_F + 1.;
+    }
 
     double energy = 0.;
     for (int ir = 0; ir < this->nx; ++ir)
@@ -99,6 +117,11 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     // cout << this->nn->inputs.grad();
     this->nn->gradient = this->nn->inputs.grad();
 
+    if (GlobalV::of_ml_feg == 1)
+    {
+        this->nn->F = this->nn->F - this->feq_net_F + 1.;
+    }
+
     // get potential
     // cout << "begin potential" << endl;
     std::vector<double> gammanlterm(this->nx, 0.);
@@ -109,11 +132,25 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     this->potPPnlTerm(prho, pw_rho, ppnlterm);
     this->potQQnlTerm(prho, pw_rho, qqnlterm);
 
+    double kinetic_pot = 0.;
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        rpotential(0, ir) += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
-                            (5./3. * this->nn->F[ir].item<double>() + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir))
-                            + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
+        kinetic_pot = this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
+                      (5./3. * this->nn->F[ir].item<double>() + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir))
+                      + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
+        rpotential(0, ir) += kinetic_pot;
+
+        if (this->nn->F[ir][0].item<double>() < 0)
+        {
+            std::cout << "WARNING: enhancement factor < 0 !!  " << this->nn->F[ir][0].item<double>() << std::endl;
+        }
+        if (kinetic_pot < 0)
+        {
+            std::cout << "WARNING: pauli potential < 0 !!  " << kinetic_pot << std::endl;
+        }
+        // rpotential(0, ir) += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
+        //                     (5./3. * this->nn->F[ir].item<double>() + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir))
+        //                     + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
     }
 
     // get energy
@@ -166,7 +203,14 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     // end = clock();
     // std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
     this->nn->gradient = this->nn->inputs.grad();
+
+    if (GlobalV::of_ml_feg == 1)
+    {
+        this->nn->F = this->nn->F - this->feq_net_F + 1.;
+    }
+
     // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
+    // std::cout << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
 
     torch::Tensor enhancement = this->nn->F.reshape({this->nx});
     torch::Tensor potential = torch::zeros_like(enhancement);
