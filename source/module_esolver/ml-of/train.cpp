@@ -98,7 +98,7 @@ void Train::train()
                     // if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt[this->nn_input_index["gamma"]]},
                     //                                                                 {torch::ones(1)}, true, true)[0];
                     if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
-                                                                                    {torch::ones_like(this->feg_inpt)}, true, true)[0][this->nn_input_index["gamma"]];
+                                                                                    {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
                     if (this->feg_limit == 1) prediction = prediction - this->feg_predict + 1.;
                 }
                 startFB = clock();
@@ -226,7 +226,7 @@ void Train::potTest()
             // if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt[this->nn_input_index["gamma"]]},
             //                                                                 {torch::ones(1)}, true, true)[0];
             if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
-                                                                            {torch::ones_like(this->feg_inpt)}, true, true)[0][this->nn_input_index["gamma"]];
+                                                                            {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
             if (this->feg_limit == 1) prediction = prediction - this->feg_predict + 1.;
         }
 

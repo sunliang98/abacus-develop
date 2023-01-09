@@ -112,15 +112,15 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     this->nn->F = this->nn->forward(this->nn->inputs);
     // cout << this->nn->inputs.grad();
     if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
-    // cout << "begin backward" << endl;
-    this->nn->F.backward(torch::ones({this->nx, 1}));
-    // cout << this->nn->inputs.grad();
-    this->nn->gradient = this->nn->inputs.grad();
 
     if (GlobalV::of_ml_feg == 1)
     {
         this->nn->F = this->nn->F - this->feq_net_F + 1.;
     }
+    // cout << "begin backward" << endl;
+    this->nn->F.backward(torch::ones({this->nx, 1}));
+    // cout << this->nn->inputs.grad();
+    this->nn->gradient = this->nn->inputs.grad();
 
     // get potential
     // cout << "begin potential" << endl;
@@ -140,14 +140,14 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
                       + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
         rpotential(0, ir) += kinetic_pot;
 
-        if (this->nn->F[ir][0].item<double>() < 0)
-        {
-            std::cout << "WARNING: enhancement factor < 0 !!  " << this->nn->F[ir][0].item<double>() << std::endl;
-        }
-        if (kinetic_pot < 0)
-        {
-            std::cout << "WARNING: pauli potential < 0 !!  " << kinetic_pot << std::endl;
-        }
+        // if (this->nn->F[ir][0].item<double>() < 0)
+        // {
+        //     std::cout << "WARNING: enhancement factor < 0 !!  " << this->nn->F[ir][0].item<double>() << std::endl;
+        // }
+        // if (kinetic_pot < 0)
+        // {
+        //     std::cout << "WARNING: pauli potential < 0 !!  " << kinetic_pot << std::endl;
+        // }
         // rpotential(0, ir) += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
         //                     (5./3. * this->nn->F[ir].item<double>() + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir))
         //                     + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
