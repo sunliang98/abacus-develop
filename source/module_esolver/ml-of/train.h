@@ -117,6 +117,12 @@ public:
 
     int feg_limit = 0; // Free Electron Gas
 
+    // coefficients in loss function
+    double coef_e = 1.;
+    double coef_p = 1.;
+    double coef_feg_e = 1.;
+    double coef_feg_p = 1.;
+
     std::map<std::string, int> nn_input_index;
 
 // =========== 2. train_data.cpp ===========

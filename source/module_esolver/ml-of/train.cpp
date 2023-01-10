@@ -64,6 +64,7 @@ void Train::train()
     double lossFEG_E = 0.;
     double lossVali = 0.;
 
+    // bool increase_coef_feg_e = false;
     for (size_t epoch = 1; epoch <= this->nepoch; ++epoch)
     {
         torch::Tensor tauTF = this->cTF * torch::pow(rho, 5./3.);
@@ -75,7 +76,7 @@ void Train::train()
             {
                 torch::Tensor prediction = this->nn->forward(batch.data);
                 startL = clock();
-                torch::Tensor loss = this->lossFunction(prediction, batch.target);
+                torch::Tensor loss = this->lossFunction(prediction, batch.target) * this->coef_e;
                 lossTrain = loss.item<double>();
                 endL = clock();
                 totLoss += endL - startL;
@@ -123,21 +124,28 @@ void Train::train()
                     this->fft_grid_train[batch_index],
                     this->fft_gg_train[batch_index]
                 );
-                torch::Tensor loss = this->lossFunction(pot, this->pauli[batch_index], this->pauli_mean[batch_index]);
+                torch::Tensor loss = this->lossFunction(pot, this->pauli[batch_index], this->pauli_mean[batch_index])
+                                     * this->coef_p;
                 lossPot = loss.item<double>();
                 if (this->loss == "both")
                 {
-                    loss = loss + this->lossFunction(prediction, torch::slice(this->enhancement, 0, batch_index*this->nx, (batch_index + 1)*this->nx), this->enhancement_mean[batch_index]);
+                    loss = loss + this->coef_e * this->lossFunction(prediction, torch::slice(this->enhancement, 0, batch_index*this->nx, (batch_index + 1)*this->nx), this->enhancement_mean[batch_index]);
                     lossE = loss.item<double>() - lossPot;
                 }
                 if (this->feg_limit != 0)
                 {
-                    loss = loss + torch::pow(this->feg_dFdgamma, 2);
+                    loss = loss + torch::pow(this->feg_dFdgamma, 2) * this->coef_feg_p;
                     lossFEG_pot = loss.item<double>() - (lossPot + lossE);
                     if (this->feg_limit == 2)
                     {
-                        loss = loss + torch::pow(this->feg_predict - 1., 2);
+                        loss = loss + torch::pow(this->feg_predict - 1., 2) * this->coef_feg_e;
                         lossFEG_E = loss.item<double>() - (lossPot + lossE + lossFEG_pot);
+                        // if (lossFEG_E/lossE < 1e-3 && increase_coef_feg_e == false)
+                        // {
+                        //     this->coef_feg_e *= 2.;
+                        //     increase_coef_feg_e = true;
+                        //     std::cout << "---------ICREASE COEF FEG E--------" << std::endl;
+                        // }
                     }
                 }
 
@@ -252,8 +260,8 @@ void Train::potTest()
                 this->fft_grid_train[ii],
                 this->fft_gg_train[ii]
             );
-            torch::Tensor loss = this->lossFunction(pot, this->pauli[ii]);
-            loss = loss + this->lossFunction(prediction, torch::slice(this->enhancement, 0, ii*this->nx, (ii + 1)*this->nx));
+            torch::Tensor loss = this->lossFunction(pot, this->pauli[ii]) * this->coef_p;
+            loss = loss + this->coef_e * this->lossFunction(prediction, torch::slice(this->enhancement, 0, ii*this->nx, (ii + 1)*this->nx));
             double lossTrain = loss.item<double>();
             std::cout << "loss = " << lossTrain << std::endl;
             this->dumpTensor(pot.reshape({this->nx}), "pot_fcc.npy", this->nx);

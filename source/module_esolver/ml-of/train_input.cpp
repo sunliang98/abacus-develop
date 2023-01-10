@@ -136,6 +136,22 @@ void Train::readInput()
         {
             this->read_value(ifs, this->feg_limit);
         }
+        else if (strcmp("coef_e", word) == 0)
+        {
+            this->read_value(ifs, this->coef_e);
+        }
+        else if (strcmp("coef_p", word) == 0)
+        {
+            this->read_value(ifs, this->coef_p);
+        }
+        else if (strcmp("coef_feg_e", word) == 0)
+        {
+            this->read_value(ifs, this->coef_feg_e);
+        }
+        else if (strcmp("coef_feg_p", word) == 0)
+        {
+            this->read_value(ifs, this->coef_feg_p);
+        }
     }
     std::cout << "Read nnINPUT done" << std::endl;
 }
