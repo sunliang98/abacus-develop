@@ -31,6 +31,18 @@ public:
     void getGammanl(std::vector<double> &pgamma, ModulePW::PW_Basis *pw_rho, std::vector<double> &rgammanl);
     void getPnl(std::vector<double> &pp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpnl);
     void getQnl(std::vector<double> &pq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rqnl);
+    // new parameters 2023-02-03
+    void getXi(std::vector<double> &pgamma, std::vector<double> &pgammanl, std::vector<double> &rxi);
+    void getTanhP(std::vector<double> &pp, std::vector<double> &rtanhp);
+    void getTanhQ(std::vector<double> &pq, std::vector<double> &rtanhq);
+    void getTanh_Pnl(std::vector<double> &ppnl, std::vector<double> &rtanh_pnl);
+    void getTanh_Qnl(std::vector<double> &pqnl, std::vector<double> &rtanh_qnl);
+    void getTanhP_nl(std::vector<double> &ptanhp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhp_nl);
+    void getTanhQ_nl(std::vector<double> &ptanhq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhq_nl);
+    void getfP(std::vector<double> &pp, std::vector<double> &rfp);
+    void getfQ(std::vector<double> &pq, std::vector<double> &rfq);
+    void getfP_nl(std::vector<double> &pfp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfp_nl);
+    void getfQ_nl(std::vector<double> &pfq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfq_nl);
     // get target
     void getF_WT(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho,std::vector<double> &rF);
     void getPauli_WT(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpauli);
@@ -63,6 +75,9 @@ public:
     // void dumpTensor(const torch::Tensor &data, std::string filename);
     void loadVector(std::string filename, std::vector<double> &data);
     void dumpVector(std::string filename, const std::vector<double> &data);
+
+    void tanh(std::vector<double> &pinput, std::vector<double> &routput);
+    void f(std::vector<double> &pinput, std::vector<double> &routput);
 
     int nx = 0;
     double dV = 0.;

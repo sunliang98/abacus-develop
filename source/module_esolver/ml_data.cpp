@@ -44,8 +44,10 @@ void ML_data::generateTrainData_WT(
 {
     // container which will contain gamma, p, q in turn
     std::vector<double> container(this->nx);
+    std::vector<double> new_container(this->nx);
     // container contains gammanl, pnl, qnl in turn
     std::vector<double> containernl(this->nx);
+    std::vector<double> new_containernl(this->nx);
     // nabla rho
     std::vector<std::vector<double> > nablaRho(3, std::vector<double>(this->nx, 0.));
 
@@ -64,6 +66,10 @@ void ML_data::generateTrainData_WT(
     this->getGammanl(container, pw_rho, containernl);
     npy::SaveArrayAsNumpy("gammanl.npy", false, 1, cshape, containernl);
 
+    // xi = gamma_nl/gamma
+    this->getXi(container, containernl, new_containernl);
+    npy::SaveArrayAsNumpy("xi.npy", false, 1, cshape, new_containernl);
+
     // nabla rho
     this->getNablaRho(prho, pw_rho, nablaRho);
     npy::SaveArrayAsNumpy("nablaRhox.npy", false, 1, cshape, nablaRho[0]);
@@ -78,6 +84,26 @@ void ML_data::generateTrainData_WT(
     this->getPnl(container, pw_rho, containernl);
     npy::SaveArrayAsNumpy("pnl.npy", false, 1, cshape, containernl);
 
+    // tanh(p_nl)
+    this->getTanh_Pnl(containernl, new_containernl);
+    npy::SaveArrayAsNumpy("tanh_pnl.npy", false, 1, cshape, new_containernl);
+
+    // tanh(p)
+    this->getTanhP(container, new_container);
+    npy::SaveArrayAsNumpy("tanhp.npy", false, 1, cshape, new_container);
+
+    // tanh(p)_nl
+    this->getTanhP_nl(new_container, pw_rho, new_containernl);
+    npy::SaveArrayAsNumpy("tanhp_nl.npy", false, 1, cshape, new_containernl);
+
+    // f(p) = p/(1+p)
+    this->getfP(container, new_container);
+    npy::SaveArrayAsNumpy("fp.npy", false, 1, cshape, new_container);
+
+    // f(p)_nl
+    this->getfP_nl(new_container, pw_rho, new_containernl);
+    npy::SaveArrayAsNumpy("fp_nl.npy", false, 1, cshape, new_containernl);
+
     // q
     this->getQ(prho, pw_rho, container);
     npy::SaveArrayAsNumpy("q.npy", false, 1, cshape, container);
@@ -85,6 +111,26 @@ void ML_data::generateTrainData_WT(
     // q_nl
     this->getQnl(container, pw_rho, containernl);
     npy::SaveArrayAsNumpy("qnl.npy", false, 1, cshape, containernl);
+
+    // tanh(q_nl)
+    this->getTanh_Qnl(containernl, new_containernl);
+    npy::SaveArrayAsNumpy("tanh_qnl.npy", false, 1, cshape, new_containernl);
+
+    // tanh(q)
+    this->getTanhQ(container, new_container);
+    npy::SaveArrayAsNumpy("tanhq.npy", false, 1, cshape, new_container);
+
+    // tanh(q)_nl
+    this->getTanhQ_nl(new_container, pw_rho, new_containernl);
+    npy::SaveArrayAsNumpy("tanhq_nl.npy", false, 1, cshape, new_containernl);
+
+    // // f(q) = q/(1+q)
+    // this->getfQ(container, new_container);
+    // npy::SaveArrayAsNumpy("fq.npy", false, 1, cshape, new_container);
+
+    // // f(q)_nl
+    // this->getfQ_nl(new_container, pw_rho, new_containernl);
+    // npy::SaveArrayAsNumpy("fq_nl.npy", false, 1, cshape, new_containernl);
 
     // enhancement factor of Pauli potential
     this->getF_WT(wt, tf, prho, pw_rho, container);
@@ -111,8 +157,10 @@ void ML_data::generateTrainData_KS(
 {
     // container which will contain gamma, p, q in turn
     std::vector<double> container(this->nx);
+    std::vector<double> new_container(this->nx);
     // container contains gammanl, pnl, qnl in turn
     std::vector<double> containernl(this->nx);
+    std::vector<double> new_containernl(this->nx);
     // nabla rho
     std::vector<std::vector<double> > nablaRho(3, std::vector<double>(this->nx, 0.));
 
@@ -131,6 +179,10 @@ void ML_data::generateTrainData_KS(
     this->getGammanl(container, pw_rho, containernl);
     npy::SaveArrayAsNumpy("gammanl.npy", false, 1, cshape, containernl);
 
+    // xi = gamma_nl/gamma
+    this->getXi(container, containernl, new_containernl);
+    npy::SaveArrayAsNumpy("xi.npy", false, 1, cshape, new_containernl);
+
     // nabla rho
     this->getNablaRho(pelec->charge->rho, pw_rho, nablaRho);
     npy::SaveArrayAsNumpy("nablaRhox.npy", false, 1, cshape, nablaRho[0]);
@@ -145,6 +197,26 @@ void ML_data::generateTrainData_KS(
     this->getPnl(container, pw_rho, containernl);
     npy::SaveArrayAsNumpy("pnl.npy", false, 1, cshape, containernl);
 
+    // tanh(p_nl)
+    this->getTanh_Pnl(containernl, new_containernl);
+    npy::SaveArrayAsNumpy("tanh_pnl.npy", false, 1, cshape, new_containernl);
+
+    // tanh(p)
+    this->getTanhP(container, new_container);
+    npy::SaveArrayAsNumpy("tanhp.npy", false, 1, cshape, new_container);
+
+    // tanh(p)_nl
+    this->getTanhP_nl(new_container, pw_rho, new_containernl);
+    npy::SaveArrayAsNumpy("tanhp_nl.npy", false, 1, cshape, new_containernl);
+
+    // f(p) = p/(1+p)
+    this->getfP(container, new_container);
+    npy::SaveArrayAsNumpy("fp.npy", false, 1, cshape, new_container);
+
+    // f(p)_nl
+    this->getfP_nl(new_container, pw_rho, new_containernl);
+    npy::SaveArrayAsNumpy("fp_nl.npy", false, 1, cshape, new_containernl);
+
     // q
     this->getQ(pelec->charge->rho, pw_rho, container);
     npy::SaveArrayAsNumpy("q.npy", false, 1, cshape, container);
@@ -152,6 +224,26 @@ void ML_data::generateTrainData_KS(
     // q_nl
     this->getQnl(container, pw_rho, containernl);
     npy::SaveArrayAsNumpy("qnl.npy", false, 1, cshape, containernl);
+
+    // tanh(q_nl)
+    this->getTanh_Qnl(containernl, new_containernl);
+    npy::SaveArrayAsNumpy("tanh_qnl.npy", false, 1, cshape, new_containernl);
+
+    // tanh(q)
+    this->getTanhQ(container, new_container);
+    npy::SaveArrayAsNumpy("tanhq.npy", false, 1, cshape, new_container);
+
+    // tanh(q)_nl
+    this->getTanhQ_nl(new_container, pw_rho, new_containernl);
+    npy::SaveArrayAsNumpy("tanhq_nl.npy", false, 1, cshape, new_containernl);
+
+    // // f(q) = q/(1+q)
+    // this->getfQ(container, new_container);
+    // npy::SaveArrayAsNumpy("fq.npy", false, 1, cshape, new_container);
+
+    // // f(q)_nl
+    // this->getfQ_nl(new_container, pw_rho, new_containernl);
+    // npy::SaveArrayAsNumpy("fq_nl.npy", false, 1, cshape, new_containernl);
 
     // enhancement factor of Pauli energy, and Pauli potential
     this->getF_KS1(psi, pelec, pw_psi, pw_rho, nablaRho, container, containernl);
@@ -250,6 +342,83 @@ void ML_data::getPnl(std::vector<double> &pp, ModulePW::PW_Basis *pw_rho, std::v
 void ML_data::getQnl(std::vector<double> &pq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rqnl)
 {
     this->multiKernel(pq.data(), pw_rho, rqnl.data());
+}
+
+// xi = gammanl/gamma
+void ML_data::getXi(std::vector<double> &pgamma, std::vector<double> &pgammanl, std::vector<double> &rxi)
+{
+    for (int ir = 0; ir < this->nx; ++ir)
+    {
+        if (pgamma[ir] == 0)
+        {
+            std::cout << "WARNING: gamma=0" << std::endl;
+            rxi[ir] = 0.;
+        }
+        else
+        {
+            rxi[ir] = pgammanl[ir]/pgamma[ir];
+        }
+    }
+}
+
+// tanh(p)
+void ML_data::getTanhP(std::vector<double> &pp, std::vector<double> &rtanhp)
+{
+    this->tanh(pp, rtanhp);
+}
+
+// tanh(q)
+void ML_data::getTanhQ(std::vector<double> &pq, std::vector<double> &rtanhq)
+{
+    this->tanh(pq, rtanhq);
+}
+
+// tanh(pnl)
+void ML_data::getTanh_Pnl(std::vector<double> &ppnl, std::vector<double> &rtanh_pnl)
+{
+    this->tanh(ppnl, rtanh_pnl);
+}
+
+// tanh(qnl)
+void ML_data::getTanh_Qnl(std::vector<double> &pqnl, std::vector<double> &rtanh_qnl)
+{
+    this->tanh(pqnl, rtanh_qnl);
+}
+
+// tanh(p)_nl
+void ML_data::getTanhP_nl(std::vector<double> &ptanhp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhp_nl)
+{
+    this->multiKernel(ptanhp.data(), pw_rho, rtanhp_nl.data());
+}
+
+// tanh(q)_nl
+void ML_data::getTanhQ_nl(std::vector<double> &ptanhq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhq_nl)
+{
+    this->multiKernel(ptanhq.data(), pw_rho, rtanhq_nl.data());
+}
+
+// f(p) = p/(1+p)
+void ML_data::getfP(std::vector<double> &pp, std::vector<double> &rfp)
+{
+    this->f(pp, rfp);
+}
+
+// f(q) = q/(1+q)
+void ML_data::getfQ(std::vector<double> &pq, std::vector<double> &rfq)
+{
+    this->f(pq, rfq);
+}
+
+// f(p)_nl
+void ML_data::getfP_nl(std::vector<double> &pfp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfp_nl)
+{
+    this->multiKernel(pfp.data(), pw_rho, rfp_nl.data());
+}
+
+// f(q)_nl
+void ML_data::getfQ_nl(std::vector<double> &pfq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfq_nl)
+{
+    this->multiKernel(pfq.data(), pw_rho, rfq_nl.data());
 }
 
 void ML_data::getPauli_WT(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpauli)
@@ -642,4 +811,21 @@ void ML_data::dumpVector(std::string filename, const std::vector<double> &data)
 {
     const long unsigned cshape[] = {(long unsigned) this->nx}; // shape
     npy::SaveArrayAsNumpy(filename, false, 1, cshape, data);
+}
+
+void ML_data::tanh(std::vector<double> &pinput, std::vector<double> &routput)
+{
+    for (int i = 0; i < this->nx; ++i)
+    {
+        routput[i] = std::tanh(pinput[i]);
+    }
+}
+
+void ML_data::f(std::vector<double> &pinput, std::vector<double> &routput)
+{
+    for (int i = 0; i < this->nx; ++i)
+    {
+        assert(pinput[i] >= 0);
+        routput[i] = pinput[i]/(1. + pinput[i]);
+    }
 }
