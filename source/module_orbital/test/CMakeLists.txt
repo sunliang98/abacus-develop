@@ -13,7 +13,6 @@ list(APPEND depend_files
   ../../module_base/matrix.cpp
   ../../module_base/realarray.cpp
   ../../module_base/intarray.cpp
-  ../../module_base/sph_bessel.cpp
   ../../module_base/sph_bessel_recursive-d1.cpp
   ../../module_base/sph_bessel_recursive-d2.cpp
   ../../module_base/tool_title.cpp
@@ -36,12 +35,13 @@ list(APPEND depend_files
   ../ORB_table_alpha.cpp
   ../ORB_gen_tables.cpp
   ../parallel_orbitals.cpp
-  ../../src_lcao/center2_orb-orb11.cpp
+  ../../module_hamilt_lcao/hamilt_lcaodft/center2_orb-orb11.cpp
   )
 AddTest(
   TARGET orbital_equal_test
-  LIBS ${math_libs}
+  LIBS ${math_libs} device
   SOURCES 1_snap_equal_test.cpp ORB_unittest.cpp
+  ../../src_parallel/parallel_reduce.cpp ../../src_parallel/parallel_kpoints.cpp ../../src_parallel/parallel_global.cpp ../../src_parallel/parallel_common.cpp
   ${depend_files}
 )
 install(DIRECTORY GaAs DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../../../tests)

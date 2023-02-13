@@ -3,7 +3,7 @@
 #include "mpi.h"
 #endif
 
-//#include "../src_pw/global.h"
+//#include "../module_hamilt_pw/hamilt_pwdft/global.h"
 #include "../module_base/constants.h"
 #include "../module_base/global_function.h"
 #include "../module_base/global_variable.h"
@@ -244,6 +244,7 @@ void UnitCell::print_cell_cif(const std::string& fn) const
     ofs.close();
 }
 
+/*
 void UnitCell::print_cell_xyz(const std::string& fn) const
 {
     if (GlobalV::test_unitcell)
@@ -271,6 +272,7 @@ void UnitCell::print_cell_xyz(const std::string& fn) const
     ofs.close();
     return;
 }
+*/
 
 void UnitCell::set_iat2itia(void)
 {
@@ -520,6 +522,7 @@ void UnitCell::save_cartesian_position_original(ModuleBase::Vector3<double>* pos
     return;
 }
 
+/*
 bool UnitCell::judge_big_cell(void) const
 {
     double diameter = 2 * GlobalV::SEARCH_RADIUS;
@@ -537,6 +540,7 @@ bool UnitCell::judge_big_cell(void) const
         return 0;
     }
 }
+*/
 
 #ifndef __CMD
 void UnitCell::cal_ux()
@@ -1558,11 +1562,16 @@ void UnitCell::check_structure(double factor)
 	{
 		std::stringstream mess;
 		mess << "\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-		mess << "WARNING: Some atoms are too close!!!" << std::endl;
-		GlobalV::ofs_running << mess.str() << errorlog.str();
-		std::cout << mess.str() << "Please check the nearest-neighbor list in log file." << std::endl;
-		GlobalV::ofs_running << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" << std::endl;
-		std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n" << std::endl;
+		mess <<   "%%%%%% WARNING  WARNING  WARNING  WARNING  WARNING  %%%%%%" << std::endl;
+		mess <<   "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+		mess << "!!! WARNING: Some atoms are too close!!!" << std::endl;
+		mess << "!!! Please check the nearest-neighbor list in log file." << std::endl;
+		mess <<   "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+		mess <<   "%%%%%% WARNING  WARNING  WARNING  WARNING  WARNING  %%%%%%" << std::endl;
+		mess <<   "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+
+		GlobalV::ofs_running << mess.str() << mess.str() << mess.str() << errorlog.str();
+		std::cout << mess.str() << mess.str() << mess.str() << std::endl;
 
 
 		if (!all_pass)
