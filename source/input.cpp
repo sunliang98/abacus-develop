@@ -489,6 +489,18 @@ void Input::Default(void)
     of_ml_pnl = false;
     of_ml_qnl = false;
     of_ml_feg = 0;
+    // new parameter 2023-02-13
+    of_ml_xi = false;
+    of_ml_chi_p = 1.;
+    of_ml_chi_q = 1.;
+    of_ml_tanhp = false;
+    of_ml_tanhq = false;
+    of_ml_chi_pnl = 1.;
+    of_ml_chi_qnl = 1.;
+    of_ml_tanh_pnl = false;
+    of_ml_tanh_qnl = false;
+    of_ml_tanhp_nl = false;
+    of_ml_tanhq_nl = false;
     //==========================================================
     //    OFDFT sunliang added on 2022-11-15
     //==========================================================
@@ -1818,6 +1830,50 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, of_ml_feg);
         }
+        else if (strcmp("of_ml_xi", word) == 0)
+        {
+            read_value(ifs, of_ml_xi);
+        }
+        else if (strcmp("of_ml_chi_p", word) == 0)
+        {
+            read_value(ifs, of_ml_chi_p);
+        }
+        else if (strcmp("of_ml_chi_q", word) == 0)
+        {
+            read_value(ifs, of_ml_chi_q);
+        }
+        else if (strcmp("of_ml_tanhp", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhp);
+        }
+        else if (strcmp("of_ml_tanhq", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhq);
+        }
+        else if (strcmp("of_ml_chi_pnl", word) == 0)
+        {
+            read_value(ifs, of_ml_chi_pnl);
+        }
+        else if (strcmp("of_ml_chi_qnl", word) == 0)
+        {
+            read_value(ifs, of_ml_chi_qnl);
+        }
+        else if (strcmp("of_ml_tanh_pnl", word) == 0)
+        {
+            read_value(ifs, of_ml_tanh_pnl);
+        }
+        else if (strcmp("of_ml_tanh_qnl", word) == 0)
+        {
+            read_value(ifs, of_ml_tanh_qnl);
+        }
+        else if (strcmp("of_ml_tanhp_nl", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhp_nl);
+        }
+        else if (strcmp("of_ml_tanhq_nl", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhq_nl);
+        }
         //----------------------------------------------------------------------------------
         //    device control denghui added on 2022-11-05
         //----------------------------------------------------------------------------------     
@@ -2614,6 +2670,18 @@ void Input::Bcast()
     Parallel_Common::bcast_bool(of_ml_pnl);
     Parallel_Common::bcast_bool(of_ml_qnl);
     Parallel_Common::bcast_int(of_ml_feg);
+    // new parameters 2023-02-13
+    Parallel_Common::bcast_bool(of_ml_xi);
+    Parallel_Common::bcast_double(of_ml_chi_p);
+    Parallel_Common::bcast_double(of_ml_chi_q);
+    Parallel_Common::bcast_bool(of_ml_tanhp);
+    Parallel_Common::bcast_bool(of_ml_tanhq);
+    Parallel_Common::bcast_double(of_ml_chi_pnl);
+    Parallel_Common::bcast_double(of_ml_chi_qnl);
+    Parallel_Common::bcast_bool(of_ml_tanh_pnl);
+    Parallel_Common::bcast_bool(of_ml_tanh_qnl);
+    Parallel_Common::bcast_bool(of_ml_tanhp_nl);
+    Parallel_Common::bcast_bool(of_ml_tanhq_nl);
 
     return;
 }

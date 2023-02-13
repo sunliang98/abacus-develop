@@ -14,7 +14,14 @@ struct NN_OFImpl:torch::nn::Module{
         std::vector<double> &q, 
         std::vector<double> &gammanl, 
         std::vector<double> &pnl, 
-        std::vector<double> &qnl
+        std::vector<double> &qnl,
+        std::vector<double> &xi,
+        std::vector<double> &tanhp,
+        std::vector<double> &tanhq,
+        std::vector<double> &tanh_pnl,
+        std::vector<double> &tanh_qnl,
+        std::vector<double> &tanhp_nl,
+        std::vector<double> &tanhq_nl
     );
 
     void setData(
@@ -24,7 +31,14 @@ struct NN_OFImpl:torch::nn::Module{
         torch::Tensor q, 
         torch::Tensor gammanl, 
         torch::Tensor pnl, 
-        torch::Tensor qnl
+        torch::Tensor qnl,
+        torch::Tensor xi,
+        torch::Tensor tanhp,
+        torch::Tensor tanhq,
+        torch::Tensor tanh_pnl,
+        torch::Tensor tanh_qnl,
+        torch::Tensor tanhp_nl,
+        torch::Tensor tanhq_nl
     );
 
     torch::Tensor forward(torch::Tensor inpt);

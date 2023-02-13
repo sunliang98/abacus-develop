@@ -416,6 +416,17 @@ void Input::Print(const std::string &fn) const
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_qnl", of_ml_qnl, "If the input variables contain qnl");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_feg", of_ml_feg, "if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0");
 
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_xi", of_ml_xi, "If the input variables contain xi");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_p", of_ml_chi_p, "tanhp = tanh(chi*p)");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_q", of_ml_chi_q, "tanhp = tanh(chi*q)");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhp", of_ml_tanhp, "If the input variables contain tanhp");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhq", of_ml_tanhq, "If the input variables contain tanhq");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_pnl", of_ml_chi_pnl, "tanh_pnl = tanh(chi*pnl)");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_qnl", of_ml_chi_qnl, "tanh_pnl = tanh(chi*qnl)");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanh_pnl", of_ml_tanh_pnl, "If the input variables contain tanh_pnl");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanh_qnl", of_ml_tanh_qnl, "If the input variables contain tanh_qnl");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhp_nl", of_ml_tanhp_nl, "If the input variables contain tanhp_nl");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhq_nl", of_ml_tanhq_nl, "If the input variables contain tanhq_nl");
 
     ofs << "\n#Parameters (19.dft+u)" << std::endl;
     ModuleBase::GlobalFunc::OUTP(ofs, "dft_plus_u", dft_plus_u, "true:DFT+U correction; false: standard DFT calcullation(default)");

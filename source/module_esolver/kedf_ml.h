@@ -27,7 +27,17 @@ public:
         // if (this->kernel != NULL) delete[] this->kernel;
     }
 
-    void set_para(int nx, double dV, double nelec, double tf_weight, double vw_weight, ModulePW::PW_Basis *pw_rho);
+    void set_para(
+        int nx, 
+        double dV, 
+        double nelec, 
+        double tf_weight, 
+        double vw_weight, 
+        double chi_p,
+        double chi_q,
+        double chi_pnl,
+        double chi_qnl,
+        ModulePW::PW_Basis *pw_rho);
 
     double get_energy(const double * const * prho, ModulePW::PW_Basis *pw_rho);
     // double get_energy_density(const double * const *prho, int is, int ir, ModulePW::PW_Basis *pw_rho);
@@ -39,31 +49,38 @@ public:
     void generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf, ModulePW::PW_Basis *pw_rho, const double *veff);
     void localTest(const double * const *prho, ModulePW::PW_Basis *pw_rho);
     // get input parameters
-    void getGamma(const double * const *prho, std::vector<double> &rgamma);
-    void getP(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &pnablaRho, std::vector<double> &rp);
-    void getQ(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rq);
-    void getGammanl(std::vector<double> &pgamma, ModulePW::PW_Basis *pw_rho, std::vector<double> &rgammanl);
-    void getPnl(std::vector<double> &pp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpnl);
-    void getQnl(std::vector<double> &pq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rqnl);
-    // get target
-    void getPauli(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpauli);
-    void getF(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rF);
-    // get intermediate variables of V_Pauli
-    void getNablaRho(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &rnablaRho);
+    // void getGamma(const double * const *prho, std::vector<double> &rgamma);
+    // void getP(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &pnablaRho, std::vector<double> &rp);
+    // void getQ(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rq);
+    // void getGammanl(std::vector<double> &pgamma, ModulePW::PW_Basis *pw_rho, std::vector<double> &rgammanl);
+    // void getPnl(std::vector<double> &pp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpnl);
+    // void getQnl(std::vector<double> &pq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rqnl);
+    // // get target
+    // void getPauli(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpauli);
+    // void getF(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rF);
+    // // get intermediate variables of V_Pauli
+    // void getNablaRho(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &rnablaRho);
 
     // potentials
     double potGammaTerm(int ir);
     double potPTerm1(int ir);
     double potQTerm1(int ir);
+    double potXiTerm1(int ir);
+    double potTanhpTerm1(int ir);
+    double potTanhqTerm1(int ir);
     void potGammanlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rGammanlTerm);
+    void potXinlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rXinlTerm);
     void potPPnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rPPnlTerm);
     void potQQnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rQQnlTerm);
-
+    void potTanhpTanh_pnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhpTanh_pnlTerm);
+    void potTanhqTanh_qnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhqTanh_qnlTerm);
+    void potTanhpTanhp_nlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhpTanhp_nlTerm);
+    void potTanhqTanhq_nlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhqTanhq_nlTerm);
     // tools
-    double MLkernel(double eta, double tf_weight, double vw_weight);
-    void multiKernel(double *pinput, ModulePW::PW_Basis *pw_rho, double *routput);
-    void Laplacian(double * pinput, ModulePW::PW_Basis *pw_rho, double * routput);
-    void divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * routput);
+    // double MLkernel(double eta, double tf_weight, double vw_weight);
+    // void multiKernel(double *pinput, ModulePW::PW_Basis *pw_rho, double *routput);
+    // void Laplacian(double * pinput, ModulePW::PW_Basis *pw_rho, double * routput);
+    // void divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * routput);
     void dumpTensor(const torch::Tensor &data, std::string filename);
     void updateInput(const double * const * prho, ModulePW::PW_Basis *pw_rho);
 
@@ -94,6 +111,20 @@ public:
     std::vector<double> pnl;
     std::vector<double> qnl;
     std::vector<std::vector<double> > nablaRho;
+    // new parameters 2023-02-13
+    double chi_p = 1.;
+    double chi_q = 1.;
+    std::vector<double> xi;
+    std::vector<double> tanhp;
+    std::vector<double> tanhq;
+    // plan 1
+    double chi_pnl = 1.;
+    double chi_qnl = 1.;
+    std::vector<double> tanh_pnl;
+    std::vector<double> tanh_qnl;
+    // plan 2
+    std::vector<double> tanhp_nl;
+    std::vector<double> tanhq_nl;
 
     std::shared_ptr<NN_OFImpl> nn;
 };

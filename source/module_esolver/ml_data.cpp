@@ -6,9 +6,23 @@
 #include "../src_pw/symmetry_rho.h"
 // #include "time.h"
 
-void ML_data::set_para(int nx, double nelec, double tf_weight, double vw_weight, ModulePW::PW_Basis *pw_rho)
+void ML_data::set_para(
+    int nx,
+    double nelec, 
+    double tf_weight, 
+    double vw_weight,
+    double chi_p,
+    double chi_q,
+    double chi_pnl,
+    double chi_qnl,
+    ModulePW::PW_Basis *pw_rho
+)
 {
     this->nx = nx;
+    this->chi_p = chi_p;
+    this->chi_q = chi_q;
+    this->chi_pnl = chi_pnl;
+    this->chi_qnl = chi_qnl;
     // this->dV = dV;
 
     if (GlobalV::of_wt_rho0 != 0)
@@ -364,25 +378,25 @@ void ML_data::getXi(std::vector<double> &pgamma, std::vector<double> &pgammanl, 
 // tanh(p)
 void ML_data::getTanhP(std::vector<double> &pp, std::vector<double> &rtanhp)
 {
-    this->tanh(pp, rtanhp);
+    this->tanh(pp, rtanhp, this->chi_p);
 }
 
 // tanh(q)
 void ML_data::getTanhQ(std::vector<double> &pq, std::vector<double> &rtanhq)
 {
-    this->tanh(pq, rtanhq);
+    this->tanh(pq, rtanhq, this->chi_q);
 }
 
 // tanh(pnl)
 void ML_data::getTanh_Pnl(std::vector<double> &ppnl, std::vector<double> &rtanh_pnl)
 {
-    this->tanh(ppnl, rtanh_pnl);
+    this->tanh(ppnl, rtanh_pnl, this->chi_pnl);
 }
 
 // tanh(qnl)
 void ML_data::getTanh_Qnl(std::vector<double> &pqnl, std::vector<double> &rtanh_qnl)
 {
-    this->tanh(pqnl, rtanh_qnl);
+    this->tanh(pqnl, rtanh_qnl, this->chi_qnl);
 }
 
 // tanh(p)_nl
@@ -813,12 +827,17 @@ void ML_data::dumpVector(std::string filename, const std::vector<double> &data)
     npy::SaveArrayAsNumpy(filename, false, 1, cshape, data);
 }
 
-void ML_data::tanh(std::vector<double> &pinput, std::vector<double> &routput)
+void ML_data::tanh(std::vector<double> &pinput, std::vector<double> &routput, double chi)
 {
     for (int i = 0; i < this->nx; ++i)
     {
-        routput[i] = std::tanh(pinput[i]);
+        routput[i] = std::tanh(pinput[i] * chi);
     }
+}
+
+double ML_data::dtanh(double tanhx, double chi)
+{
+    return (1. - tanhx * tanhx) * chi;
 }
 
 void ML_data::f(std::vector<double> &pinput, std::vector<double> &routput)

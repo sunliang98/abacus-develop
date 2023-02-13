@@ -276,6 +276,18 @@ extern bool of_ml_gammanl; // If the input variables contain gammanl
 extern bool of_ml_pnl; // If the input variables contain pnl
 extern bool of_ml_qnl; // If the input variables contain qnl
 extern int of_ml_feg; // if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0;
+// new parameters 2023-02-13
+extern bool of_ml_xi;
+extern double of_ml_chi_p; // tanhp = tanh(chi*p)
+extern double of_ml_chi_q; // tanhp = tanh(chi*q)
+extern bool of_ml_tanhp; // If the input variables contain tanhp
+extern bool of_ml_tanhq; // If the input variables contain tanhq
+extern double of_ml_chi_pnl; // tanh_pnl = tanh(chi*pnl)
+extern double of_ml_chi_qnl; // tanh_pnl = tanh(chi*qnl)
+extern bool of_ml_tanh_pnl; // If the input variables contain tanh_pnl
+extern bool of_ml_tanh_qnl; // If the input variables contain tanh_qnl
+extern bool of_ml_tanhp_nl; // If the input variables contain tanhp_nl
+extern bool of_ml_tanhq_nl; // If the input variables contain tanhq_nl
 
 //==========================================================
 // device flags

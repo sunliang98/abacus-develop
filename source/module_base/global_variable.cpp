@@ -248,6 +248,18 @@ bool of_ml_pnl = false;
 bool of_ml_qnl = false;
 int of_ml_feg = 0;
 
+bool of_ml_xi = false;
+double of_ml_chi_p = 1.;
+double of_ml_chi_q = 1.;
+bool of_ml_tanhp = false;
+bool of_ml_tanhq = false;
+double of_ml_chi_pnl = 1.;
+double of_ml_chi_qnl = 1.;
+bool of_ml_tanh_pnl = false;
+bool of_ml_tanh_qnl = false;
+bool of_ml_tanhp_nl = false;
+bool of_ml_tanhq_nl = false;
+
 // denghui added for device flag
 std::string device_flag = "unknown";
 std::string chg_extrap = "";

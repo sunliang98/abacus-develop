@@ -236,7 +236,8 @@ void ESolver_OF::Init(Input &inp, UnitCell &ucell)
     this->tf.set_para(this->nrxx, this->dV, GlobalV::of_tf_weight);
     this->vw.set_para(this->nrxx, this->dV, GlobalV::of_vw_weight);
     this->wt.set_para(this->nrxx, this->dV, GlobalV::of_wt_alpha, GlobalV::of_wt_beta, this->nelec[0], GlobalV::of_tf_weight, GlobalV::of_vw_weight, GlobalV::of_read_kernel, GlobalV::of_kernel_file, this->pw_rho);
-    this->ml.set_para(this->nrxx, this->dV, this->nelec[0], GlobalV::of_tf_weight, GlobalV::of_vw_weight, this->pw_rho);
+    this->ml.set_para(this->nrxx, this->dV, this->nelec[0], GlobalV::of_tf_weight, GlobalV::of_vw_weight, 
+                      GlobalV::of_ml_chi_p, GlobalV::of_ml_chi_q, GlobalV::of_ml_chi_pnl, GlobalV::of_ml_chi_qnl, this->pw_rho);
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT KEDF");
 
     // Initialize charge extrapolation
@@ -476,9 +477,9 @@ void ESolver_OF::solveV()
 // // ======================== for test ============================
 //     if (this->iter == 0)
 //     {
-//         for (int i = -1000; i < 1000; ++i)
+//         for (int i = -200; i < 200; ++i)
 //         {
-//             this->theta[0] = 0.0001 * i;
+//             this->theta[0] = 0.0005 * i;
 //             for (int ir = 0; ir < this->nrxx; ++ir)
 //             {
 //                 ptempPhi[0][ir] = this->pphi[0][ir] * cos(this->theta[0]) + this->pdirect[0][ir] * sin(this->theta[0]);

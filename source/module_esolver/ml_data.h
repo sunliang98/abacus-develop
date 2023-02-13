@@ -8,7 +8,16 @@
 
 class ML_data{
 public:
-    void set_para(int nx, double nelec, double tf_weight, double vw_weight, ModulePW::PW_Basis *pw_rho);
+    void set_para(
+        int nx,
+        double nelec, 
+        double tf_weight, 
+        double vw_weight,
+        double chi_p,
+        double chi_q,
+        double chi_pnl,
+        double chi_qnl,
+        ModulePW::PW_Basis *pw_rho);
     // output all parameters
     void generateTrainData_WT(
         const double * const *prho, 
@@ -76,8 +85,15 @@ public:
     void loadVector(std::string filename, std::vector<double> &data);
     void dumpVector(std::string filename, const std::vector<double> &data);
 
-    void tanh(std::vector<double> &pinput, std::vector<double> &routput);
+    void tanh(std::vector<double> &pinput, std::vector<double> &routput, double chi=1.);
+    double dtanh(double tanhx, double chi=1.);
     void f(std::vector<double> &pinput, std::vector<double> &routput);
+
+    // new parameters 2023-02-13
+    double chi_p = 1.;
+    double chi_q = 1.;
+    double chi_pnl = 1.;
+    double chi_qnl = 1.;
 
     int nx = 0;
     double dV = 0.;

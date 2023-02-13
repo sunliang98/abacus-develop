@@ -594,6 +594,18 @@ void Input_Conv::Convert(void)
     GlobalV::of_ml_pnl = INPUT.of_ml_pnl;
     GlobalV::of_ml_qnl = INPUT.of_ml_qnl;
     GlobalV::of_ml_feg = INPUT.of_ml_feg;
+    // new parameters 2023-02-13
+    GlobalV::of_ml_xi = INPUT.of_ml_xi;
+    GlobalV::of_ml_chi_p = INPUT.of_ml_chi_p;
+    GlobalV::of_ml_chi_q = INPUT.of_ml_chi_q;
+    GlobalV::of_ml_tanhp = INPUT.of_ml_tanhp;
+    GlobalV::of_ml_tanhq = INPUT.of_ml_tanhq;
+    GlobalV::of_ml_chi_pnl = INPUT.of_ml_chi_pnl;
+    GlobalV::of_ml_chi_qnl = INPUT.of_ml_chi_qnl;
+    GlobalV::of_ml_tanh_pnl = INPUT.of_ml_tanh_pnl;
+    GlobalV::of_ml_tanh_qnl = INPUT.of_ml_tanh_qnl;
+    GlobalV::of_ml_tanhp_nl = INPUT.of_ml_tanhp_nl;
+    GlobalV::of_ml_tanhq_nl = INPUT.of_ml_tanhq_nl;
     ModuleBase::timer::tick("Input_Conv", "Convert");
     return;
 }
