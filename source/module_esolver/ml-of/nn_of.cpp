@@ -80,7 +80,7 @@ void NN_OFImpl::setData(
     if (input_index["pnl"] >= 0) this->inputs.index({"...", input_index["pnl"]}) = pnl.clone();
     if (input_index["qnl"] >= 0) this->inputs.index({"...", input_index["qnl"]}) = qnl.clone();
     if (input_index["xi"] >= 0) this->inputs.index({"...", input_index["xi"]}) = xi.clone();
-    if (input_index["tanhxi"] >= 0) this->inputs.index({"...", input_index["xi"]}) = tanhxi.clone();
+    if (input_index["tanhxi"] >= 0) this->inputs.index({"...", input_index["tanhxi"]}) = tanhxi.clone();
     if (input_index["tanhp"] >= 0) this->inputs.index({"...", input_index["tanhp"]}) = tanhp.clone();
     if (input_index["tanhq"] >= 0) this->inputs.index({"...", input_index["tanhq"]}) = tanhq.clone();
     if (input_index["tanh_pnl"] >= 0) this->inputs.index({"...", input_index["tanh_pnl"]}) = tanh_pnl.clone();

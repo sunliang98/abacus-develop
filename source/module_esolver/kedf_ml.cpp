@@ -81,10 +81,13 @@ void KEDF_ML::set_para(
             this->ninput++;
         }
     }
-    if (GlobalV::of_ml_xi){
+    if (GlobalV::of_ml_xi || GlobalV::of_ml_tanhxi){
         this->xi = std::vector<double>(this->nx);
-        this->nn_input_index["xi"] = this->ninput;
-        this->ninput++;
+        if (GlobalV::of_ml_xi)
+        {
+            this->nn_input_index["xi"] = this->ninput;
+            this->ninput++;
+        }
     }
     if (GlobalV::of_ml_tanhxi){
         this->tanhxi = std::vector<double>(this->nx); // we assume ONLY ONE of xi and tanhxi is used.
@@ -286,7 +289,7 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/1_ks/1_fccAl-2022-12-12/rho.npy", temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/1_ks/2_bccAl_27dim-2022-12-12/rho.npy", temp_prho);
-    this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/2_ks-pbe/1_fccAl-eq-2022-12-27/rho.npy", temp_prho);
+    this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/3_ks-pbe-newpara/1_fccAl-eq-2023-02-14/rho.npy", temp_prho);
     double ** prho = new double *[1];
     prho[0] = new double[this->nx];
     for (int ir = 0; ir < this->nx; ++ir) prho[0][ir] = temp_prho[ir];
@@ -355,8 +358,8 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
                         + tanhptanh_pnlterm[ir] + tanhqtanh_qnlterm[ir]
                         + tanhptanhp_nlterm[ir] + tanhqtanhq_nlterm[ir];
     }
-    this->dumpTensor(enhancement, "enhancement-test.npy");
-    this->dumpTensor(potential, "potential-test.npy");
+    this->dumpTensor(enhancement, "enhancement-abacus.npy");
+    this->dumpTensor(potential, "potential-abacus.npy");
     exit(0);
 }
 
@@ -382,7 +385,7 @@ double KEDF_ML::potXiTerm1(int ir)
 
 double KEDF_ML::potTanhxiTerm1(int ir)
 {
-    return (GlobalV::of_ml_tanhxi) ? -1./3. * /*xi*/(gammanl[ir]/gamma[ir]) * this->ml_data->dtanh(this->tanhxi[ir], this->chi_xi)
+    return (GlobalV::of_ml_tanhxi) ? -1./3. * xi[ir] * this->ml_data->dtanh(this->tanhxi[ir], this->chi_xi)
                                     * this->nn->gradient[ir][this->nn_input_index["tanhxi"]].item<double>() : 0.;
 }
 
@@ -721,14 +724,18 @@ void KEDF_ML::updateInput(const double * const * prho, ModulePW::PW_Basis *pw_rh
         if (this->nn_input_index["gammanl"] >= 0 || this->nn_input_index["xi"] >= 0 || GlobalV::of_ml_tanhxi)
         {
             this->ml_data->getGammanl(this->gamma, pw_rho, this->gammanl);
-            if (this->nn_input_index["xi"] >= 0)
+            if (this->nn_input_index["xi"] >= 0 || GlobalV::of_ml_tanhxi)
             {
                 this->ml_data->getXi(this->gamma, this->gammanl, this->xi);
+                if (GlobalV::of_ml_tanhxi)
+                {
+                    this->ml_data->tanh(this->xi, this->tanhxi, this->chi_xi);
+                }
             }
-            if (GlobalV::of_ml_tanhxi)
-            {
-                this->ml_data->getTanhXi(this->gamma, this->gammanl, this->tanhxi);
-            }
+            // if (GlobalV::of_ml_tanhxi)
+            // {
+            //     this->ml_data->getTanhXi(this->gamma, this->gammanl, this->tanhxi);
+            // }
         }
     }
     if (this->nn_input_index["pnl"] >= 0 || this->nn_input_index["p"] >= 0

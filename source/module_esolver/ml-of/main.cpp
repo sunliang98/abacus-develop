@@ -9,8 +9,15 @@ int main()
     Train train;
     train.readInput();
     train.loadData();
-    train.init();
-    train.train();
+    if (train.check_pot)
+    {
+        train.potTest();
+    }
+    else
+    {
+        train.init();
+        train.train();
+    }
     // train.potTest();
 
     // torch::Tensor x = torch::ones({2,2});

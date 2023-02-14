@@ -37,6 +37,15 @@ public:
     torch::Tensor pnl;
     torch::Tensor qnl;
     torch::Tensor nablaRho;
+    // new parameters 2023-02-14
+    torch::Tensor xi;
+    torch::Tensor tanhxi;
+    torch::Tensor tanhp;
+    torch::Tensor tanhq;
+    torch::Tensor tanh_pnl;
+    torch::Tensor tanh_qnl;
+    torch::Tensor tanhp_nl;
+    torch::Tensor tanhq_nl;
     // target
     torch::Tensor enhancement;
     torch::Tensor pauli;
@@ -61,6 +70,15 @@ public:
     torch::Tensor qnl_vali;
     torch::Tensor nablaRho_vali;
     torch::Tensor input_vali;
+    // new parameters 2023-02-14
+    torch::Tensor xi_vali;
+    torch::Tensor tanhxi_vali;
+    torch::Tensor tanhp_vali;
+    torch::Tensor tanhq_vali;
+    torch::Tensor tanh_pnl_vali;
+    torch::Tensor tanh_qnl_vali;
+    torch::Tensor tanhp_nl_vali;
+    torch::Tensor tanhq_nl_vali;
     // target
     torch::Tensor enhancement_vali;
     torch::Tensor pauli_vali;
@@ -114,6 +132,20 @@ public:
     bool ml_gammanl = false;
     bool ml_pnl = false;
     bool ml_qnl = false;
+    // new parameters 2023-02-14
+    bool ml_xi = false;
+    bool ml_tanhxi = false;
+    bool ml_tanhp = false;
+    bool ml_tanhq = false;
+    bool ml_tanh_pnl = false;
+    bool ml_tanh_qnl = false;
+    bool ml_tanhp_nl = false;
+    bool ml_tanhq_nl = false;
+    double chi_xi = 1.;
+    double chi_p = 1.;
+    double chi_q = 1.;
+    double chi_pnl = 1.;
+    double chi_qnl = 1.;
 
     int feg_limit = 0; // Free Electron Gas
 
@@ -123,6 +155,10 @@ public:
     double coef_feg_e = 1.;
     double coef_feg_p = 1.;
 
+public:
+    bool check_pot = false;
+
+private:
     std::map<std::string, int> nn_input_index;
 
 // =========== 2. train_data.cpp ===========
@@ -143,6 +179,14 @@ private:
         torch::Tensor &pnl,
         torch::Tensor &qnl,
         torch::Tensor &nablaRho,
+        torch::Tensor &xi,
+        torch::Tensor &tanhxi,
+        torch::Tensor &tanhp,
+        torch::Tensor &tanhq,
+        torch::Tensor &tanh_pnl,
+        torch::Tensor &tanh_qnl,
+        torch::Tensor &tanhp_nl,
+        torch::Tensor &tanhq_nl,
         torch::Tensor &enhancement,
         torch::Tensor &enhancement_mean,
         torch::Tensor &pauli,
@@ -223,6 +267,12 @@ public:
         const torch::Tensor &gamma,
         const torch::Tensor &p,
         const torch::Tensor &q,
+        const torch::Tensor &xi,
+        const torch::Tensor &tanhxi,
+        const torch::Tensor &tanhp,
+        const torch::Tensor &tanhq,
+        const torch::Tensor &tanh_pnl,
+        const torch::Tensor &tanh_qnl,
         const torch::Tensor &F,
         const torch::Tensor &gradient,
         const torch::Tensor &kernel,
@@ -243,7 +293,6 @@ private:
         const torch::Tensor &q,
         const torch::Tensor &gradient
     );
-    // void potGammanlTerm(const torch::Tensor &rho, torch::Tensor &rGammanlTerm);
     torch::Tensor potGammanlTerm(
         const torch::Tensor &rho,
         const torch::Tensor &gamma,
@@ -251,7 +300,6 @@ private:
         const torch::Tensor &tauTF,
         const torch::Tensor &gradient
     );
-    // void potPPnlTerm(const torch::Tensor &rho, torch::Tensor &rPPnlTerm);
     torch::Tensor potPPnlTerm(
         const torch::Tensor &rho,
         const torch::Tensor &nablaRho,
@@ -261,7 +309,6 @@ private:
         const torch::Tensor &gradient,
         const std::vector<torch::Tensor> &grid
     );
-    // void potQQnlTerm(const torch::Tensor &rho, torch::Tensor &rQQnlTerm);
     torch::Tensor potQQnlTerm(
         const torch::Tensor &rho,
         const torch::Tensor &q,
@@ -271,13 +318,81 @@ private:
         const torch::Tensor &gg    
     );
 
-    // Tools for getting potential
-    torch::Tensor multiKernel(
-        const torch::Tensor &pinput,
-        const torch::Tensor &kernel
+
+    torch::Tensor potXiTerm1(
+        const torch::Tensor &xi,
+        const torch::Tensor &gradient
     );
-    // void Laplacian(torch::Tensor &pinput, torch::Tensor &routput);
-    // void divergence(torch::Tensor &pinput, torch::Tensor  &routput);
+    torch::Tensor potTanhxiTerm1(
+        const torch::Tensor &xi,
+        const torch::Tensor &tanhxi,
+        const torch::Tensor &gradient
+    );
+    torch::Tensor potTanhpTerm1(
+        const torch::Tensor &p,
+        const torch::Tensor &tanhp,
+        const torch::Tensor &gradient
+    );
+    torch::Tensor potTanhqTerm1(
+        const torch::Tensor &q,
+        const torch::Tensor &tanhq,
+        const torch::Tensor &gradient
+    );
+    torch::Tensor potXinlTerm(
+        const torch::Tensor &rho,
+        const torch::Tensor &kernel,
+        const torch::Tensor &tauTF,
+        const torch::Tensor &gradient
+    );
+    torch::Tensor potTanhxinlTerm(
+        const torch::Tensor &rho,
+        const torch::Tensor &tanhxi,
+        const torch::Tensor &kernel,
+        const torch::Tensor &tauTF,
+        const torch::Tensor &gradient
+    );
+    torch::Tensor potTanhpTanh_pnlTerm(
+        const torch::Tensor &rho,
+        const torch::Tensor &nablaRho,
+        const torch::Tensor &p,
+        const torch::Tensor &tanhp,
+        const torch::Tensor &tanh_pnl,
+        const torch::Tensor &kernel,
+        const torch::Tensor &tauTF,
+        const torch::Tensor &gradient,
+        const std::vector<torch::Tensor> &grid
+    );
+    torch::Tensor potTanhqTanh_qnlTerm(
+        const torch::Tensor &rho,
+        const torch::Tensor &q,
+        const torch::Tensor &tanhq,
+        const torch::Tensor &tanh_qnl,
+        const torch::Tensor &kernel,
+        const torch::Tensor &tauTF,
+        const torch::Tensor &gradient,
+        const torch::Tensor &gg
+    );
+    torch::Tensor potTanhpTanhp_nlTerm(
+        const torch::Tensor &rho,
+        const torch::Tensor &nablaRho,
+        const torch::Tensor &p,
+        const torch::Tensor &tanhp,
+        const torch::Tensor &kernel,
+        const torch::Tensor &tauTF,
+        const torch::Tensor &gradient,
+        const std::vector<torch::Tensor> &grid
+    );
+    torch::Tensor potTanhqTanhq_nlTerm(
+        const torch::Tensor &rho,
+        const torch::Tensor &q,
+        const torch::Tensor &tanhq,
+        const torch::Tensor &kernel,
+        const torch::Tensor &tauTF,
+        const torch::Tensor &gradient,
+        const torch::Tensor &gg
+    );
+
+    // Tools for getting potential
     torch::Tensor divergence(
         const torch::Tensor &input,
         const std::vector<torch::Tensor> &grid
@@ -285,6 +400,10 @@ private:
     torch::Tensor Laplacian(
         const torch::Tensor &input,
         const torch::Tensor &gg
+    );
+    torch::Tensor dtanh(
+        const torch::Tensor &tanhx,
+        const double chi
     );
 
     const double cTF = 3.0/10.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0) * 2; // 10/3*(3*pi^2)^{2/3}, multiply by 2 to convert unit from Hartree to Ry, finally in Ry*Bohr^(-2)

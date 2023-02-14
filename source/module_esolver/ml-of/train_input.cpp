@@ -132,6 +132,58 @@ void Train::readInput()
         {
             this->read_value(ifs, this->ml_qnl);
         }
+        else if (strcmp("xi", word) == 0)
+        {
+            this->read_value(ifs, this->ml_xi);
+        }
+        else if (strcmp("tanhxi", word) == 0)
+        {
+            this->read_value(ifs, this->ml_tanhxi);
+        }
+        else if (strcmp("tanhp", word) == 0)
+        {
+            this->read_value(ifs, this->ml_tanhp);
+        }
+        else if (strcmp("tanhq", word) == 0)
+        {
+            this->read_value(ifs, this->ml_tanhq);
+        }
+        else if (strcmp("tanh_pnl", word) == 0)
+        {
+            this->read_value(ifs, this->ml_tanh_pnl);
+        }
+        else if (strcmp("tanh_qnl", word) == 0)
+        {
+            this->read_value(ifs, this->ml_tanh_qnl);
+        }
+        else if (strcmp("tanhp_nl", word) == 0)
+        {
+            this->read_value(ifs, this->ml_tanhp_nl);
+        }
+        else if (strcmp("tanhq_nl", word) == 0)
+        {
+            this->read_value(ifs, this->ml_tanhq_nl);
+        }
+        else if (strcmp("chi_xi", word) == 0)
+        {
+            this->read_value(ifs, this->chi_xi);
+        }
+        else if (strcmp("chi_p", word) == 0)
+        {
+            this->read_value(ifs, this->chi_p);
+        }
+        else if (strcmp("chi_q", word) == 0)
+        {
+            this->read_value(ifs, this->chi_q);
+        }
+        else if (strcmp("chi_pnl", word) == 0)
+        {
+            this->read_value(ifs, this->chi_pnl);
+        }
+        else if (strcmp("chi_qnl", word) == 0)
+        {
+            this->read_value(ifs, this->chi_qnl);
+        }
         else if (strcmp("feg_limit", word) == 0)
         {
             this->read_value(ifs, this->feg_limit);
@@ -151,6 +203,10 @@ void Train::readInput()
         else if (strcmp("coef_feg_p", word) == 0)
         {
             this->read_value(ifs, this->coef_feg_p);
+        }
+        else if (strcmp("check_pot", word) == 0)
+        {
+            this->read_value(ifs, this->check_pot);
         }
     }
     std::cout << "Read nnINPUT done" << std::endl;

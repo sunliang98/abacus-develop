@@ -26,7 +26,15 @@ void Train::init()
                       this->q.reshape({this->nx_train}), 
                       this->gammanl.reshape({this->nx_train}), 
                       this->pnl.reshape({this->nx_train}), 
-                      this->qnl.reshape({this->nx_train}));
+                      this->qnl.reshape({this->nx_train}),
+                      this->xi.reshape({this->nx_train}),
+                      this->tanhxi.reshape({this->nx_train}),
+                      this->tanhp.reshape({this->nx_train}),
+                      this->tanhq.reshape({this->nx_train}),
+                      this->tanh_pnl.reshape({this->nx_train}),
+                      this->tanh_qnl.reshape({this->nx_train}),
+                      this->tanhp_nl.reshape({this->nx_train}),
+                      this->tanhq_nl.reshape({this->nx_train}));
     // if (this->loss == "potential" || this->loss == "both") this->nn->inputs.requires_grad_(true);
 }
 
@@ -118,6 +126,12 @@ void Train::train()
                     this->gamma[batch_index],
                     this->p[batch_index],
                     this->q[batch_index],
+                    this->xi[batch_index],
+                    this->tanhxi[batch_index],
+                    this->tanhp[batch_index],
+                    this->tanhq[batch_index],
+                    this->tanh_pnl[batch_index],
+                    this->tanh_qnl[batch_index],
                     prediction.reshape({this->fftdim, this->fftdim, this->fftdim}),
                     gradient,
                     this->fft_kernel_train[batch_index],
@@ -210,7 +224,15 @@ void Train::potTest()
                       this->q.reshape({this->nx_train}), 
                       this->gammanl.reshape({this->nx_train}), 
                       this->pnl.reshape({this->nx_train}), 
-                      this->qnl.reshape({this->nx_train}));
+                      this->qnl.reshape({this->nx_train}),
+                      this->xi.reshape({this->nx_train}),
+                      this->tanhxi.reshape({this->nx_train}),
+                      this->tanhp.reshape({this->nx_train}),
+                      this->tanhq.reshape({this->nx_train}),
+                      this->tanh_pnl.reshape({this->nx_train}),
+                      this->tanh_qnl.reshape({this->nx_train}),
+                      this->tanhp_nl.reshape({this->nx_train}),
+                      this->tanhq_nl.reshape({this->nx_train}));
     this->nn->inputs.requires_grad_(true);
 
     torch::Tensor target = (this->loss=="energy") ? this->enhancement : this->pauli;
@@ -254,6 +276,12 @@ void Train::potTest()
                 gamma[ii],
                 p[ii],
                 q[ii],
+                xi[ii],
+                tanhxi[ii],
+                tanhp[ii],
+                tanhq[ii],
+                tanh_pnl[ii],
+                tanh_qnl[ii],
                 torch::slice(prediction, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->fftdim, this->fftdim, this->fftdim}),
                 gradient,
                 this->fft_kernel_train[ii],
@@ -264,8 +292,8 @@ void Train::potTest()
             loss = loss + this->coef_e * this->lossFunction(prediction, torch::slice(this->enhancement, 0, ii*this->nx, (ii + 1)*this->nx));
             double lossTrain = loss.item<double>();
             std::cout << "loss = " << lossTrain << std::endl;
-            this->dumpTensor(pot.reshape({this->nx}), "pot_fcc.npy", this->nx);
-            this->dumpTensor(torch::slice(prediction, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
+            this->dumpTensor(pot.reshape({this->nx}), "potential-nnof.npy", this->nx);
+            this->dumpTensor(torch::slice(prediction, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "enhancement-nnof.npy", this->nx);
             // this->dumpTensor(torch::slice(this->nn->F, 0, ii*this->nx, (ii + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
 
         }
