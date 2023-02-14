@@ -11,6 +11,7 @@ void ML_data::set_para(
     double nelec, 
     double tf_weight, 
     double vw_weight,
+    double chi_xi,
     double chi_p,
     double chi_q,
     double chi_pnl,
@@ -19,6 +20,7 @@ void ML_data::set_para(
 )
 {
     this->nx = nx;
+    this->chi_xi = chi_xi;
     this->chi_p = chi_p;
     this->chi_q = chi_q;
     this->chi_pnl = chi_pnl;
@@ -83,6 +85,10 @@ void ML_data::generateTrainData_WT(
     // xi = gamma_nl/gamma
     this->getXi(container, containernl, new_containernl);
     npy::SaveArrayAsNumpy("xi.npy", false, 1, cshape, new_containernl);
+
+    // tanhxi = tanh(xi)
+    this->getTanhXi(container, containernl, new_containernl);
+    npy::SaveArrayAsNumpy("tanhxi.npy", false, 1, cshape, new_containernl);
 
     // nabla rho
     this->getNablaRho(prho, pw_rho, nablaRho);
@@ -197,6 +203,10 @@ void ML_data::generateTrainData_KS(
     this->getXi(container, containernl, new_containernl);
     npy::SaveArrayAsNumpy("xi.npy", false, 1, cshape, new_containernl);
 
+    // tanhxi = tanh(xi)
+    this->getTanhXi(container, containernl, new_containernl);
+    npy::SaveArrayAsNumpy("tanhxi.npy", false, 1, cshape, new_containernl);
+    
     // nabla rho
     this->getNablaRho(pelec->charge->rho, pw_rho, nablaRho);
     npy::SaveArrayAsNumpy("nablaRhox.npy", false, 1, cshape, nablaRho[0]);
@@ -371,6 +381,23 @@ void ML_data::getXi(std::vector<double> &pgamma, std::vector<double> &pgammanl, 
         else
         {
             rxi[ir] = pgammanl[ir]/pgamma[ir];
+        }
+    }
+}
+
+// tanhxi = tanh(gammanl/gamma)
+void ML_data::getTanhXi(std::vector<double> &pgamma, std::vector<double> &pgammanl, std::vector<double> &rtanhxi)
+{
+    for (int ir = 0; ir < this->nx; ++ir)
+    {
+        if (pgamma[ir] == 0)
+        {
+            std::cout << "WARNING: gamma=0" << std::endl;
+            rtanhxi[ir] = 0.;
+        }
+        else
+        {
+            rtanhxi[ir] = std::tanh(pgammanl[ir]/pgamma[ir] * this->chi_xi);
         }
     }
 }

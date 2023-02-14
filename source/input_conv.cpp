@@ -596,6 +596,8 @@ void Input_Conv::Convert(void)
     GlobalV::of_ml_feg = INPUT.of_ml_feg;
     // new parameters 2023-02-13
     GlobalV::of_ml_xi = INPUT.of_ml_xi;
+    GlobalV::of_ml_chi_xi = INPUT.of_ml_chi_xi;
+    GlobalV::of_ml_tanhxi = INPUT.of_ml_tanhxi;
     GlobalV::of_ml_chi_p = INPUT.of_ml_chi_p;
     GlobalV::of_ml_chi_q = INPUT.of_ml_chi_q;
     GlobalV::of_ml_tanhp = INPUT.of_ml_tanhp;

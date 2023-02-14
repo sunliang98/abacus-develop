@@ -13,6 +13,7 @@ public:
         double nelec, 
         double tf_weight, 
         double vw_weight,
+        double chi_xi,
         double chi_p,
         double chi_q,
         double chi_pnl,
@@ -42,6 +43,7 @@ public:
     void getQnl(std::vector<double> &pq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rqnl);
     // new parameters 2023-02-03
     void getXi(std::vector<double> &pgamma, std::vector<double> &pgammanl, std::vector<double> &rxi);
+    void getTanhXi(std::vector<double> &pgamma, std::vector<double> &pgammanl, std::vector<double> &rtanhxi);
     void getTanhP(std::vector<double> &pp, std::vector<double> &rtanhp);
     void getTanhQ(std::vector<double> &pq, std::vector<double> &rtanhq);
     void getTanh_Pnl(std::vector<double> &ppnl, std::vector<double> &rtanh_pnl);
@@ -90,6 +92,7 @@ public:
     void f(std::vector<double> &pinput, std::vector<double> &routput);
 
     // new parameters 2023-02-13
+    double chi_xi = 1.;
     double chi_p = 1.;
     double chi_q = 1.;
     double chi_pnl = 1.;

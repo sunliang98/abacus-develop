@@ -491,6 +491,8 @@ void Input::Default(void)
     of_ml_feg = 0;
     // new parameter 2023-02-13
     of_ml_xi = false;
+    of_ml_chi_xi = 1.;
+    of_ml_tanhxi = false;
     of_ml_chi_p = 1.;
     of_ml_chi_q = 1.;
     of_ml_tanhp = false;
@@ -1834,6 +1836,14 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, of_ml_xi);
         }
+        else if (strcmp("of_ml_chi_xi", word) == 0)
+        {
+            read_value(ifs, of_ml_chi_xi);
+        }
+        else if (strcmp("of_ml_tanhxi", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhxi);
+        }
         else if (strcmp("of_ml_chi_p", word) == 0)
         {
             read_value(ifs, of_ml_chi_p);
@@ -2672,6 +2682,8 @@ void Input::Bcast()
     Parallel_Common::bcast_int(of_ml_feg);
     // new parameters 2023-02-13
     Parallel_Common::bcast_bool(of_ml_xi);
+    Parallel_Common::bcast_double(of_ml_chi_xi);
+    Parallel_Common::bcast_bool(of_ml_tanhxi);
     Parallel_Common::bcast_double(of_ml_chi_p);
     Parallel_Common::bcast_double(of_ml_chi_q);
     Parallel_Common::bcast_bool(of_ml_tanhp);

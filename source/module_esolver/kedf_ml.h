@@ -33,6 +33,7 @@ public:
         double nelec, 
         double tf_weight, 
         double vw_weight, 
+        double chi_xi,
         double chi_p,
         double chi_q,
         double chi_pnl,
@@ -66,10 +67,12 @@ public:
     double potPTerm1(int ir);
     double potQTerm1(int ir);
     double potXiTerm1(int ir);
+    double potTanhxiTerm1(int ir);
     double potTanhpTerm1(int ir);
     double potTanhqTerm1(int ir);
     void potGammanlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rGammanlTerm);
     void potXinlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rXinlTerm);
+    void potTanhxinlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhxinlTerm);
     void potPPnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rPPnlTerm);
     void potQQnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rQQnlTerm);
     void potTanhpTanh_pnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhpTanh_pnlTerm);
@@ -112,9 +115,11 @@ public:
     std::vector<double> qnl;
     std::vector<std::vector<double> > nablaRho;
     // new parameters 2023-02-13
+    double chi_xi = 1.;
     double chi_p = 1.;
     double chi_q = 1.;
-    std::vector<double> xi;
+    std::vector<double> xi; // we assume ONLY ONE of them is used.
+    std::vector<double> tanhxi;
     std::vector<double> tanhp;
     std::vector<double> tanhq;
     // plan 1

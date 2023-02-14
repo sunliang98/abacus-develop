@@ -481,6 +481,8 @@ class Input
     int of_ml_feg; // if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0
     // new parameters 2023-02-13
     bool of_ml_xi; // If the input variables contain xi
+    double of_ml_chi_xi; // tanhpxi = tanh(chi * xi)
+    bool of_ml_tanhxi; // If the input variables contain tanhxi
     double of_ml_chi_p; // tanhp = tanh(chi*p)
     double of_ml_chi_q; // tanhp = tanh(chi*q)
     bool of_ml_tanhp; // If the input variables contain tanhp
