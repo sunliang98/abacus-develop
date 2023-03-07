@@ -274,6 +274,73 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
 void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf,  ModulePW::PW_Basis *pw_rho, const double *veff)
 {
     this->ml_data->generateTrainData_WT(prho, wt, tf, pw_rho, veff);
+    if (GlobalV::of_kinetic == "ml")
+    {
+        this->updateInput(prho, pw_rho);
+
+        this->nn->zero_grad();
+        this->nn->inputs.requires_grad_(false);
+        this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl,
+                        this->xi, this->tanhxi, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl);
+        this->nn->inputs.requires_grad_(true);
+
+        this->nn->F = this->nn->forward(this->nn->inputs);
+        if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
+        // start = clock();
+        this->nn->F.backward(torch::ones({this->nx, 1}));
+        // end = clock();
+        // std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
+        this->nn->gradient = this->nn->inputs.grad();
+
+        if (GlobalV::of_ml_feg == 1)
+        {
+            this->nn->F = this->nn->F - this->feq_net_F + 1.;
+        }
+
+        // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
+        // std::cout << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
+
+        torch::Tensor enhancement = this->nn->F.reshape({this->nx});
+        torch::Tensor potential = torch::zeros_like(enhancement);
+
+        // get potential
+        std::vector<double> gammanlterm(this->nx, 0.);
+        std::vector<double> xinlterm(this->nx, 0.);
+        std::vector<double> tanhxinlterm(this->nx, 0.);
+        std::vector<double> ppnlterm(this->nx, 0.);
+        std::vector<double> qqnlterm(this->nx, 0.);
+        std::vector<double> tanhptanh_pnlterm(this->nx, 0.);
+        std::vector<double> tanhqtanh_qnlterm(this->nx, 0.);
+        std::vector<double> tanhptanhp_nlterm(this->nx, 0.);
+        std::vector<double> tanhqtanhq_nlterm(this->nx, 0.);
+
+        this->potGammanlTerm(prho, pw_rho, gammanlterm);
+        this->potXinlTerm(prho, pw_rho, xinlterm);
+        this->potTanhxinlTerm(prho, pw_rho, tanhxinlterm);
+        this->potPPnlTerm(prho, pw_rho, ppnlterm);
+        this->potQQnlTerm(prho, pw_rho, qqnlterm);
+        this->potTanhpTanh_pnlTerm(prho, pw_rho, tanhptanh_pnlterm);
+        this->potTanhqTanh_qnlTerm(prho, pw_rho, tanhqtanh_qnlterm);
+        this->potTanhpTanhp_nlTerm(prho, pw_rho, tanhptanhp_nlterm);
+        this->potTanhqTanhq_nlTerm(prho, pw_rho, tanhqtanhq_nlterm);
+
+        // sum over
+        for (int ir = 0; ir < this->nx; ++ir)
+        {
+            // potential[ir] += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
+            //                     (5./3. * this->nn->F[ir].item<double>() + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir))
+            //                     + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
+            potential[ir] += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
+                            (5./3. * this->nn->F[ir].item<double>() + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir)
+                            + this->potXiTerm1(ir) + this->potTanhxiTerm1(ir) + this->potTanhpTerm1(ir) + this->potTanhqTerm1(ir))
+                            + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir]
+                            + xinlterm[ir] + tanhxinlterm[ir]
+                            + tanhptanh_pnlterm[ir] + tanhqtanh_qnlterm[ir]
+                            + tanhptanhp_nlterm[ir] + tanhqtanhq_nlterm[ir];
+        }
+        this->dumpTensor(enhancement, "enhancement.npy");
+        this->dumpTensor(potential, "potential.npy");
+    }
 }
 
 void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)

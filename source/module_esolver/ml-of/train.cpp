@@ -63,7 +63,9 @@ void Train::train()
         this->pauli.resize_({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
     }
 
-    torch::optim::SGD optimizer(this->nn->parameters(), this->step_length);
+    torch::optim::SGD optimizer(this->nn->parameters(), this->lr_start);
+    double update_coef = this->nepoch/std::log(this->lr_end/this->lr_start); // used to reduce the learning rate
+
     std::cout << "Epoch\tLoss\tValidation\tLoss_pot\tLoss_E\tLoss_FEG_pot\tLoss_FEG_E\n";
     double lossTrain = 0.;
     double lossPot = 0.;
@@ -73,6 +75,7 @@ void Train::train()
     double lossVali = 0.;
 
     // bool increase_coef_feg_e = false;
+    for (size_t epoch = 1; epoch <= this->nepoch; ++epoch)
     for (size_t epoch = 1; epoch <= this->nepoch; ++epoch)
     {
         torch::Tensor tauTF = this->cTF * torch::pow(rho, 5./3.);
@@ -175,12 +178,6 @@ void Train::train()
                 // this->dumpTensor(torch::slice(prediction, 0, batch_index*this->nx, (batch_index + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
             }
             
-            if (epoch % this->dump_fre == 0)
-            {
-                std::stringstream file;
-                file << "model/net" << epoch << ".pt";
-                torch::save(this->nn, file.str());
-            }
             if (epoch % this->print_fre == 0) {
                 if (this->nvalidation > 0)
                 {
@@ -196,9 +193,29 @@ void Train::train()
                           << std::setw(12) << lossFEG_E
                           << std::endl;
             }
-
+            
             optimizer.step();
+
             batch_index += 1;
+        }
+        if (epoch % this->dump_fre == 0)
+        {
+            std::stringstream file;
+            file << "model/net" << epoch << ".pt";
+            torch::save(this->nn, file.str());
+        }
+        // Reduce the learning_rate
+        if (epoch % this->lr_fre == 0)
+        {
+            for (auto &group : optimizer.param_groups())
+            {
+                if(group.has_options())
+                {
+                    auto &options = static_cast<torch::optim::SGDOptions &>(group.options());
+                    // options.lr(this->step_length * std::exp(epoch/30.));
+                    options.lr(this->lr_start * std::exp(epoch/update_coef));
+                }
+            }
         }
     }
     end = clock();

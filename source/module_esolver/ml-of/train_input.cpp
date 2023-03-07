@@ -96,9 +96,21 @@ void Train::readInput()
         {
             this->read_value(ifs, this->nepoch);
         }
-        else if (strcmp("step_length", word) == 0)
+        // else if (strcmp("step_length", word) == 0)
+        // {
+        //     this->read_value(ifs, this->step_length);
+        // }
+        else if (strcmp("lr_start", word) == 0)
         {
-            this->read_value(ifs, this->step_length);
+            this->read_value(ifs, this->lr_start);
+        }
+        else if (strcmp("lr_end", word) == 0)
+        {
+            this->read_value(ifs, this->lr_end);
+        }
+            else if (strcmp("lr_fre", word) == 0)
+        {
+            this->read_value(ifs, this->lr_fre);
         }
         else if (strcmp("dump_fre", word) == 0)
         {

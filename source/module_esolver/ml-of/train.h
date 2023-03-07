@@ -123,7 +123,10 @@ public:
     double *validation_a = nullptr;
     std::string loss = "energy";
     int nepoch = 1000;
-    double step_length = 0.01;
+    // double step_length = 0.01;
+    double lr_start = 0.01; // learning rate 2023-02-24
+    double lr_end = 1e-4;
+    int lr_fre = 5000;
     int dump_fre = 1;
     int print_fre = 1;
     bool ml_gamma = false;

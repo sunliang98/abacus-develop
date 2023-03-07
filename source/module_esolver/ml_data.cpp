@@ -153,12 +153,15 @@ void ML_data::generateTrainData_WT(
     // npy::SaveArrayAsNumpy("fq_nl.npy", false, 1, cshape, new_containernl);
 
     // enhancement factor of Pauli potential
-    this->getF_WT(wt, tf, prho, pw_rho, container);
-    npy::SaveArrayAsNumpy("enhancement.npy", false, 1, cshape, container);
+    if (GlobalV::of_kinetic == "wt")
+    {
+        this->getF_WT(wt, tf, prho, pw_rho, container);
+        npy::SaveArrayAsNumpy("enhancement.npy", false, 1, cshape, container);
 
-    // Pauli potential
-    this->getPauli_WT(wt, tf, prho, pw_rho, container);
-    npy::SaveArrayAsNumpy("pauli.npy", false, 1, cshape, container);
+        // Pauli potential
+        this->getPauli_WT(wt, tf, prho, pw_rho, container);
+        npy::SaveArrayAsNumpy("pauli.npy", false, 1, cshape, container);
+    }
 
     for (int ir = 0; ir < this->nx; ++ir)
     {
