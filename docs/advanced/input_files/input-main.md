@@ -32,7 +32,7 @@
   [exx_hybrid_alpha](#exx_hybrid_alpha) | [exx_hse_omega](#exx_hse_omega) | [exx_separate_loop](#exx_separate_loop) | [exx_hybrid_step](#exx_hybrid_step) | [exx_lambda](#exx_lambda) | [exx_pca_threshold](#exx_pca_threshold) | [exx_c_threshold](#exx_c_threshold) | [exx_v_threshold](#exx_v_threshold) | [exx_c_grad_threshold](#exx_c_grad_threshold) | [exx_v_grad_threshold](#exx_v_grad_threshold) | [exx_dm_threshold](#exx_dm_threshold) | [exx_schwarz_threshold](#exx_schwarz_threshold) | [exx_cauchy_threshold](#exx_cauchy_threshold) | [exx_cauchy_grad_threshold](#exx_cauchy_grad_threshold) | [exx_ccp_threshold](#exx_ccp_threshold) | [exx_ccp_rmesh_times](#exx_ccp_rmesh_times) | [exx_distribute_type](#exx_distribute_type) | [exx_opt_orb_lmax](#exx_opt_orb_lmax) | [exx_opt_orb_ecut](#exx_opt_orb_ecut) | [exx_opt_orb_tolerence](#exx_opt_orb_tolerence) | [exx_real_number](#exx_real_number)
 - [Molecular dynamics](#molecular-dynamics)
 
-  [md_type](#md_type) | [md_thermostat](#md_thermostat) | [md_nstep](#md_nstep) | [md_restart](#md_restart) | [md_dt](#md_dt) | [md_tfirst, md_tlast](#md_tfirst-md_tlast) | [md_dumpfreq](#md_dumpfreq) | [md_restartfreq](#md_restartfreq) | [md_seed](#md_seed) | [md_tfreq](#md_tfreq) | [md_tchain](#md_tchain) | [md_pmode](#md_pmode) | [md_pcouple](#md_pcouple) | [md_pfirst, md_plast](#md_pfirst-md_plast) | [md_pfreq](#md_pfreq) | [md_pchain](#md_pchain) | [out_force](#out_force) | [out_vel](#out_vel) | [out_virial](#out_virial) | [lj_rcut](#lj_rcut) | [lj_epsilon](#lj_epsilon) | [lj_sigma](#lj_sigma) | [pot_file](#pot_file) | [msst_direction](#msst_direction) | [msst_vel](#msst_vel) | [msst_vis](#msst_vis) | [msst_tscale](#msst_tscale) | [msst_qmass](#msst_qmass) | [md_damp](#md_damp) | [md_tolerance](#md_tolerance) | [md_nraise](#md_nraise)
+  [md_type](#md_type) | [md_thermostat](#md_thermostat) | [md_nstep](#md_nstep) | [md_restart](#md_restart) | [md_dt](#md_dt) | [md_tfirst, md_tlast](#md_tfirst-md_tlast) | [md_dumpfreq](#md_dumpfreq) | [md_restartfreq](#md_restartfreq) | [md_seed](#md_seed) | [md_tfreq](#md_tfreq) | [md_tchain](#md_tchain) | [md_pmode](#md_pmode) | [md_pcouple](#md_pcouple) | [md_pfirst, md_plast](#md_pfirst-md_plast) | [md_pfreq](#md_pfreq) | [md_pchain](#md_pchain) | [dump_force](#dump_force) | [dump_vel](#dump_vel) | [dump_virial](#dump_virial) | [lj_rcut](#lj_rcut) | [lj_epsilon](#lj_epsilon) | [lj_sigma](#lj_sigma) | [pot_file](#pot_file) | [msst_direction](#msst_direction) | [msst_vel](#msst_vel) | [msst_vis](#msst_vis) | [msst_tscale](#msst_tscale) | [msst_qmass](#msst_qmass) | [md_damp](#md_damp) | [md_tolerance](#md_tolerance) | [md_nraise](#md_nraise)
 - [vdW correction](#vdw-correction)
 
   [vdw_method](#vdw_method) | [vdw_s6](#vdw_s6) | [vdw_s8](#vdw_s8) | [vdw_a1](#vdw_a1) | [vdw_a2](#vdw_a2) | [vdw_d](#vdw_d) | [vdw_abc](#vdw_abc) | [vdw_C6_file](#vdw_c6_file) | [vdw_C6_unit](#vdw_c6_unit) | [vdw_R0_file](#vdw_r0_file) | [vdw_R0_unit](#vdw_r0_unit) | [vdw_cutoff_type](#vdw_cutoff_type) | [vdw_cutoff_radius](#vdw_cutoff_radius) | [vdw_radius_unit](#vdw_radius_unit) | [vdw_cutoff_period](#vdw_cutoff_period) | [vdw_cn_thr](#vdw_cn_thr) | [vdw_cn_thr_unit](#vdw_cn_thr_unit)
@@ -175,7 +175,7 @@ These variables are used to control general system parameters.
 ### init_chg
 
 - **Type**: String
-- **Description**: This variable is used for both plane wave set and localized orbitals set. It indicates the type of starting density. If set to `atomic`, the density is starting from the summation of the atomic density of single atoms. If set this to `file`, the density will be read in from a file. Besides, when you do `nspin=1` calculation, you only need the density file SPIN1_CHGCAR. However, if you do `nspin=2` calculation, you also need the density file SPIN2_CHGCAR. The density file should be output with these names if you set out_chg = 1 in INPUT file.
+- **Description**: This variable is used for both plane wave set and localized orbitals set. It indicates the type of starting density. If set to `atomic`, the density is starting from the summation of the atomic density of single atoms. If set this to `file`, the density will be read in from a file. Besides, when you do `nspin=1` calculation, you only need the density file SPIN1_CHG.cube. However, if you do `nspin=2` calculation, you also need the density file SPIN2_CHG.cube. The density file should be output with these names if you set out_chg = 1 in INPUT file.
 - **Default**: atomic
 
 ### init_vel
@@ -311,7 +311,7 @@ These variables are used to control parameters related to input files.
 ### read_file_dir
 
 - **Type**: String
-- **Description**: when the program needs to read files such as electron density(`SPIN1_CHG`) as a starting point, this variable tells the location of the files. For example, './' means the file is located in the working directory.
+- **Description**: when the program needs to read files such as electron density(`SPIN1_CHG.cube`) as a starting point, this variable tells the location of the files. For example, './' means the file is located in the working directory.
 - **Default**: OUT.$suffix
 
 ### wannier_card
@@ -520,8 +520,14 @@ calculations.
 ### mixing_beta
 
 - **Type**: Real
-- **Description**: mixing parameter: 0 means no new charge
-- **Default**: 0.7
+- **Description**: mixing parameter. We recommand the following options:
+  - default: -10.0 means program will autoset **mixing_beta** and **mixing_gg0** before charge mixing method starts. 
+    - Default values of transition metal system are **mixing_beta=0.2** and **mixing_gg0=1.5**; 
+    - Default values of metal system (bandgap <= 1.0 eV) are **mixing_beta=0.2** and **mixing_gg0=0.0**;
+    - Default values of other systems (bandgap > 1.0eV) are **mixing_beta=0.7** and **mixing_gg0=0.0**.
+  - 0: keep charge density unchanged, usually used for restarting with **init_chg=file** or testing.
+  - 0.1 or less: if convergence of SCF calculation is difficult to reach, please try **0 < mixing_beta < 0.1**  
+- **Default**: -10.0
 
 ### mixing_ndim
 
@@ -846,7 +852,7 @@ These variables are used to control the output of properties.
 ### out_chg
 
 - **Type**: Boolean
-- **Description**: If set to 1, ABACUS will output the charge density on real space grid. The name of the density file is SPIN1_CHGCAR and SPIN2_CHGCAR (if nspin = 2). Suppose each density on grid has coordinate (x; y; z). The circle order of the density on real space grid is: z is the outer loop, then y and finally x (x is moving fastest).
+- **Description**: If set to 1, ABACUS will output the charge density on real space grid. The name of the density file is SPIN1_CHG.cube and SPIN2_CHG.cube (if nspin = 2). Suppose each density on grid has coordinate (x; y; z). The circle order of the density on real space grid is: z is the outer loop, then y and finally x (x is moving fastest).
 - **Default**: 0
 
 ### out_pot
@@ -1662,19 +1668,19 @@ These variables are used to control the molecular dynamics calculations.
 - **Description**: number of thermostats coupled with the barostat in the Nose Hoover Chain method.
 - **Default**: 1
 
-### out_force
+### dump_force
 
 - **Type**: Boolean
 - **Description**: Output atomic forces into the file `MD_dump` or not. If `true`, forces will be written, otherwise forces will not be written.
 - **Default**: false
 
-### out_vel
+### dump_vel
 
 - **Type**: Boolean
 - **Description**: Output atomic velocities into the file `MD_dump` or not. If `true`, velocities will be written, otherwise velocities will not be written.
 - **Default**: false
 
-### out_virial
+### dump_virial
 
 - **Type**: Boolean
 - **Description**: Output lattice virial into the file `MD_dump` or not. If `true`, lattice virial will be written, otherwise lattice virial will not be written.

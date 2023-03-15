@@ -80,7 +80,9 @@ TEST_F(InputTest, Default)
         EXPECT_FALSE(INPUT.init_vel);
         EXPECT_DOUBLE_EQ(INPUT.symmetry_prec,1.0e-5);
         EXPECT_EQ(INPUT.cal_force,0);
-        EXPECT_FALSE(INPUT.out_force);
+        EXPECT_TRUE(INPUT.dump_force);
+        EXPECT_TRUE(INPUT.dump_vel);
+        EXPECT_TRUE(INPUT.dump_virial);
         EXPECT_DOUBLE_EQ(INPUT.force_thr,1.0e-3);
         EXPECT_DOUBLE_EQ(INPUT.force_thr_ev2,0);
         EXPECT_DOUBLE_EQ(INPUT.stress_thr,1.0e-2);
@@ -135,7 +137,7 @@ TEST_F(InputTest, Default)
         EXPECT_EQ(INPUT.smearing_method,"fixed");
         EXPECT_DOUBLE_EQ(INPUT.smearing_sigma,0.01);
         EXPECT_EQ(INPUT.mixing_mode,"pulay");
-        EXPECT_DOUBLE_EQ(INPUT.mixing_beta,0.7);
+        EXPECT_DOUBLE_EQ(INPUT.mixing_beta,-10.0);
         EXPECT_EQ(INPUT.mixing_ndim,8);
         EXPECT_DOUBLE_EQ(INPUT.mixing_gg0,0.00);
         EXPECT_EQ(INPUT.init_wfc,"atomic");
@@ -348,7 +350,8 @@ TEST_F(InputTest, Default)
 
 TEST_F(InputTest, Read)
 {
-	std::string input_file = "INPUT";
+	std::string input_file = "./support/INPUT";
+	GlobalV::stru_file = "./support/STRU";
 	INPUT.Read(input_file);
 	EXPECT_EQ(INPUT.suffix,"autotest");
 	EXPECT_EQ(INPUT.stru_file,"STRU");
@@ -404,7 +407,9 @@ TEST_F(InputTest, Read)
         EXPECT_FALSE(INPUT.init_vel);
         EXPECT_DOUBLE_EQ(INPUT.symmetry_prec,1.0e-5);
         EXPECT_EQ(INPUT.cal_force,0);
-        EXPECT_FALSE(INPUT.out_force);
+        EXPECT_FALSE(INPUT.dump_force);
+        EXPECT_FALSE(INPUT.dump_vel);
+        EXPECT_FALSE(INPUT.dump_virial);
         EXPECT_NEAR(INPUT.force_thr,1.0e-3,1.0e-7);
         EXPECT_DOUBLE_EQ(INPUT.force_thr_ev2,0);
         EXPECT_DOUBLE_EQ(INPUT.stress_thr,1.0e-2);
