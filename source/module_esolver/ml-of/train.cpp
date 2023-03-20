@@ -17,7 +17,7 @@ Train::~Train()
 
 void Train::init()
 {
-    if (this->loss == "potential" || this->loss == "both") this->setUpFFT();
+    if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->setUpFFT();
     this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
     // this->nn->to(device);
     this->nn->setData(this->nn_input_index,
@@ -35,13 +35,19 @@ void Train::init()
                       this->tanh_qnl.reshape({this->nx_train}),
                       this->tanhp_nl.reshape({this->nx_train}),
                       this->tanhq_nl.reshape({this->nx_train}));
-    // if (this->loss == "potential" || this->loss == "both") this->nn->inputs.requires_grad_(true);
+    // if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->nn->inputs.requires_grad_(true);
 }
 
 torch::Tensor Train::lossFunction(torch::Tensor enhancement, torch::Tensor target, torch::Tensor coef)
 {
     return torch::sum(torch::pow(enhancement - target, 2))/this->nx/coef/coef;
 }
+
+torch::Tensor Train::lossFunction_new(torch::Tensor enhancement, torch::Tensor target, torch::Tensor tauTF, torch::Tensor coef)
+{
+    return torch::sum(torch::pow(tauTF * (enhancement - target), 2.))/this->nx/coef/coef;
+}
+
 
 void Train::train()
 {
@@ -58,7 +64,7 @@ void Train::train()
     torch::Tensor target = (this->loss=="energy") ? this->enhancement : this->pauli;
     auto dataset = OF_data(this->nn->inputs, target).map(torch::data::transforms::Stack<>());
     auto data_loader = torch::data::make_data_loader(dataset, this->nbatch);
-    if (this->loss == "potential" || this->loss == "both")
+    if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new")
     {
         this->pauli.resize_({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
     }
@@ -73,12 +79,12 @@ void Train::train()
     double lossFEG_pot = 0.;
     double lossFEG_E = 0.;
     double lossVali = 0.;
+    double maxLoss = 100.;
 
     // bool increase_coef_feg_e = false;
-    for (size_t epoch = 1; epoch <= this->nepoch; ++epoch)
+    torch::Tensor tauTF = this->cTF * torch::pow(this->rho, 5./3.);
     for (size_t epoch = 1; epoch <= this->nepoch; ++epoch)
     {
-        torch::Tensor tauTF = this->cTF * torch::pow(rho, 5./3.);
         size_t batch_index = 0;
         for (auto& batch : *data_loader)
         {
@@ -97,7 +103,7 @@ void Train::train()
                 endLB = clock();
                 totLback += endLB - startLB;
             }
-            else if (this->loss == "potential" || this->loss == "both")
+            else if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new")
             {
                 torch::Tensor inpt = torch::slice(this->nn->inputs, 0, batch_index*this->nx, (batch_index + 1)*this->nx);
                 inpt.requires_grad_(true);
@@ -149,6 +155,11 @@ void Train::train()
                     loss = loss + this->coef_e * this->lossFunction(prediction, torch::slice(this->enhancement, 0, batch_index*this->nx, (batch_index + 1)*this->nx), this->enhancement_mean[batch_index]);
                     lossE = loss.item<double>() - lossPot;
                 }
+                if (this->loss == "both_new")
+                {
+                    loss = loss + this->coef_e * this->lossFunction_new(prediction, torch::slice(this->enhancement, 0, batch_index*this->nx, (batch_index + 1)*this->nx), tauTF[batch_index].reshape({this->nx, 1}), this->tau_mean[batch_index]);
+                    lossE = loss.item<double>() - lossPot;
+                }
                 if (this->feg_limit != 0)
                 {
                     loss = loss + torch::pow(this->feg_dFdgamma, 2) * this->coef_feg_p;
@@ -194,6 +205,10 @@ void Train::train()
                           << std::endl;
             }
             
+            if (lossTrain > maxLoss){
+                std::cout << "ERROR: too large loss: " << lossTrain << std::endl;
+                exit(0);
+            }
             optimizer.step();
 
             batch_index += 1;
@@ -231,7 +246,7 @@ void Train::train()
 void Train::potTest()
 {
     time_t start, end;
-    if (this->loss == "potential" || this->loss == "both") this->setUpFFT();
+    if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->setUpFFT();
     this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
     torch::load(this->nn, "net.pt");
 
@@ -255,36 +270,36 @@ void Train::potTest()
     torch::Tensor target = (this->loss=="energy") ? this->enhancement : this->pauli;
     auto dataset = OF_data(this->nn->inputs, target).map(torch::data::transforms::Stack<>());
     auto data_loader = torch::data::make_data_loader(dataset, this->nbatch);
-    if (this->loss == "potential" || this->loss == "both") this->pauli.resize_({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->pauli.resize_({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
 
     for (auto& batch : *data_loader)
     {
         for (int ii = 0; ii < 1; ++ii)
         {
-        torch::Tensor inpts = torch::slice(this->nn->inputs, 0, ii*this->nx, (ii + 1)*this->nx);
-        inpts.requires_grad_(true);
-        torch::Tensor prediction = this->nn->forward(inpts);
+            torch::Tensor inpts = torch::slice(this->nn->inputs, 0, ii*this->nx, (ii + 1)*this->nx);
+            inpts.requires_grad_(true);
+            torch::Tensor prediction = this->nn->forward(inpts);
 
-        if (this->feg_limit != 0)
-        {
-            // if (this->ml_gamma) if (this->feg_inpt[this->nn_input_index["gamma"]].grad().numel()) this->feg_inpt[this->nn_input_index["gamma"]].grad().zero_();
-            if (this->feg_inpt.grad().numel()) this->feg_inpt.grad().zero_();
-            this->feg_predict = this->nn->forward(this->feg_inpt);
-            // if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt[this->nn_input_index["gamma"]]},
-            //                                                                 {torch::ones(1)}, true, true)[0];
-            if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
-                                                                            {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
-            if (this->feg_limit == 1) prediction = prediction - this->feg_predict + 1.;
-        }
+            if (this->feg_limit != 0)
+            {
+                // if (this->ml_gamma) if (this->feg_inpt[this->nn_input_index["gamma"]].grad().numel()) this->feg_inpt[this->nn_input_index["gamma"]].grad().zero_();
+                if (this->feg_inpt.grad().numel()) this->feg_inpt.grad().zero_();
+                this->feg_predict = this->nn->forward(this->feg_inpt);
+                // if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt[this->nn_input_index["gamma"]]},
+                //                                                                 {torch::ones(1)}, true, true)[0];
+                if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
+                                                                                {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
+                if (this->feg_limit == 1) prediction = prediction - this->feg_predict + 1.;
+            }
 
-        start = clock();
-        torch::Tensor gradient = torch::autograd::grad({prediction}, {inpts},
-                                                {torch::ones_like(prediction)}, true, true)[0];
-        end = clock();
-        std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
-        
-        std::cout << "begin potential" << std::endl;
-        torch::Tensor tauTF = this->cTF * torch::pow(rho, 5./3.);
+            start = clock();
+            torch::Tensor gradient = torch::autograd::grad({prediction}, {inpts},
+                                                    {torch::ones_like(prediction)}, true, true)[0];
+            end = clock();
+            std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
+            
+            std::cout << "begin potential" << std::endl;
+            torch::Tensor tauTF = this->cTF * torch::pow(rho, 5./3.);
 
             torch::Tensor pot = this->getPot(
                 rho[ii],
@@ -306,7 +321,15 @@ void Train::potTest()
                 this->fft_gg_train[ii]
             );
             torch::Tensor loss = this->lossFunction(pot, this->pauli[ii]) * this->coef_p;
-            loss = loss + this->coef_e * this->lossFunction(prediction, torch::slice(this->enhancement, 0, ii*this->nx, (ii + 1)*this->nx));
+            if (this->loss == "both")
+            {
+                loss = loss + this->coef_e * this->lossFunction(prediction, torch::slice(this->enhancement, 0, ii*this->nx, (ii + 1)*this->nx), this->enhancement_mean[ii]);
+            }
+            if (this->loss == "both_new")
+            {
+                loss = loss + this->coef_e * this->lossFunction_new(prediction, torch::slice(this->enhancement, 0, ii*this->nx, (ii + 1)*this->nx), tauTF[ii].reshape({this->nx, 1}), this->tau_mean[ii]);
+            }
+            // loss = loss + this->coef_e * this->lossFunction(prediction, torch::slice(this->enhancement, 0, ii*this->nx, (ii + 1)*this->nx));
             double lossTrain = loss.item<double>();
             std::cout << "loss = " << lossTrain << std::endl;
             this->dumpTensor(pot.reshape({this->nx}), "potential-nnof.npy", this->nx);

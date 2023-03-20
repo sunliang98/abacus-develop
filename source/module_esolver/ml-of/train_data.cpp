@@ -9,8 +9,9 @@ void Train::loadData()
                    this->gammanl, this->pnl, this->qnl, this->nablaRho,
                    this->xi, this->tanhxi, this->tanhp, this->tanhq,
                    this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl,
-                   this->enhancement, this->enhancement_mean, this->pauli, this->pauli_mean);
+                   this->enhancement, this->enhancement_mean, this->tau_mean, this->pauli, this->pauli_mean);
     std::cout << "enhancement mean: " << this->enhancement_mean << std::endl;
+    std::cout << "tau mean: " << this->tau_mean << std::endl;
     std::cout << "pauli potential mean: " << this->pauli_mean << std::endl;
 
     if (this->nvalidation > 0)
@@ -20,7 +21,7 @@ void Train::loadData()
                        this->gammanl_vali, this->pnl_vali, this->qnl_vali, this->nablaRho_vali,
                        this->xi_vali, this->tanhxi_vali, this->tanhp_vali, this->tanhq_vali,
                        this->tanh_pnl_vali, this->tanh_qnl_vali, this->tanhp_nl_vali, this->tanhq_nl_vali, 
-                       this->enhancement_vali, this->enhancement_mean_vali, this->pauli_vali, this->pauli_mean_vali);
+                       this->enhancement_vali, this->enhancement_mean_vali, this->tau_mean_vali, this->pauli_vali, this->pauli_mean_vali);
         this->input_vali = torch::zeros({this->nx_vali, this->ninput});
         if (this->nn_input_index["gamma"] >= 0)     this->input_vali.index({"...", this->nn_input_index["gamma"]})      = gamma_vali.reshape({this->nx_vali}).clone();
         if (this->nn_input_index["p"] >= 0)         this->input_vali.index({"...", this->nn_input_index["p"]})          = p_vali.reshape({this->nx_vali}).clone();
@@ -73,6 +74,7 @@ void Train::initData()
     this->rho = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
     this->enhancement = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
     this->enhancement_mean = torch::zeros(this->ntrain);
+    this->tau_mean = torch::zeros(this->ntrain);
     this->pauli = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
     this->pauli_mean = torch::zeros(this->ntrain);
     this->gamma = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
@@ -95,6 +97,7 @@ void Train::initData()
         this->rho_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         this->enhancement_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         this->enhancement_mean_vali = torch::zeros(this->nvalidation);
+        this->tau_mean_vali = torch::zeros(this->nvalidation);
         this->pauli_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         this->pauli_mean_vali = torch::zeros(this->nvalidation);
         this->gamma_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
@@ -232,6 +235,7 @@ void Train::loadData(
     torch::Tensor &tanhq_nl,
     torch::Tensor &enhancement,
     torch::Tensor &enhancement_mean,
+    torch::Tensor &tau_mean,
     torch::Tensor &pauli,
     torch::Tensor &pauli_mean
 )
@@ -297,8 +301,9 @@ void Train::loadData(
 
         this->loadTensor(dir[idata] + "/enhancement.npy", cshape, fortran_order, container, idata, enhancement);
         enhancement_mean[idata] = torch::mean(enhancement[idata]);
+        tau_mean[idata] = torch::mean(this->cTF * torch::pow(rho[idata], 5./3.) * enhancement[idata]);
 
-        if (this->loss == "potential" || this->loss == "both")
+        if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new")
         {
             this->loadTensor(dir[idata] + "/pauli.npy", cshape, fortran_order, container, idata, pauli);
             pauli_mean[idata] = torch::mean(pauli[idata]);

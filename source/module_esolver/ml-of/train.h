@@ -14,6 +14,7 @@ public:
     void init();
 
     torch::Tensor lossFunction(torch::Tensor enhancement, torch::Tensor target, torch::Tensor coef = torch::ones(1));
+    torch::Tensor lossFunction_new(torch::Tensor enhancement, torch::Tensor target, torch::Tensor tauTF, torch::Tensor coef = torch::ones(1));
     // double lostFunction(torch::Tensor potentialML, torch::Tensor target);
     // torch::Tensor potLossFunction()
 
@@ -50,6 +51,7 @@ public:
     torch::Tensor enhancement;
     torch::Tensor pauli;
     torch::Tensor enhancement_mean;
+    torch::Tensor tau_mean; // mean Pauli energy
     torch::Tensor pauli_mean;
     // fft grid
     std::vector<std::vector<torch::Tensor>> fft_grid_train; // ntrain*3*fftdim*fftdim*fftdim
@@ -83,6 +85,7 @@ public:
     torch::Tensor enhancement_vali;
     torch::Tensor pauli_vali;
     torch::Tensor enhancement_mean_vali;
+    torch::Tensor tau_mean_vali;
     torch::Tensor pauli_mean_vali;
     // fft grid
     std::vector<std::vector<torch::Tensor>> fft_grid_vali; // ntrain*3*fftdim*fftdim*fftdim
@@ -121,7 +124,7 @@ public:
     std::string *validation_dir = nullptr;
     std::string *validation_cell = nullptr;
     double *validation_a = nullptr;
-    std::string loss = "energy";
+    std::string loss = "both";
     int nepoch = 1000;
     // double step_length = 0.01;
     double lr_start = 0.01; // learning rate 2023-02-24
@@ -192,6 +195,7 @@ private:
         torch::Tensor &tanhq_nl,
         torch::Tensor &enhancement,
         torch::Tensor &enhancement_mean,
+        torch::Tensor &tau_mean,
         torch::Tensor &pauli,
         torch::Tensor &pauli_mean
     );

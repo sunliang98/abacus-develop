@@ -92,10 +92,10 @@ void NN_OFImpl::setData(
 torch::Tensor NN_OFImpl::forward(torch::Tensor inpt) // will inpt be changed? no
 {
     // sigmoid-elu-elu original
-    // inpt = torch::sigmoid(fc1->forward(inpt)); // covert data into (0,1)
-    // inpt = torch::elu(fc2->forward(inpt));
-    // inpt = torch::elu(fc3->forward(inpt));  
-    // inpt = fc4->forward(inpt);
+    inpt = torch::sigmoid(fc1->forward(inpt)); // covert data into (0,1)
+    inpt = torch::elu(fc2->forward(inpt));
+    inpt = torch::elu(fc3->forward(inpt));
+    inpt = fc4->forward(inpt);
 
     // elu  2023-02
     // inpt = torch::elu(fc1->forward(inpt));
@@ -109,11 +109,18 @@ torch::Tensor NN_OFImpl::forward(torch::Tensor inpt) // will inpt be changed? no
     // inpt = torch::tanh(fc3->forward(inpt));
     // inpt = torch::softplus(fc4->forward(inpt));
 
-    // softplus 2023-03-01
-    inpt = torch::softplus(fc1->forward(inpt)); // covert data into (-1,1)
-    inpt = torch::softplus(fc2->forward(inpt));
-    inpt = torch::softplus(fc3->forward(inpt));
-    inpt = torch::softplus(fc4->forward(inpt));
+    // softplus 2023-03-01 (failed)
+    // inpt = torch::softplus(fc1->forward(inpt));
+    // inpt = torch::softplus(fc2->forward(inpt));
+    // inpt = torch::softplus(fc3->forward(inpt));
+    // inpt = torch::softplus(fc4->forward(inpt));
+
+    // tanh-elu-elu-softplus 2023-03-07
+    // inpt = torch::tanh(fc1->forward(inpt));
+    // inpt = torch::elu(fc2->forward(inpt));
+    // inpt = torch::elu(fc3->forward(inpt));
+    // inpt = torch::softplus(fc4->forward(inpt));
+
     // dropout?
     // inpt = torch::relu(fc4->forward(inpt));
     return inpt;
