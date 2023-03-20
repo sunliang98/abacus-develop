@@ -9,6 +9,7 @@ torch::Tensor Train::getPot(
     const torch::Tensor &q,
     const torch::Tensor &xi,
     const torch::Tensor &tanhxi,
+    const torch::Tensor &tanhxi_nl,
     const torch::Tensor &tanhp,
     const torch::Tensor &tanhq,
     const torch::Tensor &tanh_pnl,
@@ -27,6 +28,7 @@ torch::Tensor Train::getPot(
             + this->potPPnlTerm(rho, nablaRho, p, kernel, tauTF, gradient, grid)
             + this->potQQnlTerm(rho, q, kernel, tauTF, gradient, gg)
             + this->potXinlTerm(rho, kernel, tauTF, gradient) + this->potTanhxinlTerm(rho, tanhxi, kernel, tauTF, gradient)
+            + this->potTanhxi_nlTerm(rho, xi, tanhxi, kernel, tauTF, gradient)
             + this->potTanhpTanh_pnlTerm(rho, nablaRho, p, tanhp, tanh_pnl, kernel, tauTF, gradient, grid)
             + this->potTanhqTanh_qnlTerm(rho, q, tanhq, tanh_qnl, kernel, tauTF, gradient, gg)
             + this->potTanhpTanhp_nlTerm(rho, nablaRho, p, tanhp, kernel, tauTF, gradient, grid)
@@ -192,6 +194,25 @@ torch::Tensor Train::potTanhxinlTerm(
                 torch::fft::fftn(gradient.index({"...", this->nn_input_index["tanhxi"]}).reshape({this->fftdim, this->fftdim, this->fftdim}) 
                 * this->dtanh(tanhxi, this->chi_xi)
                 * tauTF * torch::pow(rho, -1./3.)) * kernel));
+}
+
+torch::Tensor Train::potTanhxi_nlTerm(
+    const torch::Tensor &rho,
+    const torch::Tensor &xi,
+    const torch::Tensor &tanhxi,
+    const torch::Tensor &kernel,
+    const torch::Tensor &tauTF,
+    const torch::Tensor &gradient
+)
+{
+    if (!this->ml_tanhxi_nl) return torch::zeros_like(rho);
+    torch::Tensor dFdxi = torch::real(torch::fft::ifftn(torch::fft::fftn(
+                          tauTF * gradient.index({"...", this->nn_input_index["tanhxi_nl"]}).reshape({this->fftdim, this->fftdim, this->fftdim}))
+                          * kernel)) 
+                          * this->dtanh(tanhxi, this->chi_xi) * torch::pow(rho, -1./3.);
+    return 1./3. * torch::pow(rho, -2./3.) 
+           * (- xi * dFdxi
+           + torch::real(torch::fft::ifftn(torch::fft::fftn(dFdxi) * kernel)));
 }
 
 torch::Tensor Train::potTanhpTanh_pnlTerm(

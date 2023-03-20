@@ -7,7 +7,7 @@ void Train::loadData()
     this->loadData(this->train_dir, this->nx_train, this->ntrain,
                    this->rho, this->gamma, this->p, this->q,
                    this->gammanl, this->pnl, this->qnl, this->nablaRho,
-                   this->xi, this->tanhxi, this->tanhp, this->tanhq,
+                   this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq,
                    this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl,
                    this->enhancement, this->enhancement_mean, this->tau_mean, this->pauli, this->pauli_mean);
     std::cout << "enhancement mean: " << this->enhancement_mean << std::endl;
@@ -19,7 +19,7 @@ void Train::loadData()
         this->loadData(this->validation_dir, this->nx_vali, this->nvalidation,
                        this->rho_vali, this->gamma_vali, this->p_vali, this->q_vali,
                        this->gammanl_vali, this->pnl_vali, this->qnl_vali, this->nablaRho_vali,
-                       this->xi_vali, this->tanhxi_vali, this->tanhp_vali, this->tanhq_vali,
+                       this->xi_vali, this->tanhxi_vali, this->tanhxi_nl_vali, this->tanhp_vali, this->tanhq_vali,
                        this->tanh_pnl_vali, this->tanh_qnl_vali, this->tanhp_nl_vali, this->tanhq_nl_vali, 
                        this->enhancement_vali, this->enhancement_mean_vali, this->tau_mean_vali, this->pauli_vali, this->pauli_mean_vali);
         this->input_vali = torch::zeros({this->nx_vali, this->ninput});
@@ -31,6 +31,7 @@ void Train::loadData()
         if (this->nn_input_index["qnl"] >= 0)       this->input_vali.index({"...", this->nn_input_index["qnl"]})        = qnl_vali.reshape({this->nx_vali}).clone();
         if (this->nn_input_index["xi"] >= 0)        this->input_vali.index({"...", this->nn_input_index["xi"]})         = xi_vali.reshape({this->nx_vali}).clone();
         if (this->nn_input_index["tanhxi"] >= 0)    this->input_vali.index({"...", this->nn_input_index["tanhxi"]})     = tanhxi_vali.reshape({this->nx_vali}).clone();
+        if (this->nn_input_index["tanhxi_nl"] >= 0) this->input_vali.index({"...", this->nn_input_index["tanhxi_nl"]})  = tanhxi_nl_vali.reshape({this->nx_vali}).clone();
         if (this->nn_input_index["tanhp"] >= 0)     this->input_vali.index({"...", this->nn_input_index["tanhp"]})      = tanhp_vali.reshape({this->nx_vali}).clone();
         if (this->nn_input_index["tanhq"] >= 0)     this->input_vali.index({"...", this->nn_input_index["tanhq"]})      = tanhq_vali.reshape({this->nx_vali}).clone();
         if (this->nn_input_index["tanh_pnl"] >= 0)  this->input_vali.index({"...", this->nn_input_index["tanh_pnl"]})   = tanh_pnl_vali.reshape({this->nx_vali}).clone();
@@ -48,7 +49,7 @@ void Train::initData()
     this->nx_vali = this->nx * this->nvalidation;
     this->nn_input_index = {{"gamma", -1}, {"p", -1}, {"q", -1},
                             {"gammanl", -1}, {"pnl", -1}, {"qnl", -1}, 
-                            {"xi", -1}, {"tanhxi", -1},
+                            {"xi", -1}, {"tanhxi", -1}, {"tanhxi_nl", -1},
                             {"tanhp", -1}, {"tanhq", -1}, 
                             {"tanh_pnl", -1}, {"tanh_qnl", -1}, 
                             {"tanhp_nl", -1}, {"tanhq_nl", -1}};
@@ -86,6 +87,7 @@ void Train::initData()
     this->qnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
     this->xi = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
     this->tanhxi = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    this->tanhxi_nl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
     this->tanhp = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
     this->tanhq = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
     this->tanh_pnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
@@ -109,6 +111,7 @@ void Train::initData()
         this->qnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         this->xi_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         this->tanhxi_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+        this->tanhxi_nl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         this->tanhp_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         this->tanhq_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
         this->tanh_pnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
@@ -158,6 +161,10 @@ void Train::initData()
         this->nn_input_index["tanhxi"] = this->ninput;
         this->ninput++;
     }
+    if (this->ml_tanhxi_nl){
+        this->nn_input_index["tanhxi_nl"] = this->ninput;
+        this->ninput++;
+    }
     if (this->ml_tanhp){
         this->nn_input_index["tanhp"] = this->ninput;
         this->ninput++;
@@ -199,6 +206,7 @@ void Train::initData()
         if (this->ml_qnl) this->feg_inpt[this->nn_input_index["qnl"]] = 0.;
         if (this->ml_xi)    this->feg_inpt[this->nn_input_index["xi"]] = 0.;
         if (this->ml_tanhxi)    this->feg_inpt[this->nn_input_index["tanhxi"]] = 0.;
+        if (this->ml_tanhxi_nl) this->feg_inpt[this->nn_input_index["tanhxi_nl"]] = 0.;
         if (this->ml_tanhp) this->feg_inpt[this->nn_input_index["tanhp"]] = 0.;
         if (this->ml_tanhq) this->feg_inpt[this->nn_input_index["tanhq"]] = 0.;
         if (this->ml_tanh_pnl)  this->feg_inpt[this->nn_input_index["tanh_pnl"]] = 0.;
@@ -227,6 +235,7 @@ void Train::loadData(
     torch::Tensor &nablaRho,
     torch::Tensor &xi,
     torch::Tensor &tanhxi,
+    torch::Tensor &tanhxi_nl,
     torch::Tensor &tanhp,
     torch::Tensor &tanhq,
     torch::Tensor &tanh_pnl,
@@ -249,10 +258,10 @@ void Train::loadData(
     for (int idata = 0; idata < nDataSet; ++idata)
     {
         this->loadTensor(dir[idata] + "/rho.npy", cshape, fortran_order, container, idata, rho);
-        if (this->ml_gamma || this->ml_gammanl || this->ml_xi || this->ml_tanhxi){
+        if (this->ml_gamma || this->ml_gammanl || this->ml_xi || this->ml_tanhxi || this->ml_tanhxi_nl){
             this->loadTensor(dir[idata] + "/gamma.npy", cshape, fortran_order, container, idata, gamma);
         }
-        if (this->ml_gammanl || this->ml_xi || this->ml_tanhxi){
+        if (this->ml_gammanl || this->ml_xi || this->ml_tanhxi || this->ml_tanhxi_nl){
             this->loadTensor(dir[idata] + "/gammanl.npy", cshape, fortran_order, container, idata, gammanl);
         }
         if (this->ml_p || this->ml_pnl || this->ml_tanhp || this->ml_tanh_pnl || this->ml_tanhp_nl)
@@ -274,11 +283,14 @@ void Train::loadData(
         if (this->ml_qnl || this->ml_tanh_qnl){
             this->loadTensor(dir[idata] + "/qnl.npy", cshape, fortran_order, container, idata, qnl);
         }
-        if (this->ml_xi || this->ml_tanhxi){
+        if (this->ml_xi || this->ml_tanhxi || this->ml_tanhxi_nl){
             this->loadTensor(dir[idata] + "/xi.npy", cshape, fortran_order, container, idata, xi);
         }
-        if (this->ml_tanhxi){
+        if (this->ml_tanhxi || this->ml_tanhxi_nl){
             this->loadTensor(dir[idata] + "/tanhxi.npy", cshape, fortran_order, container, idata, tanhxi);
+        }
+        if (this->ml_tanhxi_nl){
+            this->loadTensor(dir[idata] + "/tanhxi_nl.npy", cshape, fortran_order, container, idata, tanhxi_nl);
         }
         if (this->ml_tanhp || this->ml_tanhp_nl){
             this->loadTensor(dir[idata] + "/tanhp.npy", cshape, fortran_order, container, idata, tanhp);

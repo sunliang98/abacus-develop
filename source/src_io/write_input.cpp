@@ -419,6 +419,7 @@ void Input::Print(const std::string &fn) const
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_xi", of_ml_xi, "If the input variables contain xi");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_xi", of_ml_chi_xi, "tanhpxi = tanh(chi * xi)");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhxi", of_ml_tanhxi, "If the input variables contain tanhxi");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhxi_nl", of_ml_tanhxi_nl, "If the input variables contain tanhxi_nl");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_p", of_ml_chi_p, "tanhp = tanh(chi*p)");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_q", of_ml_chi_q, "tanhp = tanh(chi*q)");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhp", of_ml_tanhp, "If the input variables contain tanhp");

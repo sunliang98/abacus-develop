@@ -41,6 +41,7 @@ public:
     // new parameters 2023-02-14
     torch::Tensor xi;
     torch::Tensor tanhxi;
+    torch::Tensor tanhxi_nl; // 2023-03-20
     torch::Tensor tanhp;
     torch::Tensor tanhq;
     torch::Tensor tanh_pnl;
@@ -75,6 +76,7 @@ public:
     // new parameters 2023-02-14
     torch::Tensor xi_vali;
     torch::Tensor tanhxi_vali;
+    torch::Tensor tanhxi_nl_vali; // 2023-03-20
     torch::Tensor tanhp_vali;
     torch::Tensor tanhq_vali;
     torch::Tensor tanh_pnl_vali;
@@ -141,6 +143,7 @@ public:
     // new parameters 2023-02-14
     bool ml_xi = false;
     bool ml_tanhxi = false;
+    bool ml_tanhxi_nl = false; // 2023-03-20
     bool ml_tanhp = false;
     bool ml_tanhq = false;
     bool ml_tanh_pnl = false;
@@ -187,6 +190,7 @@ private:
         torch::Tensor &nablaRho,
         torch::Tensor &xi,
         torch::Tensor &tanhxi,
+        torch::Tensor &tanhxi_nl,
         torch::Tensor &tanhp,
         torch::Tensor &tanhq,
         torch::Tensor &tanh_pnl,
@@ -276,6 +280,7 @@ public:
         const torch::Tensor &q,
         const torch::Tensor &xi,
         const torch::Tensor &tanhxi,
+        const torch::Tensor &tanhxi_nl,
         const torch::Tensor &tanhp,
         const torch::Tensor &tanhq,
         const torch::Tensor &tanh_pnl,
@@ -353,6 +358,14 @@ private:
     );
     torch::Tensor potTanhxinlTerm(
         const torch::Tensor &rho,
+        const torch::Tensor &tanhxi,
+        const torch::Tensor &kernel,
+        const torch::Tensor &tauTF,
+        const torch::Tensor &gradient
+    );
+    torch::Tensor potTanhxi_nlTerm(
+        const torch::Tensor &rho,
+        const torch::Tensor &xi,
         const torch::Tensor &tanhxi,
         const torch::Tensor &kernel,
         const torch::Tensor &tauTF,

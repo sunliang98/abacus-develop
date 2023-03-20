@@ -152,6 +152,10 @@ void Train::readInput()
         {
             this->read_value(ifs, this->ml_tanhxi);
         }
+        else if (strcmp("tanhxi_nl", word) == 0)
+        {
+            this->read_value(ifs, this->ml_tanhxi_nl);
+        }
         else if (strcmp("tanhp", word) == 0)
         {
             this->read_value(ifs, this->ml_tanhp);
