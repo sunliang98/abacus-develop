@@ -73,6 +73,7 @@ public:
     void potGammanlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rGammanlTerm);
     void potXinlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rXinlTerm);
     void potTanhxinlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhxinlTerm);
+    void potTanhxi_nlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhxi_nlTerm); // 2023-03-20 for tanhxi_nl
     void potPPnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rPPnlTerm);
     void potQQnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rQQnlTerm);
     void potTanhpTanh_pnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhpTanh_pnlTerm);
@@ -120,6 +121,7 @@ public:
     double chi_q = 1.;
     std::vector<double> xi; // we assume ONLY ONE of them is used.
     std::vector<double> tanhxi;
+    std::vector<double> tanhxi_nl; // 2023-03-20
     std::vector<double> tanhp;
     std::vector<double> tanhq;
     // plan 1

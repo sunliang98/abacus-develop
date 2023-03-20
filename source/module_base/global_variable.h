@@ -280,6 +280,7 @@ extern int of_ml_feg; // if we enforce the Free Electron Gas limit: F = 1, dF/dg
 extern bool of_ml_xi; // If the input variables contain xi
 extern double of_ml_chi_xi; // tanhpxi = tanh(chi * xi)
 extern bool of_ml_tanhxi; // If the input variables contain tanhxi
+extern bool of_ml_tanhxi_nl; // If the input variables contain tanhxi_nl
 extern double of_ml_chi_p; // tanhp = tanh(chi*p)
 extern double of_ml_chi_q; // tanhp = tanh(chi*q)
 extern bool of_ml_tanhp; // If the input variables contain tanhp

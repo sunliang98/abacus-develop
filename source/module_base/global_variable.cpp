@@ -251,6 +251,7 @@ int of_ml_feg = 0;
 bool of_ml_xi = false;
 double of_ml_chi_xi = 1.;
 bool of_ml_tanhxi = false;
+bool of_ml_tanhxi_nl = false;
 double of_ml_chi_p = 1.;
 double of_ml_chi_q = 1.;
 bool of_ml_tanhp = false;

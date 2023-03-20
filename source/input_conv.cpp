@@ -598,6 +598,7 @@ void Input_Conv::Convert(void)
     GlobalV::of_ml_xi = INPUT.of_ml_xi;
     GlobalV::of_ml_chi_xi = INPUT.of_ml_chi_xi;
     GlobalV::of_ml_tanhxi = INPUT.of_ml_tanhxi;
+    GlobalV::of_ml_tanhxi_nl = INPUT.of_ml_tanhxi_nl;
     GlobalV::of_ml_chi_p = INPUT.of_ml_chi_p;
     GlobalV::of_ml_chi_q = INPUT.of_ml_chi_q;
     GlobalV::of_ml_tanhp = INPUT.of_ml_tanhp;

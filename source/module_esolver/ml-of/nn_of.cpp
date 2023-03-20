@@ -31,6 +31,7 @@ void NN_OFImpl::setData(
     std::vector<double> &qnl,
     std::vector<double> &xi,
     std::vector<double> &tanhxi,
+    std::vector<double> &tanhxi_nl,
     std::vector<double> &tanhp,
     std::vector<double> &tanhq,
     std::vector<double> &tanh_pnl,
@@ -47,6 +48,7 @@ void NN_OFImpl::setData(
     if (input_index["qnl"] >= 0) this->inputs.index({"...", input_index["qnl"]}) = torch::tensor(qnl);
     if (input_index["xi"] >= 0) this->inputs.index({"...", input_index["xi"]}) = torch::tensor(xi);
     if (input_index["tanhxi"] >= 0) this->inputs.index({"...", input_index["tanhxi"]}) = torch::tensor(tanhxi);
+    if (input_index["tanhxi_nl"] >= 0) this->inputs.index({"...", input_index["tanhxi_nl"]}) = torch::tensor(tanhxi_nl);
     if (input_index["tanhp"] >= 0) this->inputs.index({"...", input_index["tanhp"]}) = torch::tensor(tanhp);
     if (input_index["tanhq"] >= 0) this->inputs.index({"...", input_index["tanhq"]}) = torch::tensor(tanhq);
     if (input_index["tanh_pnl"] >= 0) this->inputs.index({"...", input_index["tanh_pnl"]}) = torch::tensor(tanh_pnl);
@@ -65,6 +67,7 @@ void NN_OFImpl::setData(
     torch::Tensor qnl,
     torch::Tensor xi,
     torch::Tensor tanhxi,
+    torch::Tensor tanhxi_nl,
     torch::Tensor tanhp,
     torch::Tensor tanhq,
     torch::Tensor tanh_pnl,
@@ -81,6 +84,7 @@ void NN_OFImpl::setData(
     if (input_index["qnl"] >= 0) this->inputs.index({"...", input_index["qnl"]}) = qnl.clone();
     if (input_index["xi"] >= 0) this->inputs.index({"...", input_index["xi"]}) = xi.clone();
     if (input_index["tanhxi"] >= 0) this->inputs.index({"...", input_index["tanhxi"]}) = tanhxi.clone();
+    if (input_index["tanhxi_nl"] >= 0) this->inputs.index({"...", input_index["tanhxi_nl"]}) = tanhxi_nl.clone();
     if (input_index["tanhp"] >= 0) this->inputs.index({"...", input_index["tanhp"]}) = tanhp.clone();
     if (input_index["tanhq"] >= 0) this->inputs.index({"...", input_index["tanhq"]}) = tanhq.clone();
     if (input_index["tanh_pnl"] >= 0) this->inputs.index({"...", input_index["tanh_pnl"]}) = tanh_pnl.clone();

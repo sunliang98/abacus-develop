@@ -83,12 +83,16 @@ void ML_data::generateTrainData_WT(
     npy::SaveArrayAsNumpy("gammanl.npy", false, 1, cshape, containernl);
 
     // xi = gamma_nl/gamma
-    this->getXi(container, containernl, new_containernl);
-    npy::SaveArrayAsNumpy("xi.npy", false, 1, cshape, new_containernl);
+    this->getXi(container, containernl, new_container);
+    npy::SaveArrayAsNumpy("xi.npy", false, 1, cshape, new_container);
 
     // tanhxi = tanh(xi)
-    this->getTanhXi(container, containernl, new_containernl);
-    npy::SaveArrayAsNumpy("tanhxi.npy", false, 1, cshape, new_containernl);
+    this->getTanhXi(container, containernl, new_container);
+    npy::SaveArrayAsNumpy("tanhxi.npy", false, 1, cshape, new_container);
+
+    // (tanhxi)_nl
+    this->getTanhXi_nl(new_container, pw_rho, new_containernl);
+    npy::SaveArrayAsNumpy("tanhxi_nl.npy", false, 1, cshape, new_containernl);
 
     // nabla rho
     this->getNablaRho(prho, pw_rho, nablaRho);
@@ -203,12 +207,16 @@ void ML_data::generateTrainData_KS(
     npy::SaveArrayAsNumpy("gammanl.npy", false, 1, cshape, containernl);
 
     // xi = gamma_nl/gamma
-    this->getXi(container, containernl, new_containernl);
-    npy::SaveArrayAsNumpy("xi.npy", false, 1, cshape, new_containernl);
+    this->getXi(container, containernl, new_container);
+    npy::SaveArrayAsNumpy("xi.npy", false, 1, cshape, new_container);
 
     // tanhxi = tanh(xi)
-    this->getTanhXi(container, containernl, new_containernl);
-    npy::SaveArrayAsNumpy("tanhxi.npy", false, 1, cshape, new_containernl);
+    this->getTanhXi(container, containernl, new_container);
+    npy::SaveArrayAsNumpy("tanhxi.npy", false, 1, cshape, new_container);
+
+    // (tanhxi)_nl
+    this->getTanhXi_nl(new_container, pw_rho, new_containernl);
+    npy::SaveArrayAsNumpy("tanhxi_nl.npy", false, 1, cshape, new_containernl);
     
     // nabla rho
     this->getNablaRho(pelec->charge->rho, pw_rho, nablaRho);
@@ -463,6 +471,12 @@ void ML_data::getfP_nl(std::vector<double> &pfp, ModulePW::PW_Basis *pw_rho, std
 void ML_data::getfQ_nl(std::vector<double> &pfq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfq_nl)
 {
     this->multiKernel(pfq.data(), pw_rho, rfq_nl.data());
+}
+
+// (tanhxi)_nl
+void ML_data::getTanhXi_nl(std::vector<double> &ptanhxi, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhxi_nl)
+{
+    this->multiKernel(ptanhxi.data(), pw_rho, rtanhxi_nl.data());
 }
 
 void ML_data::getPauli_WT(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpauli)

@@ -493,6 +493,7 @@ void Input::Default(void)
     of_ml_xi = false;
     of_ml_chi_xi = 1.;
     of_ml_tanhxi = false;
+    of_ml_tanhxi_nl = false;
     of_ml_chi_p = 1.;
     of_ml_chi_q = 1.;
     of_ml_tanhp = false;
@@ -1844,6 +1845,10 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, of_ml_tanhxi);
         }
+        else if (strcmp("of_ml_tanhxi_nl", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhxi_nl);
+        }
         else if (strcmp("of_ml_chi_p", word) == 0)
         {
             read_value(ifs, of_ml_chi_p);
@@ -2684,6 +2689,7 @@ void Input::Bcast()
     Parallel_Common::bcast_bool(of_ml_xi);
     Parallel_Common::bcast_double(of_ml_chi_xi);
     Parallel_Common::bcast_bool(of_ml_tanhxi);
+    Parallel_Common::bcast_bool(of_ml_tanhxi_nl);
     Parallel_Common::bcast_double(of_ml_chi_p);
     Parallel_Common::bcast_double(of_ml_chi_q);
     Parallel_Common::bcast_bool(of_ml_tanhp);

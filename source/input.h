@@ -483,6 +483,7 @@ class Input
     bool of_ml_xi; // If the input variables contain xi
     double of_ml_chi_xi; // tanhpxi = tanh(chi * xi)
     bool of_ml_tanhxi; // If the input variables contain tanhxi
+    bool of_ml_tanhxi_nl; // If the input variables contain tanhxi_nl
     double of_ml_chi_p; // tanhp = tanh(chi*p)
     double of_ml_chi_q; // tanhp = tanh(chi*q)
     bool of_ml_tanhp; // If the input variables contain tanhp
