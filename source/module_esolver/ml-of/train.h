@@ -14,7 +14,7 @@ public:
     void init();
 
     torch::Tensor lossFunction(torch::Tensor enhancement, torch::Tensor target, torch::Tensor coef = torch::ones(1));
-    torch::Tensor lossFunction_new(torch::Tensor enhancement, torch::Tensor target, torch::Tensor tauTF, torch::Tensor coef = torch::ones(1));
+    torch::Tensor lossFunction_new(torch::Tensor enhancement, torch::Tensor target, torch::Tensor weight, torch::Tensor coef = torch::ones(1));
     // double lostFunction(torch::Tensor potentialML, torch::Tensor target);
     // torch::Tensor potLossFunction()
 
@@ -127,6 +127,7 @@ public:
     std::string *validation_cell = nullptr;
     double *validation_a = nullptr;
     std::string loss = "both";
+    double exponent = 5.; // exponent of weight rho^{exponent/3.}
     int nepoch = 1000;
     // double step_length = 0.01;
     double lr_start = 0.01; // learning rate 2023-02-24

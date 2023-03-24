@@ -92,6 +92,10 @@ void Train::readInput()
         {
             this->read_value(ifs, this->loss);
         }
+        else if (strcmp("exponent", word) == 0)
+        {
+            this->read_value(ifs, this->exponent);
+        }
         else if (strcmp("nepoch", word) == 0)
         {
             this->read_value(ifs, this->nepoch);

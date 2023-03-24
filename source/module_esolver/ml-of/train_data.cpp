@@ -11,6 +11,7 @@ void Train::loadData()
                    this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl,
                    this->enhancement, this->enhancement_mean, this->tau_mean, this->pauli, this->pauli_mean);
     std::cout << "enhancement mean: " << this->enhancement_mean << std::endl;
+    std::cout << "exponent: " << this->exponent << std::endl;
     std::cout << "tau mean: " << this->tau_mean << std::endl;
     std::cout << "pauli potential mean: " << this->pauli_mean << std::endl;
 
@@ -313,7 +314,7 @@ void Train::loadData(
 
         this->loadTensor(dir[idata] + "/enhancement.npy", cshape, fortran_order, container, idata, enhancement);
         enhancement_mean[idata] = torch::mean(enhancement[idata]);
-        tau_mean[idata] = torch::mean(this->cTF * torch::pow(rho[idata], 5./3.) * enhancement[idata]);
+        tau_mean[idata] = torch::mean(torch::pow(rho[idata], this->exponent/3.) * enhancement[idata]);
 
         if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new")
         {

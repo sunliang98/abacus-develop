@@ -44,9 +44,9 @@ torch::Tensor Train::lossFunction(torch::Tensor enhancement, torch::Tensor targe
     return torch::sum(torch::pow(enhancement - target, 2))/this->nx/coef/coef;
 }
 
-torch::Tensor Train::lossFunction_new(torch::Tensor enhancement, torch::Tensor target, torch::Tensor tauTF, torch::Tensor coef)
+torch::Tensor Train::lossFunction_new(torch::Tensor enhancement, torch::Tensor target, torch::Tensor weight, torch::Tensor coef)
 {
-    return torch::sum(torch::pow(tauTF * (enhancement - target), 2.))/this->nx/coef/coef;
+    return torch::sum(torch::pow(weight * (enhancement - target), 2.))/this->nx/coef/coef;
 }
 
 
@@ -84,6 +84,7 @@ void Train::train()
 
     // bool increase_coef_feg_e = false;
     torch::Tensor tauTF = this->cTF * torch::pow(this->rho, 5./3.);
+    torch::Tensor weight = torch::pow(this->rho, this->exponent/3.);
     for (size_t epoch = 1; epoch <= this->nepoch; ++epoch)
     {
         size_t batch_index = 0;
@@ -159,7 +160,7 @@ void Train::train()
                 }
                 if (this->loss == "both_new")
                 {
-                    loss = loss + this->coef_e * this->lossFunction_new(prediction, torch::slice(this->enhancement, 0, batch_index*this->nx, (batch_index + 1)*this->nx), tauTF[batch_index].reshape({this->nx, 1}), this->tau_mean[batch_index]);
+                    loss = loss + this->coef_e * this->lossFunction_new(prediction, torch::slice(this->enhancement, 0, batch_index*this->nx, (batch_index + 1)*this->nx), weight[batch_index].reshape({this->nx, 1}), this->tau_mean[batch_index]);
                     lossE = loss.item<double>() - lossPot;
                 }
                 if (this->feg_limit != 0)
@@ -303,6 +304,7 @@ void Train::potTest()
             
             std::cout << "begin potential" << std::endl;
             torch::Tensor tauTF = this->cTF * torch::pow(rho, 5./3.);
+            torch::Tensor weight = torch::pow(this->rho, this->exponent/3.);
 
             torch::Tensor pot = this->getPot(
                 rho[ii],
@@ -331,7 +333,7 @@ void Train::potTest()
             }
             if (this->loss == "both_new")
             {
-                loss = loss + this->coef_e * this->lossFunction_new(prediction, torch::slice(this->enhancement, 0, ii*this->nx, (ii + 1)*this->nx), tauTF[ii].reshape({this->nx, 1}), this->tau_mean[ii]);
+                loss = loss + this->coef_e * this->lossFunction_new(prediction, torch::slice(this->enhancement, 0, ii*this->nx, (ii + 1)*this->nx), weight[ii].reshape({this->nx, 1}), this->tau_mean[ii]);
             }
             // loss = loss + this->coef_e * this->lossFunction(prediction, torch::slice(this->enhancement, 0, ii*this->nx, (ii + 1)*this->nx));
             double lossTrain = loss.item<double>();
