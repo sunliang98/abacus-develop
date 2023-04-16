@@ -112,14 +112,13 @@ void Train::train()
                 torch::Tensor prediction = this->nn->forward(inpt);
                 if (this->feg_limit != 0)
                 {
-                    // if (this->ml_gamma) if (this->feg_inpt[this->nn_input_index["gamma"]].grad().numel()) this->feg_inpt[this->nn_input_index["gamma"]].grad().zero_();
-                    if (this->feg_inpt.grad().numel()) this->feg_inpt.grad().zero_();
+                    // if (this->feg_inpt.grad().numel()) this->feg_inpt.grad().zero_();
                     this->feg_predict = this->nn->forward(this->feg_inpt);
-                    // if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt[this->nn_input_index["gamma"]]},
-                    //                                                                 {torch::ones(1)}, true, true)[0];
                     if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
                                                                                     {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
                     if (this->feg_limit == 1) prediction = prediction - this->feg_predict + 1.;
+                    if (this->feg_limit == 3 && epoch <= this->change_step) prediction = torch::softplus(prediction);
+                    if (this->feg_limit == 3 && epoch > this->change_step)  prediction = torch::softplus(prediction - this->feg_predict + this->feg3_correct);
                 }
                 startFB = clock();
                 torch::Tensor gradient = torch::autograd::grad({prediction}, {inpt},
@@ -164,10 +163,11 @@ void Train::train()
                     lossE = loss.item<double>() - lossPot;
                 }
                 if (this->feg_limit != 0)
+                // if (this->feg_limit != 0 && this->feg_limit != 3)
                 {
-                    loss = loss + torch::pow(this->feg_dFdgamma, 2) * this->coef_feg_p;
-                    lossFEG_pot = loss.item<double>() - (lossPot + lossE);
-                    if (this->feg_limit == 2)
+                    // loss = loss + torch::pow(this->feg_dFdgamma, 2) * this->coef_feg_p;
+                    // lossFEG_pot = loss.item<double>() - (lossPot + lossE);
+                    if (this->feg_limit == 1 || this->feg_limit == 2)
                     {
                         loss = loss + torch::pow(this->feg_predict - 1., 2) * this->coef_feg_e;
                         lossFEG_E = loss.item<double>() - (lossPot + lossE + lossFEG_pot);
@@ -177,6 +177,11 @@ void Train::train()
                         //     increase_coef_feg_e = true;
                         //     std::cout << "---------ICREASE COEF FEG E--------" << std::endl;
                         // }
+                    }
+                    if (this->feg_limit == 3)
+                    {
+                        loss = loss + torch::pow(this->feg_predict - this->feg3_correct, 2) * this->coef_feg_e;
+                        lossFEG_E = loss.item<double>() - (lossPot + lossE + lossFEG_pot);
                     }
                 }
 
@@ -294,6 +299,7 @@ void Train::potTest()
                 if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
                                                                                 {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
                 if (this->feg_limit == 1) prediction = prediction - this->feg_predict + 1.;
+                if (this->feg_limit == 3) prediction = torch::softplus(prediction - this->feg_predict + this->feg3_correct);
             }
 
             start = clock();

@@ -143,7 +143,7 @@ void KEDF_ML::set_para(
     {
         this->nn = std::make_shared<NN_OFImpl>(this->nx, this->ninput);
         torch::load(this->nn, "net.pt");
-        if (GlobalV::of_ml_feg == 1)
+        if (GlobalV::of_ml_feg != 0)
         {
             torch::Tensor feg_inpt = torch::zeros(this->ninput);
             if (GlobalV::of_ml_gamma) feg_inpt[this->nn_input_index["gamma"]] = 1.;
@@ -162,9 +162,10 @@ void KEDF_ML::set_para(
             if (GlobalV::of_ml_tanhp_nl) feg_inpt[this->nn_input_index["tanhp_nl"]] = 0;
             if (GlobalV::of_ml_tanhq_nl) feg_inpt[this->nn_input_index["tanhq_nl"]] = 0;
 
-            feg_inpt.requires_grad_(true);
+            // feg_inpt.requires_grad_(true);
 
-            this->feq_net_F = this->nn->forward(feg_inpt).item<double>();
+            this->feg_net_F = this->nn->forward(feg_inpt).item<double>();
+            std::cout << "feg_net_F = " << this->feg_net_F << std::endl;
         }
     } 
     
@@ -184,7 +185,11 @@ double KEDF_ML::get_energy(const double * const * prho, ModulePW::PW_Basis *pw_r
     this->nn->F = this->nn->forward(this->nn->inputs);
     if (GlobalV::of_ml_feg == 1)
     {
-        this->nn->F = this->nn->F - this->feq_net_F + 1.;
+        this->nn->F = this->nn->F - this->feg_net_F + 1.;
+    }
+    else if (GlobalV::of_ml_feg == 3)
+    {
+        this->nn->F = torch::softplus(this->nn->F - this->feg_net_F + this->feg3_correct);
     }
 
     double energy = 0.;
@@ -215,8 +220,13 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
 
     if (GlobalV::of_ml_feg == 1)
     {
-        this->nn->F = this->nn->F - this->feq_net_F + 1.;
+        this->nn->F = this->nn->F - this->feg_net_F + 1.;
     }
+    else if (GlobalV::of_ml_feg == 3)
+    {
+        this->nn->F = torch::softplus(this->nn->F - this->feg_net_F + this->feg3_correct);
+    }
+
     // cout << "begin backward" << endl;
     this->nn->F.backward(torch::ones({this->nx, 1}));
     // cout << this->nn->inputs.grad();
@@ -298,15 +308,20 @@ void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF
         this->nn->F = this->nn->forward(this->nn->inputs);
         if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
         // start = clock();
+
+        if (GlobalV::of_ml_feg == 1)
+        {
+            this->nn->F = this->nn->F - this->feg_net_F + 1.;
+        }
+        else if (GlobalV::of_ml_feg == 3)
+        {
+            this->nn->F = torch::softplus(this->nn->F - this->feg_net_F + this->feg3_correct);
+        }
+        
         this->nn->F.backward(torch::ones({this->nx, 1}));
         // end = clock();
         // std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
         this->nn->gradient = this->nn->inputs.grad();
-
-        if (GlobalV::of_ml_feg == 1)
-        {
-            this->nn->F = this->nn->F - this->feq_net_F + 1.;
-        }
 
         // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
         // std::cout << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
@@ -387,15 +402,20 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     this->nn->F = this->nn->forward(this->nn->inputs);
     if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
     // start = clock();
+
+    if (GlobalV::of_ml_feg == 1)
+    {
+        this->nn->F = this->nn->F - this->feg_net_F + 1.;
+    }
+    else if (GlobalV::of_ml_feg == 3)
+    {
+        this->nn->F = torch::softplus(this->nn->F - this->feg_net_F + this->feg3_correct);
+    }
+
     this->nn->F.backward(torch::ones({this->nx, 1}));
     // end = clock();
     // std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
     this->nn->gradient = this->nn->inputs.grad();
-
-    if (GlobalV::of_ml_feg == 1)
-    {
-        this->nn->F = this->nn->F - this->feq_net_F + 1.;
-    }
 
     // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
     // std::cout << torch::slice(this->nn->F, 0, 0, 10) << std::endl;

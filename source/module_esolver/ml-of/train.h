@@ -158,6 +158,8 @@ public:
     double chi_qnl = 1.;
 
     int feg_limit = 0; // Free Electron Gas
+    int change_step = 0; // when feg_limit=3, change the output of net after change_step
+    double feg3_correct = 0.541324854612918; // ln(e - 1)
 
     // coefficients in loss function
     double coef_e = 1.;

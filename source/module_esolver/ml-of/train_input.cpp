@@ -208,6 +208,10 @@ void Train::readInput()
         {
             this->read_value(ifs, this->feg_limit);
         }
+        else if (strcmp("change_step", word) == 0)
+        {
+            this->read_value(ifs, this->change_step);
+        }
         else if (strcmp("coef_e", word) == 0)
         {
             this->read_value(ifs, this->coef_e);

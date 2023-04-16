@@ -214,7 +214,7 @@ void Train::initData()
         if (this->ml_tanh_qnl)  this->feg_inpt[this->nn_input_index["tanh_qnl"]] = 0.;
         if (this->ml_tanhp_nl)  this->feg_inpt[this->nn_input_index["tanhp_nl"]] = 0.;
         if (this->ml_tanhq_nl)  this->feg_inpt[this->nn_input_index["tanhq_nl"]] = 0.;
-        this->feg_inpt.requires_grad_(true);
+        // this->feg_inpt.requires_grad_(true);
 
         this->feg_predict = torch::zeros(1);
         this->feg_dFdgamma = torch::zeros(1);

@@ -103,7 +103,8 @@ public:
     double MLenergy = 0.;
     double *kernel;
     // ModuleBase::matrix stress;
-    double feq_net_F = 0.;
+    double feg_net_F = 0.;
+    double feg3_correct = 0.541324854612918; // ln(e - 1)
 
     // informations about input
     int ninput = 0;
