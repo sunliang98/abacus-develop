@@ -237,7 +237,8 @@ void ESolver_OF::Init(Input &inp, UnitCell &ucell)
     this->vw.set_para(this->nrxx, this->dV, GlobalV::of_vw_weight);
     this->wt.set_para(this->nrxx, this->dV, GlobalV::of_wt_alpha, GlobalV::of_wt_beta, this->nelec[0], GlobalV::of_tf_weight, GlobalV::of_vw_weight, GlobalV::of_read_kernel, GlobalV::of_kernel_file, this->pw_rho);
     this->ml.set_para(this->nrxx, this->dV, this->nelec[0], GlobalV::of_tf_weight, GlobalV::of_vw_weight, 
-                      GlobalV::of_ml_chi_xi, GlobalV::of_ml_chi_p, GlobalV::of_ml_chi_q, GlobalV::of_ml_chi_pnl, GlobalV::of_ml_chi_qnl, this->pw_rho);
+                      GlobalV::of_ml_chi_xi, GlobalV::of_ml_chi_p, GlobalV::of_ml_chi_q, GlobalV::of_ml_chi_pnl, GlobalV::of_ml_chi_qnl,
+                      GlobalV::of_ml_nnode, GlobalV::of_ml_nlayer, this->pw_rho);
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT KEDF");
 
     // Initialize charge extrapolation

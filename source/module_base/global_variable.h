@@ -291,6 +291,9 @@ extern bool of_ml_tanh_pnl; // If the input variables contain tanh_pnl
 extern bool of_ml_tanh_qnl; // If the input variables contain tanh_qnl
 extern bool of_ml_tanhp_nl; // If the input variables contain tanhp_nl
 extern bool of_ml_tanhq_nl; // If the input variables contain tanhq_nl
+// size of nn 2023-04-19
+extern int of_ml_nnode;     // number of node
+extern int of_ml_nlayer;    // number of layer
 
 //==========================================================
 // device flags

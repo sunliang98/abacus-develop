@@ -167,6 +167,10 @@ public:
     double coef_feg_e = 1.;
     double coef_feg_p = 1.;
 
+    // size of nn
+    int nnode = 10;
+    int nlayer = 3;
+
 public:
     bool check_pot = false;
 

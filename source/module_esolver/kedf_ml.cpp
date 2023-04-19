@@ -14,6 +14,8 @@ void KEDF_ML::set_para(
     double chi_q,
     double chi_pnl,
     double chi_qnl,
+    int nnode,
+    int nlayer,
     ModulePW::PW_Basis *pw_rho
 )
 {
@@ -145,7 +147,7 @@ void KEDF_ML::set_para(
 
     if (GlobalV::of_kinetic == "ml")
     {
-        this->nn = std::make_shared<NN_OFImpl>(this->nx, this->ninput);
+        this->nn = std::make_shared<NN_OFImpl>(this->nx, this->ninput, nnode, nlayer);
         torch::load(this->nn, "net.pt");
         if (GlobalV::of_ml_feg != 0)
         {

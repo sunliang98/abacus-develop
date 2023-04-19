@@ -232,6 +232,14 @@ void Train::readInput()
         {
             this->read_value(ifs, this->check_pot);
         }
+        else if (strcmp("nnode", word) == 0)
+        {
+            this->read_value(ifs, this->nnode);
+        }
+        else if (strcmp("nlayer", word) == 0)
+        {
+            this->read_value(ifs, this->nlayer);
+        }
     }
     std::cout << "Read nnINPUT done" << std::endl;
 }

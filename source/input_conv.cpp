@@ -609,6 +609,8 @@ void Input_Conv::Convert(void)
     GlobalV::of_ml_tanh_qnl = INPUT.of_ml_tanh_qnl;
     GlobalV::of_ml_tanhp_nl = INPUT.of_ml_tanhp_nl;
     GlobalV::of_ml_tanhq_nl = INPUT.of_ml_tanhq_nl;
+    GlobalV::of_ml_nnode = INPUT.of_ml_nnode;
+    GlobalV::of_ml_nlayer = INPUT.of_ml_nlayer;
     ModuleBase::timer::tick("Input_Conv", "Convert");
     return;
 }

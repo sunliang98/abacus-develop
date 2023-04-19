@@ -504,6 +504,9 @@ void Input::Default(void)
     of_ml_tanh_qnl = false;
     of_ml_tanhp_nl = false;
     of_ml_tanhq_nl = false;
+    // size of nn 2023-04-19
+    of_ml_nnode = 10;
+    of_ml_nlayer = 3;
     //==========================================================
     //    OFDFT sunliang added on 2022-11-15
     //==========================================================
@@ -1889,6 +1892,14 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, of_ml_tanhq_nl);
         }
+        else if (strcmp("of_ml_nnode", word) == 0)
+        {
+            read_value(ifs, of_ml_nnode);
+        }
+        else if (strcmp("of_ml_nlayer", word) == 0)
+        {
+            read_value(ifs, of_ml_nlayer);
+        }
         //----------------------------------------------------------------------------------
         //    device control denghui added on 2022-11-05
         //----------------------------------------------------------------------------------     
@@ -2700,6 +2711,8 @@ void Input::Bcast()
     Parallel_Common::bcast_bool(of_ml_tanh_qnl);
     Parallel_Common::bcast_bool(of_ml_tanhp_nl);
     Parallel_Common::bcast_bool(of_ml_tanhq_nl);
+    Parallel_Common::bcast_int(of_ml_nnode);
+    Parallel_Common::bcast_int(of_ml_nlayer);
 
     return;
 }

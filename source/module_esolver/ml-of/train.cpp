@@ -18,7 +18,7 @@ Train::~Train()
 void Train::init()
 {
     if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->setUpFFT();
-    this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
+    this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput, this->nnode, this->nlayer);
     // this->nn->to(device);
     this->nn->setData(this->nn_input_index,
                       this->gamma.reshape({this->nx_train}),
@@ -259,7 +259,7 @@ void Train::potTest()
 {
     time_t start, end;
     if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->setUpFFT();
-    this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput);
+    this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput, this->nnode, this->nlayer);
     torch::load(this->nn, "net.pt");
 
     this->nn->setData(this->nn_input_index,

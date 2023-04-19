@@ -38,6 +38,8 @@ public:
         double chi_q,
         double chi_pnl,
         double chi_qnl,
+        int nnode,
+        int nlayer,
         ModulePW::PW_Basis *pw_rho);
 
     double get_energy(const double * const * prho, ModulePW::PW_Basis *pw_rho);

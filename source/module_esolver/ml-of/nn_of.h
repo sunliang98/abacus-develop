@@ -5,7 +5,16 @@
 
 struct NN_OFImpl:torch::nn::Module{
     // three hidden layers and one output layer
-    NN_OFImpl(int nrxx, int ninpt);
+    NN_OFImpl(
+        int nrxx, 
+        int ninpt, 
+        int nnode,
+        int nlayer
+        );
+    ~NN_OFImpl()
+    {
+        // delete[] this->fcs;
+    }
 
     void setData(
         std::map<std::string, int> &input_index, 
@@ -47,7 +56,8 @@ struct NN_OFImpl:torch::nn::Module{
 
     torch::Tensor forward(torch::Tensor inpt);
 
-    torch::nn::Linear fc1{nullptr}, fc2{nullptr}, fc3{nullptr}, fc4{nullptr};
+    torch::nn::Linear fc1{nullptr}, fc2{nullptr}, fc3{nullptr}, fc4{nullptr}, fc5{nullptr};
+    torch::nn::Linear fcs[5] = {fc1, fc2, fc3, fc4, fc5};
 
     torch::Tensor inputs;
     torch::Tensor F; // enhancement factor, output of NN
@@ -56,6 +66,9 @@ struct NN_OFImpl:torch::nn::Module{
 
     int nrxx = 10;
     int ninpt = 6;
+    int nnode = 10;
+    int nlayer = 3;
+    int nfc = 4;
 };
 TORCH_MODULE(NN_OF);
 

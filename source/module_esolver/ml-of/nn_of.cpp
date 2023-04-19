@@ -1,19 +1,42 @@
 #include "nn_of.h"
 
-NN_OFImpl::NN_OFImpl(int nrxx, int ninpt)
+NN_OFImpl::NN_OFImpl(int nrxx, int ninpt, int nnode, int nlayer)
 {
     this->nrxx = nrxx;
     this->ninpt = ninpt;
+    this->nnode = nnode;
+    std::cout << "nnode = " << this->nnode << std::endl;
+    this->nlayer = nlayer;
+    std::cout << "nlayer = " << this->nlayer << std::endl;
+    this->nfc = nlayer + 1;
 
     this->inputs = torch::zeros({this->nrxx, this->ninpt});
     this->F = torch::zeros({this->nrxx, 1});
     this->gradient = torch::zeros({this->nrxx, this->ninpt});
     this->potential = torch::zeros({this->nrxx, 1});
 
-    fc1 = register_module("fc1", torch::nn::Linear(ninpt, 10));
-    fc2 = register_module("fc2", torch::nn::Linear(10, 10));
-    fc3 = register_module("fc3", torch::nn::Linear(10, 10));
-    fc4 = register_module("fc4", torch::nn::Linear(10, 1));
+    // this->fcs = new torch::nn::Linear[nlayer];
+
+    int ni = nnode;
+    int no = nnode;
+    std::string name = "fc";
+    for (int i = 0; i < this->nfc; ++i)
+    {
+        if (i == 0)             ni = this->ninpt;
+        else                    ni = this->nnode;
+
+        if (i == this->nfc - 1) no = 1;
+        else                    no = this->nnode;
+
+        name = "fc" + std::to_string(i+1);
+        fcs[i] = register_module(name, torch::nn::Linear(ni, no));
+        // fcs[i] = register_module("fc"+static_cast<char>(i), torch::nn::Linear(ni, no));
+    }
+
+    // fc1 = register_module("fc1", torch::nn::Linear(ninpt, nnode));
+    // fc2 = register_module("fc2", torch::nn::Linear(nnode, nnode));
+    // fc3 = register_module("fc3", torch::nn::Linear(nnode, nnode));
+    // fc4 = register_module("fc4", torch::nn::Linear(nnode, 1));
 
     // fc1 = register_module("fc1", torch::nn::Linear(ninpt, 15));
     // fc2 = register_module("fc2", torch::nn::Linear(15, 15));
@@ -108,11 +131,16 @@ torch::Tensor NN_OFImpl::forward(torch::Tensor inpt) // will inpt be changed? no
     // inpt = fc4->forward(inpt);
 
     // tanh 2023-03-01
-    inpt = torch::tanh(fc1->forward(inpt)); // covert data into (-1,1)
-    inpt = torch::tanh(fc2->forward(inpt));
-    inpt = torch::tanh(fc3->forward(inpt));
-    // inpt = torch::softplus(fc4->forward(inpt));
-    inpt = fc4->forward(inpt); // for feg = 3
+    for (int i = 0; i < this->nfc - 1; ++i)
+    {
+        inpt = torch::tanh(this->fcs[i]->forward(inpt));
+    }
+    inpt = this->fcs[this->nfc - 1]->forward(inpt);
+    // inpt = torch::tanh(fc1->forward(inpt)); // covert data into (-1,1)
+    // inpt = torch::tanh(fc2->forward(inpt));
+    // inpt = torch::tanh(fc3->forward(inpt));
+    // // inpt = torch::softplus(fc4->forward(inpt));
+    // inpt = fc4->forward(inpt); // for feg = 3
 
     // softplus 2023-03-01 (failed)
     // inpt = torch::softplus(fc1->forward(inpt));

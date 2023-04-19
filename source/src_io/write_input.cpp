@@ -430,6 +430,8 @@ void Input::Print(const std::string &fn) const
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanh_qnl", of_ml_tanh_qnl, "If the input variables contain tanh_qnl");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhp_nl", of_ml_tanhp_nl, "If the input variables contain tanhp_nl");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhq_nl", of_ml_tanhq_nl, "If the input variables contain tanhq_nl");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_nnode", of_ml_nnode, "number of node");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_nlayer", of_ml_nlayer, "number of layer");
 
     ofs << "\n#Parameters (19.dft+u)" << std::endl;
     ModuleBase::GlobalFunc::OUTP(ofs, "dft_plus_u", dft_plus_u, "true:DFT+U correction; false: standard DFT calcullation(default)");
