@@ -17,6 +17,10 @@ void KEDF_ML::set_para(
     ModulePW::PW_Basis *pw_rho
 )
 {
+    torch::set_default_dtype(caffe2::TypeMeta::fromScalarType(torch::kDouble));
+    auto output = torch::get_default_dtype();
+    std::cout << "Default type: " << output << std::endl;
+
     this->nx = nx;
     this->dV = dV;
     this->chi_xi = chi_xi;

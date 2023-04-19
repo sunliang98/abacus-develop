@@ -117,8 +117,8 @@ void Train::train()
                     if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
                                                                                     {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
                     if (this->feg_limit == 1) prediction = prediction - this->feg_predict + 1.;
-                    if (this->feg_limit == 3 && epoch <= this->change_step) prediction = torch::softplus(prediction);
-                    if (this->feg_limit == 3 && epoch > this->change_step)  prediction = torch::softplus(prediction - this->feg_predict + this->feg3_correct);
+                    if (this->feg_limit == 3 && epoch < this->change_step) prediction = torch::softplus(prediction);
+                    if (this->feg_limit == 3 && epoch >= this->change_step)  prediction = torch::softplus(prediction - this->feg_predict + this->feg3_correct);
                 }
                 startFB = clock();
                 torch::Tensor gradient = torch::autograd::grad({prediction}, {inpt},
@@ -201,6 +201,10 @@ void Train::train()
                 if (this->nvalidation > 0)
                 {
                     torch::Tensor valid_pre = this->nn->forward(this->input_vali);
+                    if (this->feg_limit == 3)
+                    {
+                        valid_pre = torch::softplus(valid_pre - this->feg_predict + this->feg3_correct);
+                    }
                     lossVali = this->lossFunction(valid_pre, this->enhancement_vali, this->enhancement_mean_vali).item<double>();
                 }
                 std::cout << std::setiosflags(std::ios::scientific) << std::setprecision(3) << epoch 

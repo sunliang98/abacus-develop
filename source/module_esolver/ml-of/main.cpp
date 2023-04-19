@@ -5,6 +5,9 @@
 
 int main()
 {
+    torch::set_default_dtype(caffe2::TypeMeta::fromScalarType(torch::kDouble));
+    auto output = torch::get_default_dtype();
+    std::cout << "Default type: " << output << std::endl;
     // train test
     Train train;
     train.readInput();
