@@ -14,6 +14,7 @@ list(APPEND objects
     of_pw/kedf_tf.cpp
     of_pw/kedf_vw.cpp
     of_pw/kedf_wt.cpp
+    of_pw/kedf_lkt.cpp
 )
 
 if(ENABLE_LCAO)

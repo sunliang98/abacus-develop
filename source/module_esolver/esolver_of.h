@@ -2,15 +2,16 @@
 #define ESOLVER_OF_H
 
 #include "esolver_fp.h"
-#include "../module_base/opt_TN.hpp"
-#include "../module_base/opt_DCsrch.h"
-#include "../module_psi/psi.h"
-#include "../src_pw/charge_extra.h"    // liuyu add 2022-11-07
-#include "../module_hamilt/of_pw/kedf_tf.h"
-#include "../module_hamilt/of_pw/kedf_vw.h"
-#include "../module_hamilt/of_pw/kedf_wt.h"
+#include "module_base/opt_TN.hpp"
+#include "module_base/opt_DCsrch.h"
+#include "module_psi/psi.h"
+#include "src_pw/charge_extra.h"    // liuyu add 2022-11-07
+#include "module_hamilt/of_pw/kedf_tf.h"
+#include "module_hamilt/of_pw/kedf_vw.h"
+#include "module_hamilt/of_pw/kedf_wt.h"
+#include "module_hamilt/of_pw/kedf_lkt.h"
 #include "src_pw/charge.h"
-#include "./kedf_ml.h"
+#include "kedf_ml.h"
 
 namespace ModuleESolver
 {
@@ -93,6 +94,7 @@ private:
     KEDF_TF tf;
     KEDF_vW vw;
     KEDF_WT wt;
+    KEDF_LKT lkt;
     KEDF_ML ml;
 
     // charge extrapolation liuyu add 2022-11-07

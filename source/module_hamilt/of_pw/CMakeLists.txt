@@ -2,6 +2,7 @@ list(APPEND operator_of_pw_srcs
     kedf_tf.cpp
     kedf_vw.cpp
     kedf_wt.cpp
+    kedf_lkt.cpp
 )
 
 add_library(

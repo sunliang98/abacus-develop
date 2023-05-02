@@ -236,6 +236,7 @@ void ESolver_OF::Init(Input &inp, UnitCell &ucell)
     this->tf.set_para(this->nrxx, this->dV, GlobalV::of_tf_weight);
     this->vw.set_para(this->nrxx, this->dV, GlobalV::of_vw_weight);
     this->wt.set_para(this->nrxx, this->dV, GlobalV::of_wt_alpha, GlobalV::of_wt_beta, this->nelec[0], GlobalV::of_tf_weight, GlobalV::of_vw_weight, GlobalV::of_read_kernel, GlobalV::of_kernel_file, this->pw_rho);
+    this->lkt.set_para(this->nrxx, this->dV, GlobalV::of_lkt_a);
     this->ml.set_para(this->nrxx, this->dV, this->nelec[0], GlobalV::of_tf_weight, GlobalV::of_vw_weight, 
                       GlobalV::of_ml_chi_xi, GlobalV::of_ml_chi_p, GlobalV::of_ml_chi_q, GlobalV::of_ml_chi_pnl, GlobalV::of_ml_chi_qnl,
                       GlobalV::of_ml_nnode, GlobalV::of_ml_nlayer, this->pw_rho);
@@ -880,6 +881,13 @@ void ESolver_OF::printInfo()
     << setw(12) << setprecision(3) << this->theta[0]
     << setw(12) << this->normdLdphi
     << setw(12) << (this->energy_current - this->energy_last)/2. << endl;
+    if (GlobalV::init_chg == "file")
+    {
+        std::cout << setprecision(6) << "vW KE = " << this->vw.vWenergy << std::endl;
+        std::cout << "WT KE = " << this->wt.WTenergy << std::endl;
+        std::cout << "TF KE = " << this->tf.TFenergy << std::endl;
+        std::cout << "ML KE = " << this->ml.MLenergy << std::endl;
+    }
     // ============ test new convergence criterion =================
     // << setw(12) << this->deltaRhoG
     // << setw(12) << this->deltaRhoR
@@ -931,7 +939,7 @@ void ESolver_OF::afterOpt()
         this->mu[0] = this->cal_mu(this->pphi[0], this->pdEdphi[0], this->nelec[0]);
 
         // === temporary ===
-        assert(GlobalV::of_kinetic == "wt" || GlobalV::of_kinetic == "ml");
+        // assert(GlobalV::of_kinetic == "wt" || GlobalV::of_kinetic == "ml");
         // =================
         std::cout << "Generating Training data..." << std::endl;
         std::cout << "mu = " << this->mu[0] << std::endl;
@@ -1127,6 +1135,12 @@ void ESolver_OF::cal_Stress(ModuleBase::matrix& stress)
         this->vw.get_stress(this->pphi, this->pw_rho);
         kinetic_stress += this->tf.stress + this->vw.stress;
     }
+    else if (this->of_kinetic == "lkt")
+    {
+        this->lkt.get_stress(GlobalC::ucell.omega, pelec->charge->rho, this->pw_rho);
+        this->vw.get_stress(pelec->charge->rho, this->pw_rho);
+        kinetic_stress += this->lkt.stress + this->vw.stress;
+    }
 
     OF_Stress_PW ss(this->pelec);
     ss.cal_stress(stress, kinetic_stress);
@@ -1194,6 +1208,18 @@ void ESolver_OF::kineticPotential(double **prho, double **pphiInpt, ModuleBase::
         }
         this->vw.vW_potential(pphiInpt, this->pw_rho, rpot);
     }
+    else if (this->of_kinetic == "lkt")
+    {
+        this->lkt.lkt_potential(prho, this->pw_rho, rpot);
+        for (int is = 0; is < GlobalV::NSPIN; ++is)
+        {
+            for (int ir = 0; ir < this->nrxx; ++ir)
+            {
+                rpot(is,ir) *= 2.0 * pphiInpt[is][ir];
+            }
+        }
+        this->vw.vW_potential(pphiInpt, this->pw_rho, rpot);
+    }
 }
 
 // Return the kinetic energy
@@ -1225,6 +1251,10 @@ double ESolver_OF::kineticEnergy()
         kinetic += this->ml.MLenergy + this->vw.vWenergy;
         // cout << "ML:" << ml.MLenergy << endl;
         // cout << "vW:" << vw.vWenergy << endl;
+    }
+    else if (this->of_kinetic == "lkt")
+    {
+        kinetic += this->lkt.LKTenergy + this->vw.vWenergy;
     }
     return kinetic;
 }
