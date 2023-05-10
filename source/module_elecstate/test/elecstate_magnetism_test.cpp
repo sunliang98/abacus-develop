@@ -20,6 +20,7 @@
 #define private public
 #include "module_elecstate/magnetism.h"
 
+ModulePW::PW_Basis::PW_Basis(){}
 Charge::Charge(){}
 Charge::~Charge(){}
 
