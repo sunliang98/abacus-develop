@@ -67,7 +67,7 @@ TEST_F(MagnetismTest, ComputeMagnetizationS2)
                   GlobalV::nelec = 10.0;
                   ModulePW::PW_Basis* rhopw = new ModulePW::PW_Basis;
                   rhopw->nrxx = 100;
-                  rhopw->nxyz = 100;
+                  rhopw->nxyz = 1000;
 
                   Charge* chr = new Charge;
                   chr->rhopw = rhopw;
@@ -104,7 +104,7 @@ TEST_F(MagnetismTest, ComputeMagnetizationS4)
                     GlobalV::NSPIN = 4;
                     ModulePW::PW_Basis* rhopw = new ModulePW::PW_Basis;
                     rhopw->nrxx = 100;
-                    rhopw->nxyz = 100;
+                    rhopw->nxyz = 1000;
 
                     Charge* chr = new Charge;
                     chr->rhopw = rhopw;
