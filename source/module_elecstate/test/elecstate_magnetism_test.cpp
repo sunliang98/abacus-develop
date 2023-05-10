@@ -98,7 +98,7 @@ TEST_F(MagnetismTest, ComputeMagnetizationS4)
                     GlobalV::NSPIN = 4;
                     Charge* chr = new Charge;
                     chr->rho = new double*[GlobalV::NSPIN];
-                    chr->nrxx =
+                    chr->nrxx = 100;
                     for (int i=0; i< GlobalV::NSPIN; i++)
                     {
                                         chr->rho[i] = new double[chr->nrxx];
