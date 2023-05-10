@@ -65,7 +65,12 @@ TEST_F(MagnetismTest, ComputeMagnetizationS2)
                   GlobalV::NSPIN = 2;
                   GlobalV::TWO_EFERMI = false;
                   GlobalV::nelec = 10.0;
+                  ModulePW::PW_Basis* rhopw = new ModulePW::PW_Basis;
+                  rhopw->nrxx = 100;
+                  rhopw->nxyz = 100;
+
                   Charge* chr = new Charge;
+                  chr->rhopw = rhopw;
                   chr->nrxx = 100;
                   chr->rho = new double*[GlobalV::NSPIN];
                   for (int i=0; i< GlobalV::NSPIN; i++)
@@ -90,13 +95,19 @@ TEST_F(MagnetismTest, ComputeMagnetizationS2)
                   }
                   delete[] chr->rho;
                   delete chr;
+                  delete rhopw;
 }
 
 
 TEST_F(MagnetismTest, ComputeMagnetizationS4)
 {
                     GlobalV::NSPIN = 4;
+                    ModulePW::PW_Basis* rhopw = new ModulePW::PW_Basis;
+                    rhopw->nrxx = 100;
+                    rhopw->nxyz = 100;
+
                     Charge* chr = new Charge;
+                    chr->rhopw = rhopw;
                     chr->rho = new double*[GlobalV::NSPIN];
                     chr->nrxx = 100;
                     for (int i=0; i< GlobalV::NSPIN; i++)
@@ -123,6 +134,7 @@ TEST_F(MagnetismTest, ComputeMagnetizationS4)
                     }
                     delete[] chr->rho;
                     delete chr;
+                    delete rhopw;
 }
 
 
