@@ -295,6 +295,8 @@ extern bool of_ml_tanhq_nl; // If the input variables contain tanhq_nl
 // size of nn 2023-04-19
 extern int of_ml_nnode;     // number of node
 extern int of_ml_nlayer;    // number of layer
+extern int of_ml_kernel;   // type of kernel, 1 for wt, 2 for yukawa 
+extern double of_ml_yukawa_alpha; // parameter alpha of yukawa kernel
 
 //==========================================================
 // device flags

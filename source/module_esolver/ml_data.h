@@ -82,6 +82,7 @@ public:
 
     // tools
     double MLkernel(double eta, double tf_weight, double vw_weight);
+    double MLkernel_yukawa(double eta, double alpha);
     void multiKernel(double *pinput, ModulePW::PW_Basis *pw_rho, double *routput);
     void Laplacian(double * pinput, ModulePW::PW_Basis *pw_rho, double * routput);
     void divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * routput);

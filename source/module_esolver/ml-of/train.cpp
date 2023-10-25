@@ -110,13 +110,17 @@ void Train::train()
                 torch::Tensor inpt = torch::slice(this->nn->inputs, 0, batch_index*this->nx, (batch_index + 1)*this->nx);
                 inpt.requires_grad_(true);
                 torch::Tensor prediction = this->nn->forward(inpt);
+                if (this->feg_limit != 3)
+                {
+                    prediction = torch::softplus(prediction);
+                }
                 if (this->feg_limit != 0)
                 {
                     // if (this->feg_inpt.grad().numel()) this->feg_inpt.grad().zero_();
                     this->feg_predict = this->nn->forward(this->feg_inpt);
                     if (this->ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
                                                                                     {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
-                    if (this->feg_limit == 1) prediction = prediction - this->feg_predict + 1.;
+                    if (this->feg_limit == 1) prediction = prediction - torch::softplus(this->feg_predict) + 1.;
                     if (this->feg_limit == 3 && epoch < this->change_step) prediction = torch::softplus(prediction);
                     if (this->feg_limit == 3 && epoch >= this->change_step)  prediction = torch::softplus(prediction - this->feg_predict + this->feg3_correct);
                 }
@@ -292,7 +296,10 @@ void Train::potTest()
             torch::Tensor inpts = torch::slice(this->nn->inputs, 0, ii*this->nx, (ii + 1)*this->nx);
             inpts.requires_grad_(true);
             torch::Tensor prediction = this->nn->forward(inpts);
-
+            if (this->feg_limit != 3)
+            {
+                prediction = torch::softplus(prediction);
+            }
             if (this->feg_limit != 0)
             {
                 // if (this->ml_gamma) if (this->feg_inpt[this->nn_input_index["gamma"]].grad().numel()) this->feg_inpt[this->nn_input_index["gamma"]].grad().zero_();

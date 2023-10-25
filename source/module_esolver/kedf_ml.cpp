@@ -170,7 +170,11 @@ void KEDF_ML::set_para(
 
             // feg_inpt.requires_grad_(true);
 
-            this->feg_net_F = this->nn->forward(feg_inpt).item<double>();
+            if (GlobalV::of_ml_feg == 1) 
+                this->feg_net_F = torch::softplus(this->nn->forward(feg_inpt)).item<double>();
+            else
+                this->feg_net_F = this->nn->forward(feg_inpt).item<double>();
+
             std::cout << "feg_net_F = " << this->feg_net_F << std::endl;
         }
     } 
@@ -189,6 +193,11 @@ double KEDF_ML::get_energy(const double * const * prho, ModulePW::PW_Basis *pw_r
                       this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl);
 
     this->nn->F = this->nn->forward(this->nn->inputs);
+    if (GlobalV::of_ml_feg != 3)
+    {
+        this->nn->F = torch::softplus(this->nn->F);
+    }
+
     if (GlobalV::of_ml_feg == 1)
     {
         this->nn->F = this->nn->F - this->feg_net_F + 1.;
@@ -223,6 +232,10 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     this->nn->F = this->nn->forward(this->nn->inputs);
     // cout << this->nn->inputs.grad();
     if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
+    if (GlobalV::of_ml_feg != 3)
+    {
+        this->nn->F = torch::softplus(this->nn->F);
+    }
 
     if (GlobalV::of_ml_feg == 1)
     {
@@ -263,6 +276,7 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     this->potTanhqTanhq_nlTerm(prho, pw_rho, tanhqtanhq_nlterm);
 
     double kinetic_pot = 0.;
+    int n_neg = 0;
     for (int ir = 0; ir < this->nx; ++ir)
     {
         kinetic_pot = this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
@@ -278,13 +292,18 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
         // {
         //     std::cout << "WARNING: enhancement factor < 0 !!  " << this->nn->F[ir][0].item<double>() << std::endl;
         // }
-        // if (kinetic_pot < 0)
-        // {
-        //     std::cout << "WARNING: pauli potential < 0 !!  " << kinetic_pot << std::endl;
-        // }
+        if (kinetic_pot < 0)
+        {
+            n_neg += 1;
+            // std::cout << "WARNING: pauli potential < 0 !!  " << kinetic_pot << std::endl;
+        }
         // rpotential(0, ir) += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
         //                     (5./3. * this->nn->F[ir].item<double>() + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir))
         //                     + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
+    }
+    if (n_neg > 0)
+    {
+        std::cout << "WARNING: pauli potential < 0 !!  " << n_neg << std::endl;
     }
 
     // get energy
@@ -314,6 +333,10 @@ void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF
         this->nn->F = this->nn->forward(this->nn->inputs);
         if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
         // start = clock();
+        if (GlobalV::of_ml_feg != 3)
+        {
+            this->nn->F = torch::softplus(this->nn->F);
+        }
 
         if (GlobalV::of_ml_feg == 1)
         {
@@ -388,9 +411,10 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/1_validation_set_bccAl/reference/rho.npy", cshape, fortran_order, temp_prho);
     // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", cshape, fortran_order, temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", temp_prho);
-    // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/1_ks/1_fccAl-2022-12-12/rho.npy", temp_prho);
+    this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/11_ks-pbe-chip0.2q0.1xi0.6-alpha2/1_fccAl-eq-2023-10-02/rho.npy", temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/1_ks/2_bccAl_27dim-2022-12-12/rho.npy", temp_prho);
-    this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/3_ks-pbe-newpara/1_fccAl-eq-2023-02-14/rho.npy", temp_prho);
+    // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/3_ks-pbe-newpara/1_fccAl-eq-2023-02-14/rho.npy", temp_prho);
+    // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/19_Li3Mg-mp-976254-eq-2023-03-20/rho.npy", temp_prho);
     double ** prho = new double *[1];
     prho[0] = new double[this->nx];
     for (int ir = 0; ir < this->nx; ++ir) prho[0][ir] = temp_prho[ir];
@@ -408,6 +432,10 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     this->nn->F = this->nn->forward(this->nn->inputs);
     if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
     // start = clock();
+    if (GlobalV::of_ml_feg != 3)
+    {
+        this->nn->F = torch::softplus(this->nn->F);
+    }
 
     if (GlobalV::of_ml_feg == 1)
     {

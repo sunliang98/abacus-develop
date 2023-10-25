@@ -171,6 +171,9 @@ public:
     int nnode = 10;
     int nlayer = 3;
 
+    // yukawa kernel
+    int kernel_type = 1;
+    double yukawa_alpha = 1.;
 public:
     bool check_pot = false;
 
@@ -274,6 +277,7 @@ private:
         std::vector<torch::Tensor> &fft_kernel
     );
     double MLkernel(double eta, double tf_weight = 1., double vw_weight = 1.);
+    double MLkernel_yukawa(double eta, double alpha);
 
 // ============= 4. train_pot.cpp ===============
 public:

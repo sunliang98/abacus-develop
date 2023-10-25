@@ -46,7 +46,17 @@ void ML_data::set_para(
     for (int ip = 0; ip < pw_rho->npw; ++ip)
     {
         eta = sqrt(pw_rho->gg[ip]) * pw_rho->tpiba / this->tkF;
-        this->kernel[ip] = this->MLkernel(eta, tf_weight, vw_weight);
+        if (GlobalV::of_ml_kernel == 1)
+        {
+            // ---------------- for nonlocality test ----------------
+            eta = eta * GlobalV::of_ml_yukawa_alpha;
+            // ------------------------------------------------------
+            this->kernel[ip] = std::pow(1. / GlobalV::of_ml_yukawa_alpha, 3) * this->MLkernel(eta, tf_weight, vw_weight);
+        }
+        else if (GlobalV::of_ml_kernel == 2)
+        {
+            this->kernel[ip] = this->MLkernel_yukawa(eta, GlobalV::of_ml_yukawa_alpha);
+        }
     }
 }
 
@@ -802,6 +812,11 @@ double ML_data::MLkernel(double eta, double tf_weight, double vw_weight)
         return 1. / (0.5 + 0.25 * (1. - eta * eta) / eta * log((1 + eta)/abs(1 - eta)))
                  - 3. * vw_weight * eta * eta - tf_weight;
     }
+}
+
+double ML_data::MLkernel_yukawa(double eta, double alpha)
+{
+    return (eta == 0 && alpha == 0) ? 0. : M_PI / (eta * eta + alpha * alpha / 4.);
 }
 
 void ML_data::multiKernel(double *pinput, ModulePW::PW_Basis *pw_rho, double *routput)

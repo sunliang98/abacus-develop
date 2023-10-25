@@ -266,6 +266,8 @@ bool of_ml_tanhq_nl = false;
 
 int of_ml_nnode = 10;
 int of_ml_nlayer = 3;
+int of_ml_kernel = 1;
+double of_ml_yukawa_alpha = 1.;
 
 // denghui added for device flag
 std::string device_flag = "unknown";

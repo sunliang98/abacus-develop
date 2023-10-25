@@ -56,8 +56,10 @@ struct NN_OFImpl:torch::nn::Module{
 
     torch::Tensor forward(torch::Tensor inpt);
 
-    torch::nn::Linear fc1{nullptr}, fc2{nullptr}, fc3{nullptr}, fc4{nullptr}, fc5{nullptr};
-    torch::nn::Linear fcs[5] = {fc1, fc2, fc3, fc4, fc5};
+    // torch::nn::Linear fc1{nullptr}, fc2{nullptr}, fc3{nullptr}, fc4{nullptr}, fc5{nullptr};
+    // torch::nn::Linear fcs[5] = {fc1, fc2, fc3, fc4, fc5};
+
+    torch::nn::Linear fc1{nullptr}, fc2{nullptr}, fc3{nullptr}, fc4{nullptr};
 
     torch::Tensor inputs;
     torch::Tensor F; // enhancement factor, output of NN

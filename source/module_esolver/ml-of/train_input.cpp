@@ -240,6 +240,14 @@ void Train::readInput()
         {
             this->read_value(ifs, this->nlayer);
         }
+        else if (strcmp("kernel_type", word) == 0)
+        {
+            this->read_value(ifs, this->kernel_type);
+        }
+        else if (strcmp("yukawa_alpha", word) == 0)
+        {
+            this->read_value(ifs, this->yukawa_alpha);
+        }
     }
     std::cout << "Read nnINPUT done" << std::endl;
 }

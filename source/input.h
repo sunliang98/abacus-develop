@@ -498,6 +498,8 @@ class Input
     // size of nn 2023-04-19
     int of_ml_nnode;    // number of node
     int of_ml_nlayer;   // number of layer
+    int of_ml_kernel;   // type of kernel, 1 for wt, 2 for yukawa
+    double of_ml_yukawa_alpha; // parameter alpha of yukawa kernel
 
     //==========================================================
     //    device control denghui added on 2022-11-15

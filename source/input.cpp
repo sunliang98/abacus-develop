@@ -508,6 +508,8 @@ void Input::Default(void)
     // size of nn 2023-04-19
     of_ml_nnode = 10;
     of_ml_nlayer = 3;
+    of_ml_kernel = 1;
+    of_ml_yukawa_alpha = 1.;
     //==========================================================
     //    OFDFT sunliang added on 2022-11-15
     //==========================================================
@@ -1905,6 +1907,14 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, of_ml_nlayer);
         }
+        else if (strcmp("of_ml_kernel", word) == 0)
+        {
+            read_value(ifs, of_ml_kernel);
+        }
+        else if (strcmp("of_ml_yukawa_alpha", word) == 0)
+        {
+            read_value(ifs, of_ml_yukawa_alpha);
+        }
         //----------------------------------------------------------------------------------
         //    device control denghui added on 2022-11-05
         //----------------------------------------------------------------------------------     
@@ -2719,6 +2729,8 @@ void Input::Bcast()
     Parallel_Common::bcast_bool(of_ml_tanhq_nl);
     Parallel_Common::bcast_int(of_ml_nnode);
     Parallel_Common::bcast_int(of_ml_nlayer);
+    Parallel_Common::bcast_int(of_ml_kernel);
+    Parallel_Common::bcast_double(of_ml_yukawa_alpha);
 
     return;
 }

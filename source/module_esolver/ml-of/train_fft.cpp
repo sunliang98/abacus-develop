@@ -132,7 +132,17 @@ void Train::fiilKernel_(
                 for (int iz = 0; iz < this->fftdim; ++iz)
                 {
                     eta = sqrt(fft_gg[it][ix][iy][iz].item<double>()) / tkF;
-                    fft_kernel[it][ix][iy][iz] = this->MLkernel(eta);
+                    if (this->kernel_type == 1)
+                    {
+                        // ---------------- for nonlocality test ----------------
+                        eta = eta * this->yukawa_alpha;
+                        // ------------------------------------------------------
+                        fft_kernel[it][ix][iy][iz] = std::pow(1. / this->yukawa_alpha, 3) * this->MLkernel(eta);
+                    }
+                    else if (this->kernel_type == 2)
+                    {
+                        fft_kernel[it][ix][iy][iz] = this->MLkernel_yukawa(eta, this->yukawa_alpha);
+                    }
                 }
             }
         }
@@ -184,4 +194,9 @@ double Train::MLkernel(double eta, double tf_weight, double vw_weight)
         return 1. / (0.5 + 0.25 * (1. - eta * eta) / eta * log((1 + eta)/abs(1 - eta)))
                  - 3. * vw_weight * eta * eta - tf_weight;
     }
+}
+
+double Train::MLkernel_yukawa(double eta, double alpha)
+{
+    return (eta == 0 && alpha == 0) ? 0. : M_PI / (eta * eta + alpha * alpha / 4.);
 }
