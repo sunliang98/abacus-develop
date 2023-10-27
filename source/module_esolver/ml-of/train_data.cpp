@@ -1,5 +1,5 @@
 #include "./train.h"
-#include "/home/dell/2_software/libnpy/libnpy/include/npy.hpp"
+#include "/home/xianyuer/data/1_sunliang/2_software/libnpy-old/include/npy.hpp"
 
 void Train::loadData()
 {
@@ -23,7 +23,7 @@ void Train::loadData()
                        this->xi_vali, this->tanhxi_vali, this->tanhxi_nl_vali, this->tanhp_vali, this->tanhq_vali,
                        this->tanh_pnl_vali, this->tanh_qnl_vali, this->tanhp_nl_vali, this->tanhq_nl_vali, 
                        this->enhancement_vali, this->enhancement_mean_vali, this->tau_mean_vali, this->pauli_vali, this->pauli_mean_vali);
-        this->input_vali = torch::zeros({this->nx_vali, this->ninput});
+        this->input_vali = torch::zeros({this->nx_vali, this->ninput}).to(device);
         if (this->nn_input_index["gamma"] >= 0)     this->input_vali.index({"...", this->nn_input_index["gamma"]})      = gamma_vali.reshape({this->nx_vali}).clone();
         if (this->nn_input_index["p"] >= 0)         this->input_vali.index({"...", this->nn_input_index["p"]})          = p_vali.reshape({this->nx_vali}).clone();
         if (this->nn_input_index["q"] >= 0)         this->input_vali.index({"...", this->nn_input_index["q"]})          = q_vali.reshape({this->nx_vali}).clone();
@@ -73,52 +73,52 @@ void Train::initData()
 
     this->ninput = 0;
 
-    this->rho = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->enhancement = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->enhancement_mean = torch::zeros(this->ntrain);
-    this->tau_mean = torch::zeros(this->ntrain);
-    this->pauli = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->pauli_mean = torch::zeros(this->ntrain);
-    this->gamma = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->p = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->nablaRho = torch::zeros({this->ntrain, 3, this->fftdim, this->fftdim, this->fftdim});
-    this->q = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->gammanl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->pnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->qnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->xi = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->tanhxi = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->tanhxi_nl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->tanhp = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->tanhq = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->tanh_pnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->tanh_qnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->tanhp_nl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
-    this->tanhq_nl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
+    this->rho = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->enhancement = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->enhancement_mean = torch::zeros(this->ntrain).to(device);
+    this->tau_mean = torch::zeros(this->ntrain).to(device);
+    this->pauli = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->pauli_mean = torch::zeros(this->ntrain).to(device);
+    this->gamma = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->p = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->nablaRho = torch::zeros({this->ntrain, 3, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->q = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->gammanl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->pnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->qnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->xi = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->tanhxi = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->tanhxi_nl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->tanhp = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->tanhq = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->tanh_pnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->tanh_qnl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->tanhp_nl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
+    this->tanhq_nl = torch::zeros({this->ntrain, this->fftdim, this->fftdim, this->fftdim}).to(device);
     if (this->nvalidation > 0)
     {
-        this->rho_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->enhancement_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->enhancement_mean_vali = torch::zeros(this->nvalidation);
-        this->tau_mean_vali = torch::zeros(this->nvalidation);
-        this->pauli_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->pauli_mean_vali = torch::zeros(this->nvalidation);
-        this->gamma_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->p_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->nablaRho_vali = torch::zeros({this->nvalidation, 3, this->fftdim, this->fftdim, this->fftdim});
-        this->q_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->gammanl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->pnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->qnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->xi_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->tanhxi_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->tanhxi_nl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->tanhp_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->tanhq_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->tanh_pnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->tanh_qnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->tanhp_nl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
-        this->tanhq_nl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim});
+        this->rho_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->enhancement_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->enhancement_mean_vali = torch::zeros(this->nvalidation).to(device);
+        this->tau_mean_vali = torch::zeros(this->nvalidation).to(device);
+        this->pauli_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->pauli_mean_vali = torch::zeros(this->nvalidation).to(device);
+        this->gamma_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->p_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->nablaRho_vali = torch::zeros({this->nvalidation, 3, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->q_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->gammanl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->pnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->qnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->xi_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->tanhxi_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->tanhxi_nl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->tanhp_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->tanhq_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->tanh_pnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->tanh_qnl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->tanhp_nl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
+        this->tanhq_nl_vali = torch::zeros({this->nvalidation, this->fftdim, this->fftdim, this->fftdim}).to(device);
     }
 
     // if (this->ml_gamma || this->ml_gammanl){
@@ -195,7 +195,7 @@ void Train::initData()
 
     if (this->feg_limit != 0)
     {
-        this->feg_inpt = torch::zeros(this->ninput);
+        this->feg_inpt = torch::zeros(this->ninput).to(device);
         if (this->ml_gamma) {
             this->feg_inpt[this->nn_input_index["gamma"]] = 1.;
             // this->feg_inpt[this->nn_input_index["gamma"]].requires_grad_(true);
@@ -216,8 +216,8 @@ void Train::initData()
         if (this->ml_tanhq_nl)  this->feg_inpt[this->nn_input_index["tanhq_nl"]] = 0.;
         // this->feg_inpt.requires_grad_(true);
 
-        this->feg_predict = torch::zeros(1);
-        this->feg_dFdgamma = torch::zeros(1);
+        this->feg_predict = torch::zeros(1).to(device);
+        this->feg_dFdgamma = torch::zeros(1).to(device);
     }
     std::cout << "feg_limit = " << this->feg_limit << std::endl;
 }

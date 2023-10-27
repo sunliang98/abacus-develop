@@ -21,6 +21,9 @@ public:
     void train();
     void dump();
 
+    // torch::Device device = torch::Device(torch::kCPU);
+    torch::Device device = torch::Device(torch::kCUDA);
+
     int nx = 1;
     int nx_train = 1;
     int nx_vali = 1;
@@ -441,28 +444,28 @@ private:
     const double pqcoef = 1.0 / (4.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0)); // coefficient of p and q
 };
 
-class OF_data : public torch::data::Dataset<OF_data>
-{
-private:
-    torch::Tensor input;
-    torch::Tensor target;
+// class OF_data : public torch::data::Dataset<OF_data>
+// {
+// private:
+//     torch::Tensor input;
+//     torch::Tensor target;
 
-public:
-    explicit OF_data(torch::Tensor &input, torch::Tensor &target)
-    {
-        this->input = input.clone();
-        this->target = target.clone();
-    }
+// public:
+//     explicit OF_data(torch::Tensor &input, torch::Tensor &target)
+//     {
+//         this->input = input.clone();
+//         this->target = target.clone();
+//     }
 
-    torch::data::Example<> get(size_t index) override 
-    {
-        return {this->input[index], this->target[index]};
-    }
+//     torch::data::Example<> get(size_t index) override 
+//     {
+//         return {this->input[index], this->target[index]};
+//     }
 
-    torch::optional<size_t> size() const override 
-    {
-        return this->input.size(0);
-    }
-};
+//     torch::optional<size_t> size() const override 
+//     {
+//         return this->input.size(0);
+//     }
+// };
 
 #endif

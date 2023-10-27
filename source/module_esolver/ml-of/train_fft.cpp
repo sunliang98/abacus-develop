@@ -49,7 +49,7 @@ void Train::initScRecipGrid(
 )
 {
     volume[index] = pow(a, 3);
-    torch::Tensor fre = torch::fft::fftfreq(fftdim, a/fftdim) * 2. * M_PI;
+    torch::Tensor fre = torch::fft::fftfreq(fftdim, a/fftdim).to(device) * 2. * M_PI;
     grid[index] = torch::meshgrid({fre, fre, fre});
     gg[index] = grid[index][0] * grid[index][0] + grid[index][1] * grid[index][1] + grid[index][2] * grid[index][2];
 }
@@ -67,7 +67,7 @@ void Train::initFccRecipGrid(
     volume[index] = pow(a, 3) / 4.;
     double coef = 1./sqrt(2.);
     // std::cout << "fftfreq" << std::endl;
-    torch::Tensor fre = torch::fft::fftfreq(fftdim, a * coef/fftdim) * 2. * M_PI;
+    torch::Tensor fre = torch::fft::fftfreq(fftdim, a * coef/fftdim).to(device) * 2. * M_PI;
     auto originalGrid = torch::meshgrid({fre, fre, fre});
     grid[index][0] = coef * (-originalGrid[0] + originalGrid[1] + originalGrid[2]);
     grid[index][1] = coef * (originalGrid[0] - originalGrid[1] + originalGrid[2]);
@@ -88,7 +88,7 @@ void Train::initBccRecipGrid(
 {
     volume[index] = pow(a, 3) / 2.;
     double coef = sqrt(3.)/2.;
-    torch::Tensor fre = torch::fft::fftfreq(fftdim, a * coef/fftdim) * 2. * M_PI;
+    torch::Tensor fre = torch::fft::fftfreq(fftdim, a * coef/fftdim).to(device) * 2. * M_PI;
     auto originalGrid = torch::meshgrid({fre, fre, fre});
     grid[index][0] = coef * (originalGrid[1] + originalGrid[2]);
     grid[index][1] = coef * (originalGrid[0] + originalGrid[2]);
@@ -124,7 +124,7 @@ void Train::fiilKernel_(
         rho0 = torch::sum(rho[it]).item<double>()/this->nx;
         std::cout << "There are " << rho0 * volume[it] << " electrons in " << cell[it] << " strcture." << std::endl;
         tkF = 2. * pow(3. * pow(M_PI, 2) * rho0, 1./3.);
-        fft_kernel[it] = torch::zeros({this->fftdim, this->fftdim, this->fftdim});
+        fft_kernel[it] = torch::zeros({this->fftdim, this->fftdim, this->fftdim}).to(device);
         for (int ix = 0; ix < this->fftdim; ++ix)
         {
             for (int iy = 0; iy < this->fftdim; ++iy)

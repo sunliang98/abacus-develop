@@ -5,9 +5,12 @@
 
 int main()
 {
+    std::cout << "Is cudnn available : " << torch::cuda::cudnn_is_available() << std::endl;
+
     torch::set_default_dtype(caffe2::TypeMeta::fromScalarType(torch::kDouble));
     auto output = torch::get_default_dtype();
     std::cout << "Default type: " << output << std::endl;
+
     // train test
     Train train;
     train.readInput();

@@ -1,7 +1,7 @@
 #include "./train.h"
 #include <sstream>
 #include <math.h>
-#include "time.h"
+#include <chrono>
 
 Train::~Train()
 {
@@ -19,7 +19,6 @@ void Train::init()
 {
     if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->setUpFFT();
     this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput, this->nnode, this->nlayer);
-    // this->nn->to(device);
     this->nn->setData(this->nn_input_index,
                       this->gamma.reshape({this->nx_train}),
                       this->p.reshape({this->nx_train}), 
@@ -36,7 +35,8 @@ void Train::init()
                       this->tanh_qnl.reshape({this->nx_train}),
                       this->tanhp_nl.reshape({this->nx_train}),
                       this->tanhq_nl.reshape({this->nx_train}));
-    // if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->nn->inputs.requires_grad_(true);
+    this->nn->to(device);
+    this->nn->inputs = this->nn->inputs.to(device);
 }
 
 torch::Tensor Train::lossFunction(torch::Tensor enhancement, torch::Tensor target, torch::Tensor coef)
@@ -54,17 +54,18 @@ void Train::train()
 {
     // time
     double tot = 0.;
+    double totF = 0.;
     double totFback = 0.;
     double totLoss = 0.;
     double totLback = 0.;
-    time_t start, startFB, startL, startLB, end, endFB, endL, endLB;
+    double totP = 0.;
+    double totStep = 0.;
+    std::chrono::_V2::system_clock::time_point start, startF, startFB, startL, startLB, startP, startStep, end, endF, endFB, endL, endLB, endP, endStep;
 
-    start = clock();
+    start = std::chrono::high_resolution_clock::now();
 
     std::cout << "========== Train begin ==========" << std::endl;
     torch::Tensor target = (this->loss=="energy") ? this->enhancement : this->pauli;
-    auto dataset = OF_data(this->nn->inputs, target).map(torch::data::transforms::Stack<>());
-    auto data_loader = torch::data::make_data_loader(dataset, this->nbatch);
     if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new")
     {
         this->pauli.resize_({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
@@ -87,29 +88,33 @@ void Train::train()
     torch::Tensor weight = torch::pow(this->rho, this->exponent/3.);
     for (size_t epoch = 1; epoch <= this->nepoch; ++epoch)
     {
-        size_t batch_index = 0;
-        for (auto& batch : *data_loader)
+        for (int batch_index = 0; batch_index < this->ntrain; ++batch_index)
         {
+        startF = std::chrono::high_resolution_clock::now();
+            // startF = std::chrono::high_resolution_clock::now();
             optimizer.zero_grad();
             if (this->loss == "energy")
             {
-                torch::Tensor prediction = this->nn->forward(batch.data);
-                startL = clock();
-                torch::Tensor loss = this->lossFunction(prediction, batch.target) * this->coef_e;
+                torch::Tensor inpt = torch::slice(this->nn->inputs, 0, batch_index*this->nx, (batch_index + 1)*this->nx);
+                inpt.requires_grad_(true);
+                torch::Tensor prediction = this->nn->forward(inpt);
+                startL = std::chrono::high_resolution_clock::now();
+                torch::Tensor loss = this->lossFunction(prediction, torch::slice(this->enhancement, 0, batch_index*this->nx, (batch_index + 1)*this->nx), this->enhancement_mean[batch_index]) * this->coef_e;
                 lossTrain = loss.item<double>();
-                endL = clock();
-                totLoss += endL - startL;
+                endL = std::chrono::high_resolution_clock::now();
+                totLoss += double(std::chrono::duration_cast<std::chrono::microseconds>(endL - startL).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
 
-                startLB = clock();
+                startLB = std::chrono::high_resolution_clock::now();
                 loss.backward();
-                endLB = clock();
-                totLback += endLB - startLB;
+                endLB = std::chrono::high_resolution_clock::now();
+                totLback += double(std::chrono::duration_cast<std::chrono::microseconds>(endLB - startLB).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
             }
             else if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new")
             {
                 torch::Tensor inpt = torch::slice(this->nn->inputs, 0, batch_index*this->nx, (batch_index + 1)*this->nx);
                 inpt.requires_grad_(true);
                 torch::Tensor prediction = this->nn->forward(inpt);
+
                 if (this->feg_limit != 3)
                 {
                     prediction = torch::softplus(prediction);
@@ -124,15 +129,16 @@ void Train::train()
                     if (this->feg_limit == 3 && epoch < this->change_step) prediction = torch::softplus(prediction);
                     if (this->feg_limit == 3 && epoch >= this->change_step)  prediction = torch::softplus(prediction - this->feg_predict + this->feg3_correct);
                 }
-                startFB = clock();
+                endF = std::chrono::high_resolution_clock::now();
+                totF += double(std::chrono::duration_cast<std::chrono::microseconds>(endF - startF).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
+
+                startFB = std::chrono::high_resolution_clock::now();
                 torch::Tensor gradient = torch::autograd::grad({prediction}, {inpt},
                                                            {torch::ones_like(prediction)}, true, true)[0];
-                // std::cout << gradient.requires_grad() << std::endl;
-                // gradient.requires_grad_(true);
-                endFB = clock();
-                totFback += endFB - startFB;
+                endFB = std::chrono::high_resolution_clock::now();
+                totFback += double(std::chrono::duration_cast<std::chrono::microseconds>(endFB - startFB).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
 
-                startL = clock();
+                startL = std::chrono::high_resolution_clock::now();
                 torch::Tensor pot = this->getPot(
                     this->rho[batch_index],
                     this->nablaRho[batch_index],
@@ -190,17 +196,18 @@ void Train::train()
                 }
 
                 lossTrain = loss.item<double>();
-                endL = clock();
-                totLoss += endL - startL;
+                endL = std::chrono::high_resolution_clock::now();
+                totLoss += double(std::chrono::duration_cast<std::chrono::microseconds>(endL - startL).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
                 
-                startLB = clock();
+                startLB = std::chrono::high_resolution_clock::now();
                 loss.backward();
-                endLB = clock();
-                totLback += endLB - startLB;
+                endLB = std::chrono::high_resolution_clock::now();
+                totLback += double(std::chrono::duration_cast<std::chrono::microseconds>(endLB - startLB).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
                 // this->dumpTensor(pot.reshape({this->nx}), "pot_fcc.npy", this->nx);
                 // this->dumpTensor(torch::slice(prediction, 0, batch_index*this->nx, (batch_index + 1)*this->nx).reshape({this->nx}), "F_fcc.npy", this->nx);
             }
             
+            startP = std::chrono::high_resolution_clock::now();
             if (epoch % this->print_fre == 0) {
                 if (this->nvalidation > 0)
                 {
@@ -225,9 +232,13 @@ void Train::train()
                 std::cout << "ERROR: too large loss: " << lossTrain << std::endl;
                 exit(0);
             }
-            optimizer.step();
+            endP = std::chrono::high_resolution_clock::now();
+            totP += double(std::chrono::duration_cast<std::chrono::microseconds>(endP - startP).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
 
-            batch_index += 1;
+            startStep = std::chrono::high_resolution_clock::now();
+            optimizer.step();
+            endStep = std::chrono::high_resolution_clock::now();
+            totStep += double(std::chrono::duration_cast<std::chrono::microseconds>(endStep - startStep).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
         }
         if (epoch % this->dump_fre == 0)
         {
@@ -243,25 +254,30 @@ void Train::train()
                 if(group.has_options())
                 {
                     auto &options = static_cast<torch::optim::SGDOptions &>(group.options());
-                    // options.lr(this->step_length * std::exp(epoch/30.));
                     options.lr(this->lr_start * std::exp(epoch/update_coef));
                 }
             }
         }
     }
-    end = clock();
-    tot = end - start;
+    end = std::chrono::high_resolution_clock::now();
+
+    tot = double(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
+
     std::cout << "=========== Done ============" << std::endl;
-    std::cout << std::setprecision(1) << "Item\t\t\tTime (s)\tPercentage (%)" << std::endl;
-    std::cout << "Total\t\t\t" << tot/1000000. << "\t\t" << tot/tot << std::endl;
-    std::cout << "Enhancement back\t" << totFback/1000000. << "\t\t" << totFback/tot << std::endl;
-    std::cout << "Loss function\t\t" << totLoss/1000000. << "\t\t" << totLoss/tot << std::endl;
-    std::cout << "Loss backward\t\t" << totLback/1000000. << "\t\t" << totLback/tot << std::endl;
+    std::cout << std::setprecision(2) << std::setiosflags(std::ios::fixed) << "Item\t\t\tTime (s)\tPercentage" << std::endl;
+    std::cout.unsetf(std::ios::scientific);
+    std::cout << "Total\t\t\t"          << tot      << "\t\t" << tot/tot * 100.        << " %" << std::endl;
+    std::cout << "Forward\t\t\t"        << totF     << "\t\t" << totF/tot * 100.       << " %" << std::endl;
+    std::cout << "Enhancement back\t"   << totFback << "\t\t" << totFback/tot * 100.   << " %" << std::endl;
+    std::cout << "Loss function\t\t"    << totLoss  << "\t\t" << totLoss/tot * 100.    << " %" << std::endl;
+    std::cout << "Loss backward\t\t"    << totLback << "\t\t" << totLback/tot * 100.   << " %" << std::endl;
+    std::cout << "Print\t\t\t"          << totP     << "\t\t" << totP/tot * 100.       << " %" << std::endl;
+    std::cout << "Step\t\t\t"           << totStep  << "\t\t" << totStep/tot * 100.    << " %" << std::endl;
 }
 
 void Train::potTest()
 {
-    time_t start, end;
+    std::chrono::_V2::system_clock::time_point start, end;
     if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->setUpFFT();
     this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput, this->nnode, this->nlayer);
     torch::load(this->nn, "net.pt");
@@ -285,11 +301,10 @@ void Train::potTest()
     this->nn->inputs.requires_grad_(true);
 
     torch::Tensor target = (this->loss=="energy") ? this->enhancement : this->pauli;
-    auto dataset = OF_data(this->nn->inputs, target).map(torch::data::transforms::Stack<>());
-    auto data_loader = torch::data::make_data_loader(dataset, this->nbatch);
+
     if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->pauli.resize_({this->ntrain, this->fftdim, this->fftdim, this->fftdim});
 
-    for (auto& batch : *data_loader)
+    for (int batch_index = 0; batch_index < this->ntrain; ++batch_index)
     {
         for (int ii = 0; ii < 1; ++ii)
         {
@@ -313,11 +328,11 @@ void Train::potTest()
                 if (this->feg_limit == 3) prediction = torch::softplus(prediction - this->feg_predict + this->feg3_correct);
             }
 
-            start = clock();
+            start = std::chrono::high_resolution_clock::now();
             torch::Tensor gradient = torch::autograd::grad({prediction}, {inpts},
                                                     {torch::ones_like(prediction)}, true, true)[0];
-            end = clock();
-            std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
+            end = std::chrono::high_resolution_clock::now();
+            std::cout << "spend " << double(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den << " s" << std::endl;
             
             std::cout << "begin potential" << std::endl;
             torch::Tensor tauTF = this->cTF * torch::pow(rho, 5./3.);
