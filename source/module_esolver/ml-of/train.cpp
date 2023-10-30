@@ -18,7 +18,7 @@ Train::~Train()
 void Train::init()
 {
     if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->setUpFFT();
-    this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput, this->nnode, this->nlayer);
+    this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput, this->nnode, this->nlayer, this->device);
     this->nn->setData(this->nn_input_index,
                       this->gamma.reshape({this->nx_train}),
                       this->p.reshape({this->nx_train}), 
@@ -35,8 +35,6 @@ void Train::init()
                       this->tanh_qnl.reshape({this->nx_train}),
                       this->tanhp_nl.reshape({this->nx_train}),
                       this->tanhq_nl.reshape({this->nx_train}));
-    this->nn->to(device);
-    this->nn->inputs = this->nn->inputs.to(device);
 }
 
 torch::Tensor Train::lossFunction(torch::Tensor enhancement, torch::Tensor target, torch::Tensor coef)
@@ -276,7 +274,7 @@ void Train::potTest()
 {
     std::chrono::_V2::system_clock::time_point start, end;
     if (this->loss == "potential" || this->loss == "both" || this->loss == "both_new") this->setUpFFT();
-    this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput, this->nnode, this->nlayer);
+    this->nn = std::make_shared<NN_OFImpl>(this->nx_train, this->ninput, this->nnode, this->nlayer, this->device);
     torch::load(this->nn, "net.pt");
 
     this->nn->setData(this->nn_input_index,

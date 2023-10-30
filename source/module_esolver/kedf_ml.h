@@ -135,6 +135,11 @@ public:
     // plan 2
     std::vector<double> tanhp_nl;
     std::vector<double> tanhq_nl;
+    // GPU
+    torch::Device device = torch::Device(torch::kCPU);
+    // torch::Device device = torch::Device(torch::kCUDA);
 
     std::shared_ptr<NN_OFImpl> nn;
+    double* temp_F = nullptr;
+    double* temp_gradient = nullptr;
 };

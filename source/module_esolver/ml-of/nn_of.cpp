@@ -1,6 +1,6 @@
 #include "nn_of.h"
 
-NN_OFImpl::NN_OFImpl(int nrxx, int ninpt, int nnode, int nlayer)
+NN_OFImpl::NN_OFImpl(int nrxx, int ninpt, int nnode, int nlayer, torch::Device device)
 {
     this->nrxx = nrxx;
     this->ninpt = ninpt;
@@ -10,10 +10,10 @@ NN_OFImpl::NN_OFImpl(int nrxx, int ninpt, int nnode, int nlayer)
     std::cout << "nlayer = " << this->nlayer << std::endl;
     this->nfc = nlayer + 1;
 
-    this->inputs = torch::zeros({this->nrxx, this->ninpt});
-    this->F = torch::zeros({this->nrxx, 1});
-    this->gradient = torch::zeros({this->nrxx, this->ninpt});
-    this->potential = torch::zeros({this->nrxx, 1});
+    this->inputs = torch::zeros({this->nrxx, this->ninpt}).to(device);
+    this->F = torch::zeros({this->nrxx, 1}).to(device);
+    // this->gradient = torch::zeros({this->nrxx, this->ninpt}).to(device);
+    // this->potential = torch::zeros({this->nrxx, 1}).to(device);
 
 
     // int ni = nnode;
@@ -40,6 +40,8 @@ NN_OFImpl::NN_OFImpl(int nrxx, int ninpt, int nnode, int nlayer)
     // fc2 = register_module("fc2", torch::nn::Linear(15, 15));
     // fc3 = register_module("fc3", torch::nn::Linear(15, 15));
     // fc4 = register_module("fc4", torch::nn::Linear(15, 1));
+
+    this->to(device);
 }
 
 void NN_OFImpl::setData(

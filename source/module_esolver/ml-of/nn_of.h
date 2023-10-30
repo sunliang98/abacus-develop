@@ -9,7 +9,8 @@ struct NN_OFImpl:torch::nn::Module{
         int nrxx, 
         int ninpt, 
         int nnode,
-        int nlayer
+        int nlayer,
+        torch::Device device
         );
     ~NN_OFImpl()
     {
@@ -63,8 +64,8 @@ struct NN_OFImpl:torch::nn::Module{
 
     torch::Tensor inputs;
     torch::Tensor F; // enhancement factor, output of NN
-    torch::Tensor gradient;
-    torch::Tensor potential;
+    // torch::Tensor gradient;
+    // torch::Tensor potential;
 
     int nrxx = 10;
     int ninpt = 6;
