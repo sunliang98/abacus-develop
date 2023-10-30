@@ -248,6 +248,30 @@ void Train::readInput()
         {
             this->read_value(ifs, this->yukawa_alpha);
         }
+        else if (strcmp("device_type", word) == 0)
+        {
+            this->read_value(ifs, this->device_type);
+        }
     }
+
     std::cout << "Read nnINPUT done" << std::endl;
+    if (this->device_type == "cpu")
+    {
+        std::cout << "---------- Running on CPU ----------" << std::endl;
+        this->device = torch::Device(torch::kCPU);
+    }
+    else if (this->device_type == "gpu")
+    {
+        if (torch::cuda::cudnn_is_available())
+        {
+            std::cout << "---------- Running on GPU ----------" << std::endl;
+            this->device = torch::Device(torch::kCUDA);
+        }
+        else
+        {
+            std::cout << "---- Warning: GPU is unaviable -----" << std::endl;
+            std::cout << "---------- Running on CPU ----------" << std::endl;
+            this->device = torch::Device(torch::kCPU);
+        }
+    }
 }

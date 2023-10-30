@@ -21,15 +21,12 @@ public:
     void train();
     void dump();
 
-    // torch::Device device = torch::Device(torch::kCPU);
     torch::Device device = torch::Device(torch::kCUDA);
 
     int nx = 1;
     int nx_train = 1;
     int nx_vali = 1;
     int ninput = 6;
-
-    // torch::Device device = torch::Device(torch::kCUDA);
 
     //----------- training set -----------
     torch::Tensor rho;
@@ -177,6 +174,9 @@ public:
     // yukawa kernel
     int kernel_type = 1;
     double yukawa_alpha = 1.;
+
+    // GPU
+    std::string device_type = "gpu";
 public:
     bool check_pot = false;
 
