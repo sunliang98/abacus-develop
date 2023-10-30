@@ -200,20 +200,20 @@ void Train::initData()
             this->feg_inpt[this->nn_input_index["gamma"]] = 1.;
             // this->feg_inpt[this->nn_input_index["gamma"]].requires_grad_(true);
         }
-        if (this->ml_p) this->feg_inpt[this->nn_input_index["p"]] = 0.;
-        if (this->ml_q) this->feg_inpt[this->nn_input_index["q"]] = 0.;
-        if (this->ml_gammanl) this->feg_inpt[this->nn_input_index["gammanl"]] = 0.;
-        if (this->ml_pnl) this->feg_inpt[this->nn_input_index["pnl"]] = 0.;
-        if (this->ml_qnl) this->feg_inpt[this->nn_input_index["qnl"]] = 0.;
-        if (this->ml_xi)    this->feg_inpt[this->nn_input_index["xi"]] = 0.;
-        if (this->ml_tanhxi)    this->feg_inpt[this->nn_input_index["tanhxi"]] = 0.;
+        if (this->ml_p)         this->feg_inpt[this->nn_input_index["p"]]         = 0.;
+        if (this->ml_q)         this->feg_inpt[this->nn_input_index["q"]]         = 0.;
+        if (this->ml_gammanl)   this->feg_inpt[this->nn_input_index["gammanl"]]   = 0.;
+        if (this->ml_pnl)       this->feg_inpt[this->nn_input_index["pnl"]]       = 0.;
+        if (this->ml_qnl)       this->feg_inpt[this->nn_input_index["qnl"]]       = 0.;
+        if (this->ml_xi)        this->feg_inpt[this->nn_input_index["xi"]]        = 0.;
+        if (this->ml_tanhxi)    this->feg_inpt[this->nn_input_index["tanhxi"]]    = 0.;
         if (this->ml_tanhxi_nl) this->feg_inpt[this->nn_input_index["tanhxi_nl"]] = 0.;
-        if (this->ml_tanhp) this->feg_inpt[this->nn_input_index["tanhp"]] = 0.;
-        if (this->ml_tanhq) this->feg_inpt[this->nn_input_index["tanhq"]] = 0.;
-        if (this->ml_tanh_pnl)  this->feg_inpt[this->nn_input_index["tanh_pnl"]] = 0.;
-        if (this->ml_tanh_qnl)  this->feg_inpt[this->nn_input_index["tanh_qnl"]] = 0.;
-        if (this->ml_tanhp_nl)  this->feg_inpt[this->nn_input_index["tanhp_nl"]] = 0.;
-        if (this->ml_tanhq_nl)  this->feg_inpt[this->nn_input_index["tanhq_nl"]] = 0.;
+        if (this->ml_tanhp)     this->feg_inpt[this->nn_input_index["tanhp"]]     = 0.;
+        if (this->ml_tanhq)     this->feg_inpt[this->nn_input_index["tanhq"]]     = 0.;
+        if (this->ml_tanh_pnl)  this->feg_inpt[this->nn_input_index["tanh_pnl"]]  = 0.;
+        if (this->ml_tanh_qnl)  this->feg_inpt[this->nn_input_index["tanh_qnl"]]  = 0.;
+        if (this->ml_tanhp_nl)  this->feg_inpt[this->nn_input_index["tanhp_nl"]]  = 0.;
+        if (this->ml_tanhq_nl)  this->feg_inpt[this->nn_input_index["tanhq_nl"]]  = 0.;
         // this->feg_inpt.requires_grad_(true);
 
         this->feg_predict = torch::zeros(1).to(device);

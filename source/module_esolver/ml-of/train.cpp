@@ -90,8 +90,8 @@ void Train::train()
     {
         for (int batch_index = 0; batch_index < this->ntrain; ++batch_index)
         {
-        startF = std::chrono::high_resolution_clock::now();
-            // startF = std::chrono::high_resolution_clock::now();
+            startF = std::chrono::high_resolution_clock::now();
+
             optimizer.zero_grad();
             if (this->loss == "energy")
             {
@@ -173,10 +173,7 @@ void Train::train()
                     lossE = loss.item<double>() - lossPot;
                 }
                 if (this->feg_limit != 0)
-                // if (this->feg_limit != 0 && this->feg_limit != 3)
                 {
-                    // loss = loss + torch::pow(this->feg_dFdgamma, 2) * this->coef_feg_p;
-                    // lossFEG_pot = loss.item<double>() - (lossPot + lossE);
                     if (this->feg_limit == 1 || this->feg_limit == 2)
                     {
                         loss = loss + torch::pow(this->feg_predict - 1., 2) * this->coef_feg_e;
