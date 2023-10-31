@@ -156,7 +156,7 @@ void KEDF_ML::set_para(
         std::cout << "load net done" << std::endl;
         if (GlobalV::of_ml_feg != 0)
         {
-            torch::Tensor feg_inpt = torch::zeros(this->ninput).to(this->device);
+            torch::Tensor feg_inpt = torch::zeros(this->ninput, this->device_type);
             if (GlobalV::of_ml_gamma) feg_inpt[this->nn_input_index["gamma"]] = 1.;
             if (GlobalV::of_ml_p) feg_inpt[this->nn_input_index["p"]] = 0.;
             if (GlobalV::of_ml_q) feg_inpt[this->nn_input_index["q"]] = 0.;
@@ -201,13 +201,13 @@ double KEDF_ML::get_energy(const double * const * prho, ModulePW::PW_Basis *pw_r
 
     this->NN_forward(prho, pw_rho, false);
     
-    torch::Tensor ff = this->nn->F.to(this->device_CPU).contiguous();
-    this->temp_F = ff.data_ptr<double>();
+    torch::Tensor enhancement_cpu_tensor = this->nn->F.to(this->device_CPU).contiguous();
+    this->enhancement_cpu_ptr = enhancement_cpu_tensor.data_ptr<double>();
 
     double energy = 0.;
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        energy += temp_F[ir] * pow(prho[0][ir], 5./3.);
+        energy += enhancement_cpu_ptr[ir] * pow(prho[0][ir], 5./3.);
     }
     cout << "energy" << energy << endl;
     energy *= this->dV * this->cTF;
@@ -222,74 +222,19 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
 
     this->NN_forward(prho, pw_rho, true);
     
-    torch::Tensor ff = this->nn->F.to(this->device_CPU).contiguous();
-    this->temp_F = ff.data_ptr<double>();
-    torch::Tensor gg = this->nn->inputs.grad().to(this->device_CPU).contiguous();
-    this->temp_gradient = gg.data_ptr<double>();
+    torch::Tensor enhancement_cpu_tensor = this->nn->F.to(this->device_CPU).contiguous();
+    this->enhancement_cpu_ptr = enhancement_cpu_tensor.data_ptr<double>();
+    torch::Tensor gradient_cpu_tensor = this->nn->inputs.grad().to(this->device_CPU).contiguous();
+    this->gradient_cpu_ptr = gradient_cpu_tensor.data_ptr<double>();
     // std::cout << "F" << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
-    // this->temp_F = this->nn->F.to(this->device_CPU).contiguous().data_ptr<double>();
+    // this->enhancement_cpu_ptr = this->nn->F.to(this->device_CPU).contiguous().data_ptr<double>();
     // std::cout << "F_CPU" << torch::slice(this->nn->F.to(this->device_CPU), 0, 0, 10) << std::endl;
-    // std::cout << "F_CPU_cont" << torch::slice(ff, 0, 0, 10) << std::endl;
-    // std::cout << "temp_F" << std::endl;
-    // for (int i = 0; i < 10; ++i) std::cout << temp_F[i] << "\t";
+    // std::cout << "F_CPU_cont" << torch::slice(enhancement_cpu_tensor, 0, 0, 10) << std::endl;
+    // std::cout << "enhancement_cpu_ptr" << std::endl;
+    // for (int i = 0; i < 10; ++i) std::cout << enhancement_cpu_ptr[i] << "\t";
     // std::cout << std::endl;
 
-    // get potential
-    ModuleBase::timer::tick("KEDF_ML", "Pauli Potential");
-    // cout << "begin potential" << endl;
-    std::vector<double> gammanlterm(this->nx, 0.);
-    std::vector<double> xinlterm(this->nx, 0.);
-    std::vector<double> tanhxinlterm(this->nx, 0.);
-    std::vector<double> tanhxi_nlterm(this->nx, 0.);
-    std::vector<double> ppnlterm(this->nx, 0.);
-    std::vector<double> qqnlterm(this->nx, 0.);
-    std::vector<double> tanhptanh_pnlterm(this->nx, 0.);
-    std::vector<double> tanhqtanh_qnlterm(this->nx, 0.);
-    std::vector<double> tanhptanhp_nlterm(this->nx, 0.);
-    std::vector<double> tanhqtanhq_nlterm(this->nx, 0.);
-
-    this->potGammanlTerm(prho, pw_rho, gammanlterm);
-    this->potXinlTerm(prho, pw_rho, xinlterm);
-    this->potTanhxinlTerm(prho, pw_rho, tanhxinlterm);
-    this->potTanhxi_nlTerm(prho, pw_rho, tanhxi_nlterm);
-    this->potPPnlTerm(prho, pw_rho, ppnlterm);
-    this->potQQnlTerm(prho, pw_rho, qqnlterm);
-    this->potTanhpTanh_pnlTerm(prho, pw_rho, tanhptanh_pnlterm);
-    this->potTanhqTanh_qnlTerm(prho, pw_rho, tanhqtanh_qnlterm);
-    this->potTanhpTanhp_nlTerm(prho, pw_rho, tanhptanhp_nlterm);
-    this->potTanhqTanhq_nlTerm(prho, pw_rho, tanhqtanhq_nlterm);
-
-    double kinetic_pot = 0.;
-    int n_neg = 0;
-    for (int ir = 0; ir < this->nx; ++ir)
-    {
-        kinetic_pot = this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
-                      (5./3. * this->temp_F[ir] + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir)
-                      + this->potXiTerm1(ir) + this->potTanhxiTerm1(ir) + this->potTanhpTerm1(ir) + this->potTanhqTerm1(ir))
-                      + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir]
-                      + xinlterm[ir] + tanhxinlterm[ir] + tanhxi_nlterm[ir]
-                      + tanhptanh_pnlterm[ir] + tanhqtanh_qnlterm[ir]
-                      + tanhptanhp_nlterm[ir] + tanhqtanhq_nlterm[ir];
-        rpotential(0, ir) += kinetic_pot;
-
-        // if (this->temp_F[ir] < 0)
-        // {
-        //     std::cout << "WARNING: enhancement factor < 0 !!  " << this->temp_F[ir] << std::endl;
-        // }
-        if (kinetic_pot < 0)
-        {
-            n_neg += 1;
-            // std::cout << "WARNING: pauli potential < 0 !!  " << kinetic_pot << std::endl;
-        }
-        // rpotential(0, ir) += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
-        //                     (5./3. * this->temp_F[ir] + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir))
-        //                     + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
-    }
-    if (n_neg > 0)
-    {
-        std::cout << "WARNING: pauli potential < 0 !!  " << n_neg << std::endl;
-    }
-    ModuleBase::timer::tick("KEDF_ML", "Pauli Potential");
+    this->get_potential_(prho, pw_rho, rpotential);
 
     // get energy
     ModuleBase::timer::tick("KEDF_ML", "Pauli Energy");
@@ -297,7 +242,7 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     for (int ir = 0; ir < this->nx; ++ir)
     {
         // energy += this->nn->F[ir].item<double>() * pow(prho[0][ir], 5./3.);
-        energy += temp_F[ir] * pow(prho[0][ir], 5./3.);
+        energy += enhancement_cpu_ptr[ir] * pow(prho[0][ir], 5./3.);
     }
     energy *= this->dV * this->cTF;
     this->MLenergy = energy;
@@ -314,56 +259,22 @@ void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF
 
         this->NN_forward(prho, pw_rho, true);
         
-        torch::Tensor ff = this->nn->F.to(this->device_CPU).contiguous();
-        this->temp_F = ff.data_ptr<double>();
-        torch::Tensor gg = this->nn->inputs.grad().to(this->device_CPU).contiguous();
-        this->temp_gradient = gg.data_ptr<double>();
+        torch::Tensor enhancement_cpu_tensor = this->nn->F.to(this->device_CPU).contiguous();
+        this->enhancement_cpu_ptr = enhancement_cpu_tensor.data_ptr<double>();
+        torch::Tensor gradient_cpu_tensor = this->nn->inputs.grad().to(this->device_CPU).contiguous();
+        this->gradient_cpu_ptr = gradient_cpu_tensor.data_ptr<double>();
 
         // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
         // std::cout << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
 
         torch::Tensor enhancement = this->nn->F.reshape({this->nx});
-        torch::Tensor potential = torch::zeros_like(enhancement);
+        ModuleBase::matrix potential(1, this->nx);
+        // torch::Tensor potential = torch::zeros_like(enhancement);
 
-        // get potential
-        std::vector<double> gammanlterm(this->nx, 0.);
-        std::vector<double> xinlterm(this->nx, 0.);
-        std::vector<double> tanhxinlterm(this->nx, 0.);
-        std::vector<double> tanhxi_nlterm(this->nx, 0.);
-        std::vector<double> ppnlterm(this->nx, 0.);
-        std::vector<double> qqnlterm(this->nx, 0.);
-        std::vector<double> tanhptanh_pnlterm(this->nx, 0.);
-        std::vector<double> tanhqtanh_qnlterm(this->nx, 0.);
-        std::vector<double> tanhptanhp_nlterm(this->nx, 0.);
-        std::vector<double> tanhqtanhq_nlterm(this->nx, 0.);
+        this->get_potential_(prho, pw_rho, potential);
 
-        this->potGammanlTerm(prho, pw_rho, gammanlterm);
-        this->potXinlTerm(prho, pw_rho, xinlterm);
-        this->potTanhxinlTerm(prho, pw_rho, tanhxinlterm);
-        this->potTanhxi_nlTerm(prho, pw_rho, tanhxi_nlterm);
-        this->potPPnlTerm(prho, pw_rho, ppnlterm);
-        this->potQQnlTerm(prho, pw_rho, qqnlterm);
-        this->potTanhpTanh_pnlTerm(prho, pw_rho, tanhptanh_pnlterm);
-        this->potTanhqTanh_qnlTerm(prho, pw_rho, tanhqtanh_qnlterm);
-        this->potTanhpTanhp_nlTerm(prho, pw_rho, tanhptanhp_nlterm);
-        this->potTanhqTanhq_nlTerm(prho, pw_rho, tanhqtanhq_nlterm);
-
-        // sum over
-        for (int ir = 0; ir < this->nx; ++ir)
-        {
-            // potential[ir] += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
-            //                     (5./3. * this->temp_F[ir] + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir))
-            //                     + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
-            potential[ir] += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
-                            (5./3. * this->temp_F[ir] + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir)
-                            + this->potXiTerm1(ir) + this->potTanhxiTerm1(ir) + this->potTanhpTerm1(ir) + this->potTanhqTerm1(ir))
-                            + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir]
-                            + xinlterm[ir] + tanhxinlterm[ir] + tanhxi_nlterm[ir]
-                            + tanhptanh_pnlterm[ir] + tanhqtanh_qnlterm[ir]
-                            + tanhptanhp_nlterm[ir] + tanhqtanhq_nlterm[ir];
-        }
         this->dumpTensor(enhancement, "enhancement.npy");
-        this->dumpTensor(potential, "potential.npy");
+        this->dumpMatrix(potential, "potential.npy");
     }
 }
 
@@ -392,56 +303,21 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
 
     this->NN_forward(prho, pw_rho, true);
     
-    torch::Tensor ff = this->nn->F.to(this->device_CPU).contiguous();
-    this->temp_F = ff.data_ptr<double>();
-    torch::Tensor gg = this->nn->inputs.grad().to(this->device_CPU).contiguous();
-    this->temp_gradient = gg.data_ptr<double>();
+    torch::Tensor enhancement_cpu_tensor = this->nn->F.to(this->device_CPU).contiguous();
+    this->enhancement_cpu_ptr = enhancement_cpu_tensor.data_ptr<double>();
+    torch::Tensor gradient_cpu_tensor = this->nn->inputs.grad().to(this->device_CPU).contiguous();
+    this->gradient_cpu_ptr = gradient_cpu_tensor.data_ptr<double>();
 
     // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
     // std::cout << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
 
     torch::Tensor enhancement = this->nn->F.reshape({this->nx});
-    torch::Tensor potential = torch::zeros_like(enhancement);
+    ModuleBase::matrix potential(1, this->nx);
 
-    // get potential
-    std::vector<double> gammanlterm(this->nx, 0.);
-    std::vector<double> xinlterm(this->nx, 0.);
-    std::vector<double> tanhxinlterm(this->nx, 0.);
-    std::vector<double> tanhxi_nlterm(this->nx, 0.);
-    std::vector<double> ppnlterm(this->nx, 0.);
-    std::vector<double> qqnlterm(this->nx, 0.);
-    std::vector<double> tanhptanh_pnlterm(this->nx, 0.);
-    std::vector<double> tanhqtanh_qnlterm(this->nx, 0.);
-    std::vector<double> tanhptanhp_nlterm(this->nx, 0.);
-    std::vector<double> tanhqtanhq_nlterm(this->nx, 0.);
+    this->get_potential_(prho, pw_rho, potential);
 
-    this->potGammanlTerm(prho, pw_rho, gammanlterm);
-    this->potXinlTerm(prho, pw_rho, xinlterm);
-    this->potTanhxinlTerm(prho, pw_rho, tanhxinlterm);
-    this->potTanhxi_nlTerm(prho, pw_rho, tanhxi_nlterm);
-    this->potPPnlTerm(prho, pw_rho, ppnlterm);
-    this->potQQnlTerm(prho, pw_rho, qqnlterm);
-    this->potTanhpTanh_pnlTerm(prho, pw_rho, tanhptanh_pnlterm);
-    this->potTanhqTanh_qnlTerm(prho, pw_rho, tanhqtanh_qnlterm);
-    this->potTanhpTanhp_nlTerm(prho, pw_rho, tanhptanhp_nlterm);
-    this->potTanhqTanhq_nlTerm(prho, pw_rho, tanhqtanhq_nlterm);
-
-    // sum over
-    for (int ir = 0; ir < this->nx; ++ir)
-    {
-        // potential[ir] += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
-        //                     (5./3. * this->temp_F[ir] + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir))
-        //                     + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
-        potential[ir] += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
-                         (5./3. * this->temp_F[ir] + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir)
-                        + this->potXiTerm1(ir) + this->potTanhxiTerm1(ir) + this->potTanhpTerm1(ir) + this->potTanhqTerm1(ir))
-                        + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir]
-                        + xinlterm[ir] + tanhxinlterm[ir] + tanhxi_nlterm[ir]
-                        + tanhptanh_pnlterm[ir] + tanhqtanh_qnlterm[ir]
-                        + tanhptanhp_nlterm[ir] + tanhqtanhq_nlterm[ir];
-    }
     this->dumpTensor(enhancement, "enhancement-abacus.npy");
-    this->dumpTensor(potential, "potential-abacus.npy");
+    this->dumpMatrix(potential, "potential-abacus.npy");
     exit(0);
 }
 
@@ -475,7 +351,8 @@ void KEDF_ML::NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho
     this->nn->zero_grad();
     this->nn->inputs.requires_grad_(false);
     this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl,
-                      this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl, this->device);
+                      this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl,
+                      this->device_type);
     this->nn->inputs.requires_grad_(true);
 
     this->nn->F = this->nn->forward(this->nn->inputs);    
@@ -508,6 +385,14 @@ void KEDF_ML::dumpTensor(const torch::Tensor &data, std::string filename)
     std::cout << "Dumping " << filename << std::endl;
     torch::Tensor data_cpu = data.to(this->device_CPU).contiguous();
     std::vector<double> v(data_cpu.data_ptr<double>(), data_cpu.data_ptr<double>() + data_cpu.numel());
+    // for (int ir = 0; ir < this->nx; ++ir) assert(v[ir] == data[ir].item<double>());
+    this->ml_data->dumpVector(filename, v);
+}
+
+void KEDF_ML::dumpMatrix(const ModuleBase::matrix &data, std::string filename)
+{
+    std::cout << "Dumping " << filename << std::endl;
+    std::vector<double> v(data.c, data.c + this->nx);
     // for (int ir = 0; ir < this->nx; ++ir) assert(v[ir] == data[ir].item<double>());
     this->ml_data->dumpVector(filename, v);
 }

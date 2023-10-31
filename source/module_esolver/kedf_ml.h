@@ -17,14 +17,12 @@ class KEDF_ML
 public:
     KEDF_ML()
     {
-        // this->kernel = NULL;
         this->ml_data = new ML_data;
         // this->stress.create(3,3);
     }
     ~KEDF_ML()
     {
         delete[] this->ml_data;
-        // if (this->kernel != NULL) delete[] this->kernel;
     }
 
     void set_para(
@@ -70,6 +68,8 @@ public:
     // interface to NN
     void NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho, bool cal_grad);
 
+    void get_potential_(const double * const * prho, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential);
+
     // potentials
     double potGammaTerm(int ir);
     double potPTerm1(int ir);
@@ -94,6 +94,7 @@ public:
     // void Laplacian(double * pinput, ModulePW::PW_Basis *pw_rho, double * routput);
     // void divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * routput);
     void dumpTensor(const torch::Tensor &data, std::string filename);
+    void dumpMatrix(const ModuleBase::matrix &data, std::string filename);
     void updateInput(const double * const * prho, ModulePW::PW_Basis *pw_rho);
 
     ML_data *ml_data = nullptr;
@@ -147,6 +148,6 @@ public:
     torch::Device device_CPU = torch::Device(torch::kCPU);
 
     std::shared_ptr<NN_OFImpl> nn;
-    double* temp_F = nullptr;
-    double* temp_gradient = nullptr;
+    double* enhancement_cpu_ptr = nullptr;
+    double* gradient_cpu_ptr = nullptr;
 };

@@ -61,24 +61,24 @@ void NN_OFImpl::setData(
     std::vector<double> &tanh_qnl,
     std::vector<double> &tanhp_nl,
     std::vector<double> &tanhq_nl,
-    torch::Device device
+    torch::DeviceType device_type
 )
 {
-    if (input_index["gamma"] >= 0)     this->inputs.index({"...", input_index["gamma"]})     = torch::tensor(gamma).to(device);
-    if (input_index["p"] >= 0)         this->inputs.index({"...", input_index["p"]})         = torch::tensor(p).to(device);
-    if (input_index["q"] >= 0)         this->inputs.index({"...", input_index["q"]})         = torch::tensor(q).to(device);
-    if (input_index["gammanl"] >= 0)   this->inputs.index({"...", input_index["gammanl"]})   = torch::tensor(gammanl).to(device);
-    if (input_index["pnl"] >= 0)       this->inputs.index({"...", input_index["pnl"]})       = torch::tensor(pnl).to(device);
-    if (input_index["qnl"] >= 0)       this->inputs.index({"...", input_index["qnl"]})       = torch::tensor(qnl).to(device);
-    if (input_index["xi"] >= 0)        this->inputs.index({"...", input_index["xi"]})        = torch::tensor(xi).to(device);
-    if (input_index["tanhxi"] >= 0)    this->inputs.index({"...", input_index["tanhxi"]})    = torch::tensor(tanhxi).to(device);
-    if (input_index["tanhxi_nl"] >= 0) this->inputs.index({"...", input_index["tanhxi_nl"]}) = torch::tensor(tanhxi_nl).to(device);
-    if (input_index["tanhp"] >= 0)     this->inputs.index({"...", input_index["tanhp"]})     = torch::tensor(tanhp).to(device);
-    if (input_index["tanhq"] >= 0)     this->inputs.index({"...", input_index["tanhq"]})     = torch::tensor(tanhq).to(device);
-    if (input_index["tanh_pnl"] >= 0)  this->inputs.index({"...", input_index["tanh_pnl"]})  = torch::tensor(tanh_pnl).to(device);
-    if (input_index["tanh_qnl"] >= 0)  this->inputs.index({"...", input_index["tanh_qnl"]})  = torch::tensor(tanh_qnl).to(device);
-    if (input_index["tanhp_nl"] >= 0)  this->inputs.index({"...", input_index["tanhp_nl"]})  = torch::tensor(tanhp_nl).to(device);
-    if (input_index["tanhq_nl"] >= 0)  this->inputs.index({"...", input_index["tanhq_nl"]})  = torch::tensor(tanhq_nl).to(device);
+    if (input_index["gamma"] >= 0)     this->inputs.index({"...", input_index["gamma"]})     = torch::tensor(gamma, device_type);
+    if (input_index["p"] >= 0)         this->inputs.index({"...", input_index["p"]})         = torch::tensor(p, device_type);
+    if (input_index["q"] >= 0)         this->inputs.index({"...", input_index["q"]})         = torch::tensor(q, device_type);
+    if (input_index["gammanl"] >= 0)   this->inputs.index({"...", input_index["gammanl"]})   = torch::tensor(gammanl, device_type);
+    if (input_index["pnl"] >= 0)       this->inputs.index({"...", input_index["pnl"]})       = torch::tensor(pnl, device_type);
+    if (input_index["qnl"] >= 0)       this->inputs.index({"...", input_index["qnl"]})       = torch::tensor(qnl, device_type);
+    if (input_index["xi"] >= 0)        this->inputs.index({"...", input_index["xi"]})        = torch::tensor(xi, device_type);
+    if (input_index["tanhxi"] >= 0)    this->inputs.index({"...", input_index["tanhxi"]})    = torch::tensor(tanhxi, device_type);
+    if (input_index["tanhxi_nl"] >= 0) this->inputs.index({"...", input_index["tanhxi_nl"]}) = torch::tensor(tanhxi_nl, device_type);
+    if (input_index["tanhp"] >= 0)     this->inputs.index({"...", input_index["tanhp"]})     = torch::tensor(tanhp, device_type);
+    if (input_index["tanhq"] >= 0)     this->inputs.index({"...", input_index["tanhq"]})     = torch::tensor(tanhq, device_type);
+    if (input_index["tanh_pnl"] >= 0)  this->inputs.index({"...", input_index["tanh_pnl"]})  = torch::tensor(tanh_pnl, device_type);
+    if (input_index["tanh_qnl"] >= 0)  this->inputs.index({"...", input_index["tanh_qnl"]})  = torch::tensor(tanh_qnl, device_type);
+    if (input_index["tanhp_nl"] >= 0)  this->inputs.index({"...", input_index["tanhp_nl"]})  = torch::tensor(tanhp_nl, device_type);
+    if (input_index["tanhq_nl"] >= 0)  this->inputs.index({"...", input_index["tanhq_nl"]})  = torch::tensor(tanhq_nl, device_type);
 }
 
 void NN_OFImpl::setData(
