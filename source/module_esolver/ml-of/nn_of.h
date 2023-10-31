@@ -33,7 +33,8 @@ struct NN_OFImpl:torch::nn::Module{
         std::vector<double> &tanh_pnl,
         std::vector<double> &tanh_qnl,
         std::vector<double> &tanhp_nl,
-        std::vector<double> &tanhq_nl
+        std::vector<double> &tanhq_nl,
+        torch::Device device
     );
 
     void setData(

@@ -149,9 +149,11 @@ void KEDF_ML::set_para(
     {
         this->nn = std::make_shared<NN_OFImpl>(this->nx, this->ninput, nnode, nlayer, this->device);
         torch::load(this->nn, "net.pt");
+        this->nn->to(this->device);
+        std::cout << "load net done" << std::endl;
         if (GlobalV::of_ml_feg != 0)
         {
-            torch::Tensor feg_inpt = torch::zeros(this->ninput);
+            torch::Tensor feg_inpt = torch::zeros(this->ninput).to(this->device);
             if (GlobalV::of_ml_gamma) feg_inpt[this->nn_input_index["gamma"]] = 1.;
             if (GlobalV::of_ml_p) feg_inpt[this->nn_input_index["p"]] = 0.;
             if (GlobalV::of_ml_q) feg_inpt[this->nn_input_index["q"]] = 0.;
@@ -171,9 +173,14 @@ void KEDF_ML::set_para(
             // feg_inpt.requires_grad_(true);
 
             if (GlobalV::of_ml_feg == 1) 
-                this->feg_net_F = torch::softplus(this->nn->forward(feg_inpt)).data_ptr<double>()[0];
+                // this->feg_net_F = torch::softplus(this->nn->forward(feg_inpt));
+                this->feg_net_F = torch::softplus(this->nn->forward(feg_inpt)).to(this->device_CPU).contiguous().data_ptr<double>()[0];
             else
-                this->feg_net_F = this->nn->forward(feg_inpt).data_ptr<double>()[0];
+            {
+                std::cout << "feg_inpt" << feg_inpt << std::endl;
+                // this->feg_net_F = this->nn->forward(feg_inpt);
+                this->feg_net_F = this->nn->forward(feg_inpt).to(this->device_CPU).contiguous().data_ptr<double>()[0];
+            }
 
             std::cout << "feg_net_F = " << this->feg_net_F << std::endl;
         }
@@ -189,24 +196,11 @@ void KEDF_ML::set_para(
 double KEDF_ML::get_energy(const double * const * prho, ModulePW::PW_Basis *pw_rho)
 {
     this->updateInput(prho, pw_rho);
-    this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl,
-                      this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl);
 
-    this->nn->F = this->nn->forward(this->nn->inputs);
-    if (GlobalV::of_ml_feg != 3)
-    {
-        this->nn->F = torch::softplus(this->nn->F);
-    }
-
-    if (GlobalV::of_ml_feg == 1)
-    {
-        this->nn->F = this->nn->F - this->feg_net_F + 1.;
-    }
-    else if (GlobalV::of_ml_feg == 3)
-    {
-        this->nn->F = torch::softplus(this->nn->F - this->feg_net_F + this->feg3_correct);
-    }
-    this->temp_F = this->nn->F.data_ptr<double>();
+    this->NN_forward(prho, pw_rho, false);
+    
+    torch::Tensor ff = this->nn->F.to(this->device_CPU).contiguous();
+    this->temp_F = ff.data_ptr<double>();
 
     double energy = 0.;
     for (int ir = 0; ir < this->nx; ++ir)
@@ -224,38 +218,19 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
 {
     this->updateInput(prho, pw_rho);
 
-    ModuleBase::timer::tick("KEDF_ML", "Forward");
-    this->nn->zero_grad();
-    this->nn->inputs.requires_grad_(false);
-    this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl,
-                      this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl);
-    this->nn->inputs.requires_grad_(true);
-
-    this->nn->F = this->nn->forward(this->nn->inputs);    
-    // cout << this->nn->inputs.grad();
-    if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
-    if (GlobalV::of_ml_feg != 3)
-    {
-        this->nn->F = torch::softplus(this->nn->F);
-    }
-
-    if (GlobalV::of_ml_feg == 1)
-    {
-        this->nn->F = this->nn->F - this->feg_net_F + 1.;
-    }
-    else if (GlobalV::of_ml_feg == 3)
-    {
-        this->nn->F = torch::softplus(this->nn->F - this->feg_net_F + this->feg3_correct);
-    }
-    this->temp_F = this->nn->F.data_ptr<double>();
-    ModuleBase::timer::tick("KEDF_ML", "Forward");
-
-    // cout << "begin backward" << endl;
-    ModuleBase::timer::tick("KEDF_ML", "Backward");
-    this->nn->F.backward(torch::ones({this->nx, 1}));
-    // cout << this->nn->inputs.grad();
-    this->temp_gradient = this->nn->inputs.grad().data_ptr<double>();
-    ModuleBase::timer::tick("KEDF_ML", "Backward");
+    this->NN_forward(prho, pw_rho, true);
+    
+    torch::Tensor ff = this->nn->F.to(this->device_CPU).contiguous();
+    this->temp_F = ff.data_ptr<double>();
+    torch::Tensor gg = this->nn->inputs.grad().to(this->device_CPU).contiguous();
+    this->temp_gradient = gg.data_ptr<double>();
+    // std::cout << "F" << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
+    // this->temp_F = this->nn->F.to(this->device_CPU).contiguous().data_ptr<double>();
+    // std::cout << "F_CPU" << torch::slice(this->nn->F.to(this->device_CPU), 0, 0, 10) << std::endl;
+    // std::cout << "F_CPU_cont" << torch::slice(ff, 0, 0, 10) << std::endl;
+    // std::cout << "temp_F" << std::endl;
+    // for (int i = 0; i < 10; ++i) std::cout << temp_F[i] << "\t";
+    // std::cout << std::endl;
 
     // get potential
     ModuleBase::timer::tick("KEDF_ML", "Pauli Potential");
@@ -319,6 +294,7 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     double energy = 0.;
     for (int ir = 0; ir < this->nx; ++ir)
     {
+        // energy += this->nn->F[ir].item<double>() * pow(prho[0][ir], 5./3.);
         energy += temp_F[ir] * pow(prho[0][ir], 5./3.);
     }
     energy *= this->dV * this->cTF;
@@ -334,34 +310,12 @@ void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF
     {
         this->updateInput(prho, pw_rho);
 
-        this->nn->zero_grad();
-        this->nn->inputs.requires_grad_(false);
-        this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl,
-                        this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl);
-        this->nn->inputs.requires_grad_(true);
-
-        this->nn->F = this->nn->forward(this->nn->inputs);
-        if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
-        // start = clock();
-        if (GlobalV::of_ml_feg != 3)
-        {
-            this->nn->F = torch::softplus(this->nn->F);
-        }
-
-        if (GlobalV::of_ml_feg == 1)
-        {
-            this->nn->F = this->nn->F - this->feg_net_F + 1.;
-        }
-        else if (GlobalV::of_ml_feg == 3)
-        {
-            this->nn->F = torch::softplus(this->nn->F - this->feg_net_F + this->feg3_correct);
-        }
-        this->temp_F = this->nn->F.data_ptr<double>();
-
-        this->nn->F.backward(torch::ones({this->nx, 1}));
-        // end = clock();
-        // std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
-        this->temp_gradient = this->nn->inputs.grad().data_ptr<double>();
+        this->NN_forward(prho, pw_rho, true);
+        
+        torch::Tensor ff = this->nn->F.to(this->device_CPU).contiguous();
+        this->temp_F = ff.data_ptr<double>();
+        torch::Tensor gg = this->nn->inputs.grad().to(this->device_CPU).contiguous();
+        this->temp_gradient = gg.data_ptr<double>();
 
         // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
         // std::cout << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
@@ -434,34 +388,12 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
 
     this->updateInput(prho, pw_rho);
 
-    this->nn->zero_grad();
-    this->nn->inputs.requires_grad_(false);
-    this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl,
-                      this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl);
-    this->nn->inputs.requires_grad_(true);
-
-    this->nn->F = this->nn->forward(this->nn->inputs);
-    if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
-    // start = clock();
-    if (GlobalV::of_ml_feg != 3)
-    {
-        this->nn->F = torch::softplus(this->nn->F);
-    }
-
-    if (GlobalV::of_ml_feg == 1)
-    {
-        this->nn->F = this->nn->F - this->feg_net_F + 1.;
-    }
-    else if (GlobalV::of_ml_feg == 3)
-    {
-        this->nn->F = torch::softplus(this->nn->F - this->feg_net_F + this->feg3_correct);
-    }
-    this->temp_F = this->nn->F.data_ptr<double>();
-
-    this->nn->F.backward(torch::ones({this->nx, 1}));
-    // end = clock();
-    // std::cout << "spend " << (end-start)/1e6 << " s" << std::endl;
-    this->temp_gradient = this->nn->inputs.grad().data_ptr<double>();
+    this->NN_forward(prho, pw_rho, true);
+    
+    torch::Tensor ff = this->nn->F.to(this->device_CPU).contiguous();
+    this->temp_F = ff.data_ptr<double>();
+    torch::Tensor gg = this->nn->inputs.grad().to(this->device_CPU).contiguous();
+    this->temp_gradient = gg.data_ptr<double>();
 
     // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
     // std::cout << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
@@ -509,6 +441,40 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     this->dumpTensor(enhancement, "enhancement-abacus.npy");
     this->dumpTensor(potential, "potential-abacus.npy");
     exit(0);
+}
+
+void KEDF_ML::NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho, bool cal_grad)
+{
+    ModuleBase::timer::tick("KEDF_ML", "Forward");
+    this->nn->zero_grad();
+    this->nn->inputs.requires_grad_(false);
+    this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl,
+                      this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl, this->device);
+    this->nn->inputs.requires_grad_(true);
+
+    this->nn->F = this->nn->forward(this->nn->inputs);    
+    if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
+
+    if (GlobalV::of_ml_feg != 3)
+    {
+        this->nn->F = torch::softplus(this->nn->F);
+    }
+    if (GlobalV::of_ml_feg == 1)
+    {
+        this->nn->F = this->nn->F - this->feg_net_F + 1.;
+    }
+    else if (GlobalV::of_ml_feg == 3)
+    {
+        this->nn->F = torch::softplus(this->nn->F - this->feg_net_F + this->feg3_correct);
+    }
+    ModuleBase::timer::tick("KEDF_ML", "Forward");
+
+    if (cal_grad)
+    {
+        ModuleBase::timer::tick("KEDF_ML", "Backward");
+        this->nn->F.backward(torch::ones({this->nx, 1}, this->device_init));
+        ModuleBase::timer::tick("KEDF_ML", "Backward");
+    }
 }
 
 double KEDF_ML::potGammaTerm(int ir)
@@ -880,7 +846,8 @@ void KEDF_ML::potTanhqTanhq_nlTerm(const double * const *prho, ModulePW::PW_Basi
 void KEDF_ML::dumpTensor(const torch::Tensor &data, std::string filename)
 {
     std::cout << "Dumping " << filename << std::endl;
-    std::vector<double> v(data.data_ptr<double>(), data.data_ptr<double>() + data.numel());
+    torch::Tensor data_cpu = data.to(this->device_CPU).contiguous();
+    std::vector<double> v(data_cpu.data_ptr<double>(), data_cpu.data_ptr<double>() + data_cpu.numel());
     // for (int ir = 0; ir < this->nx; ++ir) assert(v[ir] == data[ir].item<double>());
     this->ml_data->dumpVector(filename, v);
 }

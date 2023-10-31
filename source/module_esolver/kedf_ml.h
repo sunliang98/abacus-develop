@@ -64,6 +64,9 @@ public:
     // // get intermediate variables of V_Pauli
     // void getNablaRho(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &rnablaRho);
 
+    // interface to NN
+    void NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho, bool cal_grad);
+
     // potentials
     double potGammaTerm(int ir);
     double potPTerm1(int ir);
@@ -136,8 +139,11 @@ public:
     std::vector<double> tanhp_nl;
     std::vector<double> tanhq_nl;
     // GPU
+    torch::DeviceType device_init = torch::kCPU;
     torch::Device device = torch::Device(torch::kCPU);
+    // torch::DeviceType device_init = torch::kCUDA;
     // torch::Device device = torch::Device(torch::kCUDA);
+    torch::Device device_CPU = torch::Device(torch::kCPU);
 
     std::shared_ptr<NN_OFImpl> nn;
     double* temp_F = nullptr;
