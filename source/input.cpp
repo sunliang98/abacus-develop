@@ -510,6 +510,7 @@ void Input::Default(void)
     of_ml_nlayer = 3;
     of_ml_kernel = 1;
     of_ml_yukawa_alpha = 1.;
+    of_ml_device = "cpu";
     //==========================================================
     //    OFDFT sunliang added on 2022-11-15
     //==========================================================
@@ -1915,6 +1916,10 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, of_ml_yukawa_alpha);
         }
+        else if (strcmp("of_ml_device", word) == 0)
+        {
+            read_value(ifs, of_ml_device);
+        }
         //----------------------------------------------------------------------------------
         //    device control denghui added on 2022-11-05
         //----------------------------------------------------------------------------------     
@@ -2731,6 +2736,7 @@ void Input::Bcast()
     Parallel_Common::bcast_int(of_ml_nlayer);
     Parallel_Common::bcast_int(of_ml_kernel);
     Parallel_Common::bcast_double(of_ml_yukawa_alpha);
+    Parallel_Common::bcast_string(of_ml_device);
 
     return;
 }

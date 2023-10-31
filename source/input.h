@@ -500,6 +500,7 @@ class Input
     int of_ml_nlayer;   // number of layer
     int of_ml_kernel;   // type of kernel, 1 for wt, 2 for yukawa
     double of_ml_yukawa_alpha; // parameter alpha of yukawa kernel
+    std::string of_ml_device; // run NN on GPU or CPU
 
     //==========================================================
     //    device control denghui added on 2022-11-15

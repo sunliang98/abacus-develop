@@ -40,7 +40,10 @@ public:
         double chi_qnl,
         int nnode,
         int nlayer,
+        std::string device_inpt,
         ModulePW::PW_Basis *pw_rho);
+
+    void set_device(std::string device_inpt);
 
     double get_energy(const double * const * prho, ModulePW::PW_Basis *pw_rho);
     // double get_energy_density(const double * const *prho, int is, int ir, ModulePW::PW_Basis *pw_rho);
@@ -139,10 +142,8 @@ public:
     std::vector<double> tanhp_nl;
     std::vector<double> tanhq_nl;
     // GPU
-    torch::DeviceType device_init = torch::kCPU;
+    torch::DeviceType device_type = torch::kCPU;
     torch::Device device = torch::Device(torch::kCPU);
-    // torch::DeviceType device_init = torch::kCUDA;
-    // torch::Device device = torch::Device(torch::kCUDA);
     torch::Device device_CPU = torch::Device(torch::kCPU);
 
     std::shared_ptr<NN_OFImpl> nn;
