@@ -435,6 +435,7 @@ void Input::Print(const std::string &fn) const
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_nlayer", of_ml_nlayer, "number of layer");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_kernel", of_ml_kernel, "type of kernel, 1 for wt, and 2 for yukawa");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_yukawa_alpha", of_ml_yukawa_alpha, "parameter alpha of yukawa kernel");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_device", of_ml_device, "run NN on GPU or CPU");
 
     ofs << "\n#Parameters (19.dft+u)" << std::endl;
     ModuleBase::GlobalFunc::OUTP(ofs, "dft_plus_u", dft_plus_u, "true:DFT+U correction; false: standard DFT calcullation(default)");
