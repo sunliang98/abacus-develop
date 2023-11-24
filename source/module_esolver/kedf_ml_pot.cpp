@@ -55,10 +55,10 @@ void KEDF_ML::get_potential_(const double * const * prho, ModulePW::PW_Basis *pw
         //                     (5./3. * this->enhancement_cpu_ptr[ir] + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir))
         //                     + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
     }
-    if (n_neg > 0)
-    {
-        std::cout << "WARNING: pauli potential < 0 !!  " << n_neg << std::endl;
-    }
+    // if (n_neg > 0)
+    // {
+    //     std::cout << "WARNING: pauli potential < 0 !!  " << n_neg << std::endl;
+    // }
     ModuleBase::timer::tick("KEDF_ML", "Pauli Potential");
 }
 

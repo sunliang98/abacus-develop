@@ -151,8 +151,7 @@ void KEDF_ML::set_para(
     if (GlobalV::of_kinetic == "ml")
     {
         this->nn = std::make_shared<NN_OFImpl>(this->nx, this->ninput, nnode, nlayer, this->device);
-        torch::load(this->nn, "net.pt");
-        this->nn->to(this->device);
+        torch::load(this->nn, "net.pt", this->device_type);
         std::cout << "load net done" << std::endl;
         if (GlobalV::of_ml_feg != 0)
         {
