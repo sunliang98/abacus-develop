@@ -1,5 +1,5 @@
-// #ifndef NN_OF
-// #define NN_OF
+#ifndef NN_OF_H
+#define NN_OF_H
 
 #include <torch/torch.h>
 
@@ -56,6 +56,27 @@ struct NN_OFImpl:torch::nn::Module{
         torch::Tensor tanhq_nl
     );
 
+    void setData_vali(
+        const int nx_tot,
+        std::map<std::string, int> &input_index, 
+        torch::Tensor gamma, 
+        torch::Tensor p, 
+        torch::Tensor q, 
+        torch::Tensor gammanl, 
+        torch::Tensor pnl, 
+        torch::Tensor qnl,
+        torch::Tensor xi,
+        torch::Tensor tanhxi,
+        torch::Tensor tanhxi_nl,
+        torch::Tensor tanhp,
+        torch::Tensor tanhq,
+        torch::Tensor tanh_pnl,
+        torch::Tensor tanh_qnl,
+        torch::Tensor tanhp_nl,
+        torch::Tensor tanhq_nl,
+        torch::Device device
+    );
+
     torch::Tensor forward(torch::Tensor inpt);
 
     // torch::nn::Linear fc1{nullptr}, fc2{nullptr}, fc3{nullptr}, fc4{nullptr}, fc5{nullptr};
@@ -64,6 +85,7 @@ struct NN_OFImpl:torch::nn::Module{
     torch::nn::Linear fc1{nullptr}, fc2{nullptr}, fc3{nullptr}, fc4{nullptr};
 
     torch::Tensor inputs;
+    torch::Tensor input_vali;
     torch::Tensor F; // enhancement factor, output of NN
     // torch::Tensor gradient;
     // torch::Tensor potential;
@@ -76,4 +98,4 @@ struct NN_OFImpl:torch::nn::Module{
 };
 TORCH_MODULE(NN_OF);
 
-// #endif
+#endif

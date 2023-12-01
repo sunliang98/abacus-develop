@@ -9,11 +9,8 @@ int main()
     auto output = torch::get_default_dtype();
     std::cout << "Default type: " << output << std::endl;
 
-    // train test
     Train train;
-    train.readInput();
-    train.loadData();
-    if (train.check_pot)
+    if (train.input.check_pot)
     {
         train.potTest();
     }
@@ -22,7 +19,6 @@ int main()
         train.init();
         train.train();
     }
-    // train.potTest();
 
     // torch::Tensor x = torch::ones({2,2});
     // x[0][0] = 0.;
