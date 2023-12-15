@@ -32,8 +32,9 @@ class Train
     // ------------------------------------
 
     torch::Device device = torch::Device(torch::kCUDA);
-    int ninput = 6;
-    std::map<std::string, int> nn_input_index;
+    int ninput = 0;
+    std::vector<std::string> descriptor_type = {};
+    std::vector<int> kernel_index = {};
 
     // -------- free electron gas ---------
     torch::Tensor feg_inpt;

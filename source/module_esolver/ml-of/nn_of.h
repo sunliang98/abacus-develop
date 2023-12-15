@@ -7,6 +7,7 @@ struct NN_OFImpl:torch::nn::Module{
     // three hidden layers and one output layer
     NN_OFImpl(
         int nrxx, 
+        int nrxx_vali, 
         int ninpt, 
         int nnode,
         int nlayer,
@@ -15,7 +16,7 @@ struct NN_OFImpl:torch::nn::Module{
     ~NN_OFImpl()
     {
         // delete[] this->fcs;
-    }
+    };
 
     void setData(
         std::map<std::string, int> &input_index, 
@@ -37,45 +38,20 @@ struct NN_OFImpl:torch::nn::Module{
         torch::DeviceType device_type
     );
 
-    void setData(
-        std::map<std::string, int> &input_index, 
-        torch::Tensor gamma, 
-        torch::Tensor p, 
-        torch::Tensor q, 
-        torch::Tensor gammanl, 
-        torch::Tensor pnl, 
-        torch::Tensor qnl,
-        torch::Tensor xi,
-        torch::Tensor tanhxi,
-        torch::Tensor tanhxi_nl,
-        torch::Tensor tanhp,
-        torch::Tensor tanhq,
-        torch::Tensor tanh_pnl,
-        torch::Tensor tanh_qnl,
-        torch::Tensor tanhp_nl,
-        torch::Tensor tanhq_nl
-    );
-
-    void setData_vali(
-        const int nx_tot,
-        std::map<std::string, int> &input_index, 
-        torch::Tensor gamma, 
-        torch::Tensor p, 
-        torch::Tensor q, 
-        torch::Tensor gammanl, 
-        torch::Tensor pnl, 
-        torch::Tensor qnl,
-        torch::Tensor xi,
-        torch::Tensor tanhxi,
-        torch::Tensor tanhxi_nl,
-        torch::Tensor tanhp,
-        torch::Tensor tanhq,
-        torch::Tensor tanh_pnl,
-        torch::Tensor tanh_qnl,
-        torch::Tensor tanhp_nl,
-        torch::Tensor tanhq_nl,
-        torch::Device device
-    );
+    template <class T>
+    void set_data(
+        T &data,
+        const std::vector<std::string> &descriptor_type,
+        const std::vector<int> &kernel_index,
+        torch::Tensor &nn_input
+    )
+    {
+        if (data.nx_tot <= 0) return;
+        for (int i = 0; i < descriptor_type.size(); ++i)
+        {
+            nn_input.index({"...", i}) = data.get_data(descriptor_type[i], kernel_index[i]);
+        }
+    }
 
     torch::Tensor forward(torch::Tensor inpt);
 
@@ -91,6 +67,7 @@ struct NN_OFImpl:torch::nn::Module{
     // torch::Tensor potential;
 
     int nrxx = 10;
+    int nrxx_vali = 0;
     int ninpt = 6;
     int nnode = 10;
     int nlayer = 3;

@@ -10,6 +10,7 @@ int main()
     std::cout << "Default type: " << output << std::endl;
 
     Train train;
+    train.input.readInput();
     if (train.input.check_pot)
     {
         train.potTest();

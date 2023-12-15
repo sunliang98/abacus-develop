@@ -1,4 +1,4 @@
-#include "./train->h"
+#include "./train.h"
 #include <sstream>
 #include <math.h>
 #include <chrono>
@@ -7,8 +7,8 @@ Train::~Train()
 {
     delete[] this->train_volume;
     delete[] this->vali_volume;
-    delete this->kernel_train;
-    delete this->kernel_vali;
+    delete[] this->kernel_train;
+    delete[] this->kernel_vali;
 }
 
 void Train::setUpFFT()
@@ -22,16 +22,20 @@ void Train::setUpFFT()
         this->device,
         this->train_volume
     );
-    this->kernel_train = new Kernel(this->input.kernel_type, this->input.kernel_scaling, this->input.yukawa_alpha);
-    this->kernel_train->fill_kernel(
-        this->input.fftdim,
-        this->input.ntrain,
-        this->data_train.rho,
-        this->train_volume,
-        this->input.train_cell,
-        this->device,
-        this->grid_train.fft_gg
-    );
+    this->kernel_train = new Kernel[this->input.nkernel];
+    for (int ik = 0; ik < this->input.nkernel; ++ik)
+    {
+        this->kernel_train[ik].set_para(this->input.kernel_type[ik], this->input.kernel_scaling[ik], this->input.yukawa_alpha[ik]);
+        this->kernel_train[ik].fill_kernel(
+            this->input.fftdim,
+            this->input.ntrain,
+            this->data_train.rho,
+            this->train_volume,
+            this->input.train_cell,
+            this->device,
+            this->grid_train.fft_gg
+        );
+    }
     if (this->input.nvalidation > 0){
         this->vali_volume = new double[this->input.nvalidation];
         this->grid_vali.initGrid(
@@ -42,16 +46,20 @@ void Train::setUpFFT()
             this->device,
             this->vali_volume
         );
-        this->kernel_vali = new Kernel(this->input.kernel_type, this->input.kernel_scaling, this->input.yukawa_alpha);
-        this->kernel_vali->fill_kernel(
-            this->input.fftdim,
-            this->input.nvalidation,
-            this->data_vali.rho,
-            this->vali_volume,
-            this->input.validation_cell,
-            this->device,
-            this->grid_vali.fft_gg
-        );
+        this->kernel_vali = new Kernel[this->input.nkernel];
+        for (int ik = 0; ik < this->input.nkernel; ++ik)
+        {
+            this->kernel_vali[ik].set_para(this->input.kernel_type[ik], this->input.kernel_scaling[ik], this->input.yukawa_alpha[ik]);
+            this->kernel_vali[ik].fill_kernel(
+                this->input.fftdim,
+                this->input.nvalidation,
+                this->data_vali.rho,
+                this->vali_volume,
+                this->input.validation_cell,
+                this->device,
+                this->grid_vali.fft_gg
+            );
+        }
     }
     
     // this->dumpTensor(this->fft_kernel_train[0].reshape({this->data_train.nx}), "kernel_fcc.npy", this->data_train.nx);
@@ -83,82 +91,92 @@ void Train::set_device()
 
 void Train::init_input_index()
 {
-    this->nn_input_index = {{"gamma", -1}, {"p", -1}, {"q", -1},
-                            {"gammanl", -1}, {"pnl", -1}, {"qnl", -1}, 
-                            {"xi", -1}, {"tanhxi", -1}, {"tanhxi_nl", -1},
-                            {"tanhp", -1}, {"tanhq", -1}, 
-                            {"tanh_pnl", -1}, {"tanh_qnl", -1}, 
-                            {"tanhp_nl", -1}, {"tanhq_nl", -1}};
     this->ninput = 0;
 
-    // if (this->input.ml_gamma || this->input.ml_gammanl){
-        if (this->input.ml_gamma)
-        {
-            nn_input_index["gamma"] = ninput; 
-            ninput++;
-        } 
-    // }    
-    // if (this->input.ml_p || this->input.ml_pnl){
-        if (this->input.ml_p)
-        {
-            nn_input_index["p"] = ninput;
-            ninput++;
-        }
-    // }
-    // if (this->input.ml_q || this->input.ml_qnl){
-        if (this->input.ml_q)
-        {
-            nn_input_index["q"] = ninput;
-            ninput++;
-        }
-    // }
-    if (this->input.ml_gammanl){
-        nn_input_index["gammanl"] = ninput;
+    // --------- semi-local descriptors ---------
+    if (this->input.ml_gamma){
+        this->descriptor_type.push_back("gamma");
+        this->kernel_index.push_back(-1);
+        // nn_input_index["gamma"] = ninput; 
+        ninput++;
+    } 
+    if (this->input.ml_p){
+        this->descriptor_type.push_back("p");
+        this->kernel_index.push_back(-1);
+        // nn_input_index["p"] = ninput;
         ninput++;
     }
-    if (this->input.ml_pnl){
-        nn_input_index["pnl"] = ninput;
-        ninput++;
-    }
-    if (this->input.ml_qnl){
-        nn_input_index["qnl"] = ninput;
-        ninput++;
-    }
-    if (this->input.ml_xi){
-        nn_input_index["xi"] = ninput;
-        ninput++;
-    }
-    if (this->input.ml_tanhxi){
-        nn_input_index["tanhxi"] = ninput;
-        ninput++;
-    }
-    if (this->input.ml_tanhxi_nl){
-        nn_input_index["tanhxi_nl"] = ninput;
+    if (this->input.ml_q){
+        this->descriptor_type.push_back("q");
+        this->kernel_index.push_back(-1);
+        // nn_input_index["q"] = ninput;
         ninput++;
     }
     if (this->input.ml_tanhp){
-        nn_input_index["tanhp"] = ninput;
+        this->descriptor_type.push_back("tanhp");
+        this->kernel_index.push_back(-1);
+        // nn_input_index["tanhp"] = ninput;
         ninput++;
     }
     if (this->input.ml_tanhq){
-        nn_input_index["tanhq"] = ninput;
+        this->descriptor_type.push_back("tanhq");
+        this->kernel_index.push_back(-1);
+        // nn_input_index["tanhq"] = ninput;
         ninput++;
     }
-    if (this->input.ml_tanh_pnl){
-        nn_input_index["tanh_pnl"] = ninput;
-        ninput++;
-    }
-    if (this->input.ml_tanh_qnl){
-        nn_input_index["tanh_qnl"] = ninput;
-        ninput++;
-    }
-    if (this->input.ml_tanhp_nl){
-        nn_input_index["tanhp_nl"] = ninput;
-        ninput++;
-    }
-    if (this->input.ml_tanhq_nl){
-        nn_input_index["tanhq_nl"] = ninput;
-        ninput++;
+    // --------- non-local descriptors ---------
+    for (int ik = 0; ik < this->input.nkernel; ++ik)
+    {
+        if (this->input.ml_gammanl[ik]){
+            this->descriptor_type.push_back("gammanl");
+            this->kernel_index.push_back(ik);
+            this->ninput++;
+        }
+        if (this->input.ml_pnl[ik]){
+            this->descriptor_type.push_back("pnl");
+            this->kernel_index.push_back(ik);
+            this->ninput++;
+        }
+        if (this->input.ml_qnl[ik]){
+            this->descriptor_type.push_back("qnl");
+            this->kernel_index.push_back(ik);
+            this->ninput++;
+        }
+        if (this->input.ml_xi[ik]){
+            this->descriptor_type.push_back("xi");
+            this->kernel_index.push_back(ik);
+            this->ninput++;
+        }
+        if (this->input.ml_tanhxi[ik]){
+            this->descriptor_type.push_back("tanhxi");
+            this->kernel_index.push_back(ik);
+            this->ninput++;
+        }
+        if (this->input.ml_tanhxi_nl[ik]){
+            this->descriptor_type.push_back("tanhxi_nl");
+            this->kernel_index.push_back(ik);
+            this->ninput++;
+        }
+        if (this->input.ml_tanh_pnl[ik]){
+            this->descriptor_type.push_back("tanh_pnl");
+            this->kernel_index.push_back(ik);
+            this->ninput++;
+        }
+        if (this->input.ml_tanh_qnl[ik]){
+            this->descriptor_type.push_back("tanh_qnl");
+            this->kernel_index.push_back(ik);
+            this->ninput++;
+        }
+        if (this->input.ml_tanhp_nl[ik]){
+            this->descriptor_type.push_back("tanhp_nl");
+            this->kernel_index.push_back(ik);
+            this->ninput++;
+        }
+        if (this->input.ml_tanhq_nl[ik]){
+            this->descriptor_type.push_back("tanhq_nl");
+            this->kernel_index.push_back(ik);
+            this->ninput++;
+        }
     }
 
     std::cout << "ninput = " << ninput << std::endl;
@@ -166,25 +184,10 @@ void Train::init_input_index()
     if (this->input.feg_limit != 0)
     {
         this->feg_inpt = torch::zeros(ninput).to(device);
-        if (this->input.ml_gamma) {
-            this->feg_inpt[nn_input_index["gamma"]] = 1.;
-            // this->feg_inpt[nn_input_index["gamma"]].requires_grad_(true);
+        for (int i = 0; i < this->ninput; ++i)
+        {
+            if (this->descriptor_type[i] == "gamma") this->feg_inpt[i] = 1.;
         }
-        if (this->input.ml_p)         this->feg_inpt[nn_input_index["p"]]         = 0.;
-        if (this->input.ml_q)         this->feg_inpt[nn_input_index["q"]]         = 0.;
-        if (this->input.ml_gammanl)   this->feg_inpt[nn_input_index["gammanl"]]   = 0.;
-        if (this->input.ml_pnl)       this->feg_inpt[nn_input_index["pnl"]]       = 0.;
-        if (this->input.ml_qnl)       this->feg_inpt[nn_input_index["qnl"]]       = 0.;
-        if (this->input.ml_xi)        this->feg_inpt[nn_input_index["xi"]]        = 0.;
-        if (this->input.ml_tanhxi)    this->feg_inpt[nn_input_index["tanhxi"]]    = 0.;
-        if (this->input.ml_tanhxi_nl) this->feg_inpt[nn_input_index["tanhxi_nl"]] = 0.;
-        if (this->input.ml_tanhp)     this->feg_inpt[nn_input_index["tanhp"]]     = 0.;
-        if (this->input.ml_tanhq)     this->feg_inpt[nn_input_index["tanhq"]]     = 0.;
-        if (this->input.ml_tanh_pnl)  this->feg_inpt[nn_input_index["tanh_pnl"]]  = 0.;
-        if (this->input.ml_tanh_qnl)  this->feg_inpt[nn_input_index["tanh_qnl"]]  = 0.;
-        if (this->input.ml_tanhp_nl)  this->feg_inpt[nn_input_index["tanhp_nl"]]  = 0.;
-        if (this->input.ml_tanhq_nl)  this->feg_inpt[nn_input_index["tanhq_nl"]]  = 0.;
-        // this->feg_inpt.requires_grad_(true);
 
         this->feg_predict = torch::zeros(1).to(device);
         this->feg_dFdgamma = torch::zeros(1).to(device);
@@ -194,50 +197,21 @@ void Train::init_input_index()
 
 void Train::init()
 {
-    train->input.readInput();
-    train->set_device();
-    train->init_input_index();
-    train->data_train.loadData(train->input, train->input.ntrain, train->input.train_dir, train->device);
-    if (train->input.nvalidation > 0)
-        train->data_vali.loadData(train->input, train->input.nvalidation, train->input.validation_dir, train->device);
+    this->set_device();
+    this->init_input_index();
+    this->data_train.load_data(this->input, this->input.ntrain, this->input.train_dir, this->device);
+    this->data_vali.load_data(this->input, this->input.nvalidation, this->input.validation_dir, this->device);
+    // Input::print("LOAD DATA done");
 
-    this->potential.init(this->input, this->input.fftdim, this->nn_input_index);
+    this->potential.init(this->input, this->ninput, this->descriptor_type, this->kernel_index);
+    // Input::print("init potential done");
     if (this->input.loss == "potential" || this->input.loss == "both" || this->input.loss == "both_new") this->setUpFFT();
-    this->nn = std::make_shared<NN_OFImpl>(this->data_train.nx_tot, this->ninput, this->input.nnode, this->input.nlayer, this->device);
-    this->nn->setData(this->nn_input_index,
-                      this->data_train.gamma.reshape({this->data_train.nx_tot}),
-                      this->data_train.p.reshape({this->data_train.nx_tot}), 
-                      this->data_train.q.reshape({this->data_train.nx_tot}), 
-                      this->data_train.gammanl.reshape({this->data_train.nx_tot}), 
-                      this->data_train.pnl.reshape({this->data_train.nx_tot}), 
-                      this->data_train.qnl.reshape({this->data_train.nx_tot}),
-                      this->data_train.xi.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhxi.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhxi_nl.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhp.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhq.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanh_pnl.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanh_qnl.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhp_nl.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhq_nl.reshape({this->data_train.nx_tot}));
-    this->nn->setData_vali(this->data_vali.nx_tot,
-                           this->nn_input_index,
-                           this->data_vali.gamma.reshape({this->data_vali.nx_tot}),
-                           this->data_vali.p.reshape({this->data_vali.nx_tot}), 
-                           this->data_vali.q.reshape({this->data_vali.nx_tot}), 
-                           this->data_vali.gammanl.reshape({this->data_vali.nx_tot}), 
-                           this->data_vali.pnl.reshape({this->data_vali.nx_tot}), 
-                           this->data_vali.qnl.reshape({this->data_vali.nx_tot}),
-                           this->data_vali.xi.reshape({this->data_vali.nx_tot}),
-                           this->data_vali.tanhxi.reshape({this->data_vali.nx_tot}),
-                           this->data_vali.tanhxi_nl.reshape({this->data_vali.nx_tot}),
-                           this->data_vali.tanhp.reshape({this->data_vali.nx_tot}),
-                           this->data_vali.tanhq.reshape({this->data_vali.nx_tot}),
-                           this->data_vali.tanh_pnl.reshape({this->data_vali.nx_tot}),
-                           this->data_vali.tanh_qnl.reshape({this->data_vali.nx_tot}),
-                           this->data_vali.tanhp_nl.reshape({this->data_vali.nx_tot}),
-                           this->data_vali.tanhq_nl.reshape({this->data_vali.nx_tot}),
-                           this->device);
+    // Input::print("init fft done");
+    
+    this->nn = std::make_shared<NN_OFImpl>(this->data_train.nx_tot, this->data_vali.nx_tot, this->ninput, this->input.nnode, this->input.nlayer, this->device);
+    // Input::print("init_nn done");
+    this->nn->set_data(this->data_train, this->descriptor_type, this->kernel_index, this->nn->inputs);
+    this->nn->set_data(this->data_vali, this->descriptor_type, this->kernel_index, this->nn->input_vali);
 }
 
 torch::Tensor Train::lossFunction(torch::Tensor enhancement, torch::Tensor target, torch::Tensor coef)
@@ -285,7 +259,6 @@ void Train::train()
     double maxLoss = 100.;
 
     // bool increase_coef_feg_e = false;
-    torch::Tensor tauTF = this->cTF * torch::pow(this->data_train.rho, 5./3.);
     torch::Tensor weight = torch::pow(this->data_train.rho, this->input.exponent/3.);
     for (size_t epoch = 1; epoch <= this->input.nepoch; ++epoch)
     {
@@ -324,8 +297,8 @@ void Train::train()
                 {
                     // if (this->feg_inpt.grad().numel()) this->feg_inpt.grad().zero_();
                     this->feg_predict = this->nn->forward(this->feg_inpt);
-                    if (this->input.ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
-                                                                                    {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
+                    // if (this->input.ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
+                    //                                                                 {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
                     if (this->input.feg_limit == 1) prediction = prediction - torch::softplus(this->feg_predict) + 1.;
                     if (this->input.feg_limit == 3 && epoch < this->input.change_step) prediction = torch::softplus(prediction);
                     if (this->input.feg_limit == 3 && epoch >= this->input.change_step)  prediction = torch::softplus(prediction - this->feg_predict + this->feg3_correct);
@@ -340,26 +313,7 @@ void Train::train()
                 totFback += double(std::chrono::duration_cast<std::chrono::microseconds>(endFB - startFB).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den;
 
                 startL = std::chrono::high_resolution_clock::now();
-                torch::Tensor pot = this->potential.getPot(
-                    this->data_train.rho[batch_index],
-                    this->data_train.nablaRho[batch_index],
-                    tauTF[batch_index],
-                    this->data_train.gamma[batch_index],
-                    this->data_train.p[batch_index],
-                    this->data_train.q[batch_index],
-                    this->data_train.xi[batch_index],
-                    this->data_train.tanhxi[batch_index],
-                    this->data_train.tanhxi_nl[batch_index],
-                    this->data_train.tanhp[batch_index],
-                    this->data_train.tanhq[batch_index],
-                    this->data_train.tanh_pnl[batch_index],
-                    this->data_train.tanh_qnl[batch_index],
-                    prediction.reshape({this->input.fftdim, this->input.fftdim, this->input.fftdim}),
-                    gradient,
-                    this->kernel_train->kernel[batch_index],
-                    this->grid_train.fft_grid[batch_index],
-                    this->grid_train.fft_gg[batch_index]
-                );
+                torch::Tensor pot = this->potential.get_potential(batch_index, this->data_train, prediction.reshape({this->input.fftdim, this->input.fftdim, this->input.fftdim}), gradient, this->kernel_train, this->grid_train);
                 torch::Tensor loss = this->lossFunction(pot, this->data_train.pauli[batch_index], this->data_train.pauli_mean[batch_index])
                                      * this->input.coef_p;
                 lossPot = loss.item<double>();
@@ -475,37 +429,27 @@ void Train::train()
 
 void Train::potTest()
 {
-    train.input.readInput();
-    train.set_device();
-    train.init_input_index();
-    train.data_train.loadData(train.input, train.input.ntrain, train.input.train_dir, train.device);
-    if (train.input.nvalidation > 0)
-        train.data_vali.loadData(train.input, train.input.nvalidation, train.input.validation_dir, train.device);
+    this->set_device();
+    this->init_input_index();
+    this->data_train.load_data(this->input, this->input.ntrain, this->input.train_dir, this->device);
+    this->data_vali.load_data(this->input, this->input.nvalidation, this->input.validation_dir, this->device);
+    Input::print("LOAD DATA done");
 
-    std::chrono::_V2::system_clock::time_point start, end;
+    this->potential.init(this->input, this->ninput, this->descriptor_type, this->kernel_index);
+    Input::print("init potential done");
     if (this->input.loss == "potential" || this->input.loss == "both" || this->input.loss == "both_new") this->setUpFFT();
-    this->nn = std::make_shared<NN_OFImpl>(this->data_train.nx_tot, this->ninput, this->input.nnode, this->input.nlayer, this->device);
-    torch::load(this->nn, "net.pt");
+    Input::print("init fft done");
+    
+    std::chrono::_V2::system_clock::time_point start, end;
+    this->nn = std::make_shared<NN_OFImpl>(this->data_train.nx_tot, this->data_vali.nx_tot, this->ninput, this->input.nnode, this->input.nlayer, this->device);
+    torch::DeviceType device_type = torch::kCPU;
+    torch::load(this->nn, "net.pt", device_type);
+    // this->nn->to(this->device);
+    Input::print("init_nn done");
+    this->nn->set_data(this->data_train, this->descriptor_type, this->kernel_index, this->nn->inputs);
+    this->nn->set_data(this->data_vali, this->descriptor_type, this->kernel_index, this->nn->input_vali);
 
-    this->nn->setData(this->nn_input_index,
-                      this->data_train.gamma.reshape({this->data_train.nx_tot}),
-                      this->data_train.p.reshape({this->data_train.nx_tot}), 
-                      this->data_train.q.reshape({this->data_train.nx_tot}), 
-                      this->data_train.gammanl.reshape({this->data_train.nx_tot}), 
-                      this->data_train.pnl.reshape({this->data_train.nx_tot}), 
-                      this->data_train.qnl.reshape({this->data_train.nx_tot}),
-                      this->data_train.xi.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhxi.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhxi_nl.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhp.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhq.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanh_pnl.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanh_qnl.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhp_nl.reshape({this->data_train.nx_tot}),
-                      this->data_train.tanhq_nl.reshape({this->data_train.nx_tot}));
     this->nn->inputs.requires_grad_(true);
-
-    // torch::Tensor target = (this->input.loss=="energy") ? this->data_train.enhancement : this->data_train.pauli;
 
     if (this->input.loss == "potential" || this->input.loss == "both" || this->input.loss == "both_new") this->data_train.pauli.resize_({this->input.ntrain, this->input.fftdim, this->input.fftdim, this->input.fftdim});
 
@@ -527,9 +471,9 @@ void Train::potTest()
                 this->feg_predict = this->nn->forward(this->feg_inpt);
                 // if (this->input.ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt[this->nn_input_index["gamma"]]},
                 //                                                                 {torch::ones(1)}, true, true)[0];
-                if (this->input.ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
-                                                                                {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
-                if (this->input.feg_limit == 1) prediction = prediction - this->feg_predict + 1.;
+                // if (this->input.ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
+                //                                                                 {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
+                if (this->input.feg_limit == 1) prediction = prediction - torch::softplus(this->feg_predict) + 1.;
                 if (this->input.feg_limit == 3) prediction = torch::softplus(prediction - this->feg_predict + this->feg3_correct);
             }
 
@@ -540,30 +484,12 @@ void Train::potTest()
             std::cout << "spend " << double(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den << " s" << std::endl;
             
             std::cout << "begin potential" << std::endl;
-            torch::Tensor tauTF = this->cTF * torch::pow(this->data_train.rho, 5./3.);
             torch::Tensor weight = torch::pow(this->data_train.rho, this->input.exponent/3.);
 
-            torch::Tensor pot = this->potential.getPot(
-                this->data_train.rho[ii],
-                this->data_train.nablaRho[ii],
-                tauTF[ii],
-                this->data_train.gamma[ii],
-                this->data_train.p[ii],
-                this->data_train.q[ii],
-                this->data_train.xi[ii],
-                this->data_train.tanhxi[ii],
-                this->data_train.tanhxi_nl[ii],
-                this->data_train.tanhp[ii],
-                this->data_train.tanhq[ii],
-                this->data_train.tanh_pnl[ii],
-                this->data_train.tanh_qnl[ii],
-                torch::slice(prediction, 0, ii*this->data_train.nx, (ii + 1)*this->data_train.nx).reshape({this->input.fftdim, this->input.fftdim, this->input.fftdim}),
-                gradient,
-                this->kernel_train->kernel[ii],
-                this->grid_train.fft_grid[ii],
-                this->grid_train.fft_gg[ii]
-            );
-            torch::Tensor loss = this->lossFunction(pot, this->data_train.pauli[ii]) * this->input.coef_p;
+            torch::Tensor pot = this->potential.get_potential(ii, this->data_train, torch::slice(prediction, 0, ii*this->data_train.nx, (ii + 1)*this->data_train.nx).reshape({this->input.fftdim, this->input.fftdim, this->input.fftdim}), gradient, this->kernel_train, this->grid_train);
+            std::cout << "after potential" << std::endl;
+
+            torch::Tensor loss = this->lossFunction(pot, this->data_train.pauli[ii], this->data_train.pauli_mean[ii]) * this->input.coef_p;
             if (this->input.loss == "both")
             {
                 loss = loss + this->input.coef_e * this->lossFunction(prediction, torch::slice(this->data_train.enhancement, 0, ii*this->data_train.nx, (ii + 1)*this->data_train.nx), this->data_train.enhancement_mean[ii]);
@@ -572,6 +498,7 @@ void Train::potTest()
             {
                 loss = loss + this->input.coef_e * this->lossFunction_new(prediction, torch::slice(this->data_train.enhancement, 0, ii*this->data_train.nx, (ii + 1)*this->data_train.nx), weight[ii].reshape({this->data_train.nx, 1}), this->data_train.tau_mean[ii]);
             }
+            std::cout << "after loss" << std::endl;
             // loss = loss + this->input.coef_e * this->lossFunction(prediction, torch::slice(this->data_train.enhancement, 0, ii*this->data_train.nx, (ii + 1)*this->data_train.nx));
             double lossTrain = loss.item<double>();
             std::cout << "loss = " << lossTrain << std::endl;

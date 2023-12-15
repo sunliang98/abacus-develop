@@ -29,6 +29,12 @@ void Kernel::fill_kernel(const int fftdim,
                     if (this->kernel_type == 1)
                     {
                         this->kernel[id][ix][iy][iz] = std::pow(1. / this->scaling, 3) * this->wt_kernel(eta);
+                        // if (ix == 26 && iy == 0 && iz == 26)
+                        // {
+                        //     std::cout << "kernel1    " << this->kernel[id][ix][iy][iz] << std::endl;
+                        //     std::cout << "eta        " << eta << std::endl;
+                        //     std::cout << "tkF        " << tkF << std::endl;
+                        // }
                     }
                     else if (this->kernel_type == 2)
                     {
@@ -43,17 +49,17 @@ void Kernel::fill_kernel(const int fftdim,
 
 double Kernel::wt_kernel(double eta, double tf_weight, double vw_weight)
 {
-    if (eta < 0.)
+    if (eta < 0.) 
     {
         return 0.;
     }
     // limit for small eta
     else if (eta < 1e-10)
     {
-        return 1. - tf_weight + eta * eta * (1. / 3. - 3. * vw_weight);
+        return 1. - tf_weight + eta * eta * (1./3. - 3. * vw_weight);
     }
     // around the singularity
-    else if (abs(eta - 1.) < 1e-10)
+    else if (std::abs(eta - 1.) < 1e-10)
     {
         return 2. - tf_weight - 3. * vw_weight + 20. * (eta - 1);
     }
@@ -83,8 +89,8 @@ double Kernel::wt_kernel(double eta, double tf_weight, double vw_weight)
     }
     else
     {
-        return 1. / (0.5 + 0.25 * (1. - eta * eta) / eta * log((1 + eta) / abs(1 - eta))) - 3. * vw_weight * eta * eta
-               - tf_weight;
+        return 1. / (0.5 + 0.25 * (1. - eta * eta) / eta * std::log((1 + eta)/std::abs(1 - eta)))
+                 - 3. * vw_weight * eta * eta - tf_weight;
     }
 }
 

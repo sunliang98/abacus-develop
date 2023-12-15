@@ -1,8 +1,9 @@
 #include "nn_of.h"
 
-NN_OFImpl::NN_OFImpl(int nrxx, int ninpt, int nnode, int nlayer, torch::Device device)
+NN_OFImpl::NN_OFImpl(int nrxx, int nrxx_vali, int ninpt, int nnode, int nlayer, torch::Device device)
 {
     this->nrxx = nrxx;
+    this->nrxx_vali = nrxx_vali;
     this->ninpt = ninpt;
     this->nnode = nnode;
     std::cout << "nnode = " << this->nnode << std::endl;
@@ -12,6 +13,7 @@ NN_OFImpl::NN_OFImpl(int nrxx, int ninpt, int nnode, int nlayer, torch::Device d
 
     this->inputs = torch::zeros({this->nrxx, this->ninpt}).to(device);
     this->F = torch::zeros({this->nrxx, 1}).to(device);
+    if (nrxx_vali > 0) this->input_vali = torch::zeros({nrxx_vali, this->ninpt}).to(device);
     // this->gradient = torch::zeros({this->nrxx, this->ninpt}).to(device);
     // this->potential = torch::zeros({this->nrxx, 1}).to(device);
 
@@ -79,82 +81,6 @@ void NN_OFImpl::setData(
     if (input_index["tanh_qnl"] >= 0)  this->inputs.index({"...", input_index["tanh_qnl"]})  = torch::tensor(tanh_qnl, device_type);
     if (input_index["tanhp_nl"] >= 0)  this->inputs.index({"...", input_index["tanhp_nl"]})  = torch::tensor(tanhp_nl, device_type);
     if (input_index["tanhq_nl"] >= 0)  this->inputs.index({"...", input_index["tanhq_nl"]})  = torch::tensor(tanhq_nl, device_type);
-}
-
-void NN_OFImpl::setData(
-    std::map<std::string, int> &input_index, 
-    torch::Tensor gamma, 
-    torch::Tensor p, 
-    torch::Tensor q, 
-    torch::Tensor gammanl, 
-    torch::Tensor pnl, 
-    torch::Tensor qnl,
-    torch::Tensor xi,
-    torch::Tensor tanhxi,
-    torch::Tensor tanhxi_nl,
-    torch::Tensor tanhp,
-    torch::Tensor tanhq,
-    torch::Tensor tanh_pnl,
-    torch::Tensor tanh_qnl,
-    torch::Tensor tanhp_nl,
-    torch::Tensor tanhq_nl
-)
-{
-    if (input_index["gamma"] >= 0)     this->inputs.index({"...", input_index["gamma"]})     = gamma.clone();
-    if (input_index["p"] >= 0)         this->inputs.index({"...", input_index["p"]})         = p.clone();
-    if (input_index["q"] >= 0)         this->inputs.index({"...", input_index["q"]})         = q.clone();
-    if (input_index["gammanl"] >= 0)   this->inputs.index({"...", input_index["gammanl"]})   = gammanl.clone();
-    if (input_index["pnl"] >= 0)       this->inputs.index({"...", input_index["pnl"]})       = pnl.clone();
-    if (input_index["qnl"] >= 0)       this->inputs.index({"...", input_index["qnl"]})       = qnl.clone();
-    if (input_index["xi"] >= 0)        this->inputs.index({"...", input_index["xi"]})        = xi.clone();
-    if (input_index["tanhxi"] >= 0)    this->inputs.index({"...", input_index["tanhxi"]})    = tanhxi.clone();
-    if (input_index["tanhxi_nl"] >= 0) this->inputs.index({"...", input_index["tanhxi_nl"]}) = tanhxi_nl.clone();
-    if (input_index["tanhp"] >= 0)     this->inputs.index({"...", input_index["tanhp"]})     = tanhp.clone();
-    if (input_index["tanhq"] >= 0)     this->inputs.index({"...", input_index["tanhq"]})     = tanhq.clone();
-    if (input_index["tanh_pnl"] >= 0)  this->inputs.index({"...", input_index["tanh_pnl"]})  = tanh_pnl.clone();
-    if (input_index["tanh_qnl"] >= 0)  this->inputs.index({"...", input_index["tanh_qnl"]})  = tanh_qnl.clone();
-    if (input_index["tanhp_nl"] >= 0)  this->inputs.index({"...", input_index["tanhp_nl"]})  = tanhp_nl.clone();
-    if (input_index["tanhq_nl"] >= 0)  this->inputs.index({"...", input_index["tanhq_nl"]})  = tanhq_nl.clone();
-}
-
-void NN_OFImpl::setData_vali(
-    const int nx_tot,
-    std::map<std::string, int> &input_index, 
-    torch::Tensor gamma, 
-    torch::Tensor p, 
-    torch::Tensor q, 
-    torch::Tensor gammanl, 
-    torch::Tensor pnl, 
-    torch::Tensor qnl,
-    torch::Tensor xi,
-    torch::Tensor tanhxi,
-    torch::Tensor tanhxi_nl,
-    torch::Tensor tanhp,
-    torch::Tensor tanhq,
-    torch::Tensor tanh_pnl,
-    torch::Tensor tanh_qnl,
-    torch::Tensor tanhp_nl,
-    torch::Tensor tanhq_nl,
-    torch::Device device
-)
-{
-    this->input_vali = torch::zeros({nx_tot, this->ninpt}).to(device);
-
-    if (input_index["gamma"] >= 0)     this->input_vali.index({"...", input_index["gamma"]})     = gamma.clone();
-    if (input_index["p"] >= 0)         this->input_vali.index({"...", input_index["p"]})         = p.clone();
-    if (input_index["q"] >= 0)         this->input_vali.index({"...", input_index["q"]})         = q.clone();
-    if (input_index["gammanl"] >= 0)   this->input_vali.index({"...", input_index["gammanl"]})   = gammanl.clone();
-    if (input_index["pnl"] >= 0)       this->input_vali.index({"...", input_index["pnl"]})       = pnl.clone();
-    if (input_index["qnl"] >= 0)       this->input_vali.index({"...", input_index["qnl"]})       = qnl.clone();
-    if (input_index["xi"] >= 0)        this->input_vali.index({"...", input_index["xi"]})        = xi.clone();
-    if (input_index["tanhxi"] >= 0)    this->input_vali.index({"...", input_index["tanhxi"]})    = tanhxi.clone();
-    if (input_index["tanhxi_nl"] >= 0) this->input_vali.index({"...", input_index["tanhxi_nl"]}) = tanhxi_nl.clone();
-    if (input_index["tanhp"] >= 0)     this->input_vali.index({"...", input_index["tanhp"]})     = tanhp.clone();
-    if (input_index["tanhq"] >= 0)     this->input_vali.index({"...", input_index["tanhq"]})     = tanhq.clone();
-    if (input_index["tanh_pnl"] >= 0)  this->input_vali.index({"...", input_index["tanh_pnl"]})  = tanh_pnl.clone();
-    if (input_index["tanh_qnl"] >= 0)  this->input_vali.index({"...", input_index["tanh_qnl"]})  = tanh_qnl.clone();
-    if (input_index["tanhp_nl"] >= 0)  this->input_vali.index({"...", input_index["tanhp_nl"]})  = tanhp_nl.clone();
-    if (input_index["tanhq_nl"] >= 0)  this->input_vali.index({"...", input_index["tanhq_nl"]})  = tanhq_nl.clone();
 }
 
 torch::Tensor NN_OFImpl::forward(torch::Tensor inpt) // will inpt be changed? no

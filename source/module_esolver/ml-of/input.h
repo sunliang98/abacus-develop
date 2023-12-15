@@ -16,6 +16,24 @@ class Input
         delete[] this->validation_dir;
         delete[] this->validation_cell;
         delete[] this->validation_a;
+
+        delete[] this->ml_gammanl;
+        delete[] this->ml_pnl;
+        delete[] this->ml_qnl;
+        delete[] this->ml_xi;
+        delete[] this->ml_tanhxi;
+        delete[] this->ml_tanhxi_nl;
+        delete[] this->ml_tanh_pnl;
+        delete[] this->ml_tanh_qnl;
+        delete[] this->ml_tanhp_nl;
+        delete[] this->ml_tanhq_nl;
+        delete[] this->chi_xi;
+        delete[] this->chi_pnl;
+        delete[] this->chi_qnl;
+        delete[] this->kernel_type;
+        delete[] this->kernel_scaling;
+        delete[] this->yukawa_alpha;
+
     };
 
     void readInput();
@@ -26,7 +44,18 @@ class Input
         ifs.ignore(150, '\n');
         return;
     }
-    // input variables
+
+    template <class T> static void read_values(std::ifstream &ifs, const int length, T *var)
+    {
+        for (int i = 0; i < length; ++i)
+        {
+            ifs >> var[i];
+        }
+        ifs.ignore(150, '\n');
+        return;
+    }
+
+    // training
     int fftdim = 0;
     int nbatch = 0;
     int ntrain = 1;
@@ -38,35 +67,39 @@ class Input
     std::string *validation_cell = nullptr;
     double *validation_a = nullptr;
     std::string loss = "both";
-    double exponent = 5.; // exponent of weight rho^{exponent/3.}
     int nepoch = 1000;
-    // double step_length = 0.01;
     double lr_start = 0.01; // learning rate 2023-02-24
     double lr_end = 1e-4;
     int lr_fre = 5000;
+    double exponent = 5.; // exponent of weight rho^{exponent/3.}
+
+    // output
     int dump_fre = 1;
     int print_fre = 1;
+
+    // descriptors
+    // semi-local descriptors
     bool ml_gamma = false;
     bool ml_p = false;
     bool ml_q = false;
-    bool ml_gammanl = false;
-    bool ml_pnl = false;
-    bool ml_qnl = false;
-    // new parameters 2023-02-14
-    bool ml_xi = false;
-    bool ml_tanhxi = false;
-    bool ml_tanhxi_nl = false; // 2023-03-20
     bool ml_tanhp = false;
     bool ml_tanhq = false;
-    bool ml_tanh_pnl = false;
-    bool ml_tanh_qnl = false;
-    bool ml_tanhp_nl = false;
-    bool ml_tanhq_nl = false;
-    double chi_xi = 1.;
     double chi_p = 1.;
     double chi_q = 1.;
-    double chi_pnl = 1.;
-    double chi_qnl = 1.;
+    // non-local descriptors
+    bool* ml_gammanl = nullptr;
+    bool* ml_pnl = nullptr;
+    bool* ml_qnl = nullptr;
+    bool* ml_xi = nullptr;
+    bool* ml_tanhxi = nullptr;
+    bool* ml_tanhxi_nl = nullptr;
+    bool* ml_tanh_pnl = nullptr;
+    bool* ml_tanh_qnl = nullptr;
+    bool* ml_tanhp_nl = nullptr;
+    bool* ml_tanhq_nl = nullptr;
+    double* chi_xi = nullptr;
+    double* chi_pnl = nullptr;
+    double* chi_qnl = nullptr;
 
     int feg_limit = 0; // Free Electron Gas
     int change_step = 0; // when feg_limit=3, change the output of net after change_step
@@ -81,13 +114,19 @@ class Input
     int nnode = 10;
     int nlayer = 3;
 
-    // yukawa kernel
-    int kernel_type = 1;
-    double kernel_scaling = 1.;
-    double yukawa_alpha = 1.;
+    // kernel
+    int nkernel = 1;
+    int* kernel_type = nullptr;
+    double* kernel_scaling = nullptr;
+    double* yukawa_alpha = nullptr;
 
     // GPU
     std::string device_type = "gpu";
     bool check_pot = false;
+
+    static void print(std::string message)
+    {
+        std::cout << message << std::endl;
+    }
 };
 #endif

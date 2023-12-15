@@ -46,45 +46,27 @@ void Input::readInput()
         }
         else if (strcmp("train_dir", word) == 0)
         {
-            for (int i = 0; i < this->ntrain; ++i)
-            {
-                ifs >> this->train_dir[i];
-            }
+            this->read_values(ifs, this->ntrain, this->train_dir);
         }
         else if (strcmp("train_cell", word) == 0)
         {
-            for (int i = 0; i < this->ntrain; ++i)
-            {
-                ifs >> this->train_cell[i];
-            }
+            this->read_values(ifs, this->ntrain, this->train_cell);
         }
         else if (strcmp("train_a", word) == 0)
         {
-            for (int i = 0; i < this->ntrain; ++i)
-            {
-                ifs >> this->train_a[i];
-            }
+            this->read_values(ifs, this->ntrain, this->train_a);
         }
         else if (strcmp("validation_dir", word) == 0)
         {
-            for (int i = 0; i < this->nvalidation; ++i)
-            {
-                ifs >> this->validation_dir[i];
-            }
+            this->read_values(ifs, this->nvalidation, this->validation_dir);
         }
         else if (strcmp("validation_cell", word) == 0 && this->nvalidation > 0)
         {
-            for (int i = 0; i < this->nvalidation; ++i)
-            {
-                ifs >> this->validation_cell[i];
-            }
+            this->read_values(ifs, this->nvalidation, this->validation_cell);
         }
         else if (strcmp("validation_a", word) == 0 && this->nvalidation > 0)
         {
-            for (int i = 0; i < this->nvalidation; ++i)
-            {
-                ifs >> this->validation_a[i];
-            }
+            this->read_values(ifs, this->nvalidation, this->validation_a);
         }
         else if (strcmp("loss", word) == 0)
         {
@@ -98,10 +80,6 @@ void Input::readInput()
         {
             this->read_value(ifs, this->nepoch);
         }
-        // else if (strcmp("step_length", word) == 0)
-        // {
-        //     this->read_value(ifs, this->step_length);
-        // }
         else if (strcmp("lr_start", word) == 0)
         {
             this->read_value(ifs, this->lr_start);
@@ -136,27 +114,27 @@ void Input::readInput()
         }
         else if (strcmp("gammanl", word) == 0)
         {
-            this->read_value(ifs, this->ml_gammanl);
+            this->read_values(ifs, this->nkernel, this->ml_gammanl);
         }
         else if (strcmp("pnl", word) == 0)
         {
-            this->read_value(ifs, this->ml_pnl);
+            this->read_values(ifs, this->nkernel, this->ml_pnl);
         }
         else if (strcmp("qnl", word) == 0)
         {
-            this->read_value(ifs, this->ml_qnl);
+            this->read_values(ifs, this->nkernel, this->ml_qnl);
         }
         else if (strcmp("xi", word) == 0)
         {
-            this->read_value(ifs, this->ml_xi);
+            this->read_values(ifs, this->nkernel, this->ml_xi);
         }
         else if (strcmp("tanhxi", word) == 0)
         {
-            this->read_value(ifs, this->ml_tanhxi);
+            this->read_values(ifs, this->nkernel, this->ml_tanhxi);
         }
         else if (strcmp("tanhxi_nl", word) == 0)
         {
-            this->read_value(ifs, this->ml_tanhxi_nl);
+            this->read_values(ifs, this->nkernel, this->ml_tanhxi_nl);
         }
         else if (strcmp("tanhp", word) == 0)
         {
@@ -168,23 +146,23 @@ void Input::readInput()
         }
         else if (strcmp("tanh_pnl", word) == 0)
         {
-            this->read_value(ifs, this->ml_tanh_pnl);
+            this->read_values(ifs, this->nkernel, this->ml_tanh_pnl);
         }
         else if (strcmp("tanh_qnl", word) == 0)
         {
-            this->read_value(ifs, this->ml_tanh_qnl);
+            this->read_values(ifs, this->nkernel, this->ml_tanh_qnl);
         }
         else if (strcmp("tanhp_nl", word) == 0)
         {
-            this->read_value(ifs, this->ml_tanhp_nl);
+            this->read_values(ifs, this->nkernel, this->ml_tanhp_nl);
         }
         else if (strcmp("tanhq_nl", word) == 0)
         {
-            this->read_value(ifs, this->ml_tanhq_nl);
+            this->read_values(ifs, this->nkernel, this->ml_tanhq_nl);
         }
         else if (strcmp("chi_xi", word) == 0)
         {
-            this->read_value(ifs, this->chi_xi);
+            this->read_values(ifs, this->nkernel, this->chi_xi);
         }
         else if (strcmp("chi_p", word) == 0)
         {
@@ -196,11 +174,11 @@ void Input::readInput()
         }
         else if (strcmp("chi_pnl", word) == 0)
         {
-            this->read_value(ifs, this->chi_pnl);
+            this->read_values(ifs, this->nkernel, this->chi_pnl);
         }
         else if (strcmp("chi_qnl", word) == 0)
         {
-            this->read_value(ifs, this->chi_qnl);
+            this->read_values(ifs, this->nkernel, this->chi_qnl);
         }
         else if (strcmp("feg_limit", word) == 0)
         {
@@ -238,17 +216,56 @@ void Input::readInput()
         {
             this->read_value(ifs, this->nlayer);
         }
+        else if (strcmp("nkernel", word) == 0)
+        {
+            this->read_value(ifs, this->nkernel);
+            this->ml_gammanl = new bool[this->nkernel];
+            this->ml_pnl = new bool[this->nkernel];
+            this->ml_qnl = new bool[this->nkernel];
+            this->ml_xi = new bool[this->nkernel];
+            this->ml_tanhxi = new bool[this->nkernel];
+            this->ml_tanhxi_nl = new bool[this->nkernel];
+            this->ml_tanh_pnl = new bool[this->nkernel];
+            this->ml_tanh_qnl = new bool[this->nkernel];
+            this->ml_tanhp_nl = new bool[this->nkernel];
+            this->ml_tanhq_nl = new bool[this->nkernel];
+            this->chi_xi = new double[this->nkernel];
+            this->chi_pnl = new double[this->nkernel];
+            this->chi_qnl = new double[this->nkernel];
+            this->kernel_type = new int[this->nkernel];
+            this->kernel_scaling = new double[this->nkernel];
+            this->yukawa_alpha = new double[this->nkernel];
+            for (int ik = 0; ik < this->nkernel; ++ik)
+            {
+                this->ml_gammanl[ik] = 0;
+                this->ml_pnl[ik] = 0;
+                this->ml_qnl[ik] = 0;
+                this->ml_xi[ik] = 0;
+                this->ml_tanhxi[ik] = 0;
+                this->ml_tanhxi_nl[ik] = 0;
+                this->ml_tanh_pnl[ik] = 0;
+                this->ml_tanh_qnl[ik] = 0;
+                this->ml_tanhp_nl[ik] = 0;
+                this->ml_tanhq_nl[ik] = 0;
+                this->chi_xi[ik] = 1.;
+                this->chi_pnl[ik] = 1.;
+                this->chi_qnl[ik] = 1.;
+                this->kernel_type[ik] = 1;
+                this->kernel_scaling[ik] = 1.;
+                this->yukawa_alpha[ik] = 1.;
+            }
+        }
         else if (strcmp("kernel_type", word) == 0)
         {
-            this->read_value(ifs, this->kernel_type);
+            this->read_values(ifs, this->nkernel, this->kernel_type);
         }
         else if (strcmp("yukawa_alpha", word) == 0)
         {
-            this->read_value(ifs, this->yukawa_alpha);
+            this->read_values(ifs, this->nkernel, this->yukawa_alpha);
         }
         else if (strcmp("kernel_scaling", word) == 0)
         {
-            this->read_value(ifs, this->kernel_scaling);
+            this->read_values(ifs, this->nkernel, this->kernel_scaling);
         }
         else if (strcmp("device_type", word) == 0)
         {

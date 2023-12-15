@@ -3,79 +3,52 @@
 
 #include <torch/torch.h>
 #include "./input.h"
+#include "./data.h"
+#include "./kernel.h"
+#include "./grid.h"
 
 class Potential{
 
 public:
-    void init(const Input &input, const int fftdim_in, const std::map<std::string, int> &nn_input_index_in)
-    {
-        this->fftdim = fftdim_in;
-        this->nn_input_index = nn_input_index_in;
-        this->ml_gamma = input.ml_gamma;
-        this->ml_p = input.ml_p;
-        this->ml_q = input.ml_q;
-        this->ml_gammanl = input.ml_gammanl;
-        this->ml_pnl = input.ml_pnl;
-        this->ml_qnl = input.ml_qnl;
-        this->ml_xi = input.ml_xi;
-        this->ml_tanhxi = input.ml_tanhxi;
-        this->ml_tanhxi_nl = input.ml_tanhxi_nl;
-        this->ml_tanhp = input.ml_tanhp;
-        this->ml_tanhq = input.ml_tanhq;
-        this->ml_tanh_pnl = input.ml_tanh_pnl;
-        this->ml_tanh_qnl = input.ml_tanh_qnl;
-        this->ml_tanhp_nl = input.ml_tanhp_nl;
-        this->ml_tanhq_nl = input.ml_tanhq_nl;
-        this->chi_xi = input.chi_xi;
-        this->chi_p = input.chi_p;
-        this->chi_q = input.chi_q;
-        this->chi_pnl = input.chi_pnl;
-        this->chi_qnl = input.chi_qnl;
-    }
+    void init(const Input &input, const int ninput, const std::vector<std::string> &descriptor_type, const std::vector<int> &kernel_index);
 
     int fftdim = 0;
-    std::map<std::string, int> nn_input_index;
+    int istru = 0;
 
+    std::map<std::string, std::vector<int>> descriptor2kernel;
+    std::map<std::string, std::vector<int>> descriptor2index;
+    
+    // semi-local descriptors
     bool ml_gamma = false;
     bool ml_p = false;
     bool ml_q = false;
+    bool ml_tanhp = false;
+    bool ml_tanhq = false;
+    // non-local descriptors
     bool ml_gammanl = false;
     bool ml_pnl = false;
     bool ml_qnl = false;
     bool ml_xi = false;
     bool ml_tanhxi = false;
-    bool ml_tanhxi_nl = false; // 2023-03-20
-    bool ml_tanhp = false;
-    bool ml_tanhq = false;
+    bool ml_tanhxi_nl = false;
     bool ml_tanh_pnl = false;
     bool ml_tanh_qnl = false;
     bool ml_tanhp_nl = false;
     bool ml_tanhq_nl = false;
-    double chi_xi = 1.;
+
     double chi_p = 1.;
     double chi_q = 1.;
-    double chi_pnl = 1.;
-    double chi_qnl = 1.;
+    double* chi_xi = nullptr;
+    double* chi_pnl = nullptr;
+    double* chi_qnl = nullptr;
 
-    torch::Tensor getPot(
-        const torch::Tensor &rho,
-        const torch::Tensor &nablaRho,
-        const torch::Tensor &tauTF,
-        const torch::Tensor &gamma,
-        const torch::Tensor &p,
-        const torch::Tensor &q,
-        const torch::Tensor &xi,
-        const torch::Tensor &tanhxi,
-        const torch::Tensor &tanhxi_nl,
-        const torch::Tensor &tanhp,
-        const torch::Tensor &tanhq,
-        const torch::Tensor &tanh_pnl,
-        const torch::Tensor &tanh_qnl,
+    torch::Tensor get_potential(
+        const int istru,
+        const Data &data,
         const torch::Tensor &F,
         const torch::Tensor &gradient,
-        const torch::Tensor &kernel,
-        const std::vector<torch::Tensor> &grid,
-        const torch::Tensor &gg
+        const Kernel *kernels,
+        const Grid &grid
     );
 private:
 
@@ -94,7 +67,8 @@ private:
     torch::Tensor potGammanlTerm(
         const torch::Tensor &rho,
         const torch::Tensor &gamma,
-        const torch::Tensor &kernel,
+        const Kernel *kernels,
+        // const torch::Tensor &kernel,
         const torch::Tensor &tauTF,
         const torch::Tensor &gradient
     );
@@ -102,7 +76,8 @@ private:
         const torch::Tensor &rho,
         const torch::Tensor &nablaRho,
         const torch::Tensor &p,
-        const torch::Tensor &kernel,
+        const Kernel *kernels,
+        // const torch::Tensor &kernel,
         const torch::Tensor &tauTF,
         const torch::Tensor &gradient,
         const std::vector<torch::Tensor> &grid
@@ -110,7 +85,8 @@ private:
     torch::Tensor potQQnlTerm(
         const torch::Tensor &rho,
         const torch::Tensor &q,
-        const torch::Tensor &kernel,
+        const Kernel *kernels,
+        // const torch::Tensor &kernel,
         const torch::Tensor &tauTF,
         const torch::Tensor &gradient,
         const torch::Tensor &gg    
@@ -118,12 +94,14 @@ private:
 
 
     torch::Tensor potXiTerm1(
-        const torch::Tensor &xi,
+        const torch::Tensor &rho,
+        const std::vector<torch::Tensor> &xi,
         const torch::Tensor &gradient
     );
     torch::Tensor potTanhxiTerm1(
-        const torch::Tensor &xi,
-        const torch::Tensor &tanhxi,
+        const torch::Tensor &rho,
+        const std::vector<torch::Tensor> &xi,
+        const std::vector<torch::Tensor> &tanhxi,
         const torch::Tensor &gradient
     );
     torch::Tensor potTanhpTerm1(
@@ -138,22 +116,25 @@ private:
     );
     torch::Tensor potXinlTerm(
         const torch::Tensor &rho,
-        const torch::Tensor &kernel,
+        const Kernel *kernels,
+        // const torch::Tensor &kernel,
         const torch::Tensor &tauTF,
         const torch::Tensor &gradient
     );
     torch::Tensor potTanhxinlTerm(
         const torch::Tensor &rho,
-        const torch::Tensor &tanhxi,
-        const torch::Tensor &kernel,
+        const std::vector<torch::Tensor> &tanhxi,
+        const Kernel *kernels,
+        // const torch::Tensor &kernel,
         const torch::Tensor &tauTF,
         const torch::Tensor &gradient
     );
     torch::Tensor potTanhxi_nlTerm(
         const torch::Tensor &rho,
-        const torch::Tensor &xi,
-        const torch::Tensor &tanhxi,
-        const torch::Tensor &kernel,
+        const std::vector<torch::Tensor> &xi,
+        const std::vector<torch::Tensor> &tanhxi,
+        const Kernel *kernels,
+        // const torch::Tensor &kernel,
         const torch::Tensor &tauTF,
         const torch::Tensor &gradient
     );
@@ -162,8 +143,9 @@ private:
         const torch::Tensor &nablaRho,
         const torch::Tensor &p,
         const torch::Tensor &tanhp,
-        const torch::Tensor &tanh_pnl,
-        const torch::Tensor &kernel,
+        const std::vector<torch::Tensor> &tanh_pnl,
+        const Kernel *kernels,
+        // const torch::Tensor &kernel,
         const torch::Tensor &tauTF,
         const torch::Tensor &gradient,
         const std::vector<torch::Tensor> &grid
@@ -172,8 +154,9 @@ private:
         const torch::Tensor &rho,
         const torch::Tensor &q,
         const torch::Tensor &tanhq,
-        const torch::Tensor &tanh_qnl,
-        const torch::Tensor &kernel,
+        const std::vector<torch::Tensor> &tanh_qnl,
+        const Kernel *kernels,
+        // const torch::Tensor &kernel,
         const torch::Tensor &tauTF,
         const torch::Tensor &gradient,
         const torch::Tensor &gg
@@ -183,7 +166,8 @@ private:
         const torch::Tensor &nablaRho,
         const torch::Tensor &p,
         const torch::Tensor &tanhp,
-        const torch::Tensor &kernel,
+        const Kernel *kernels,
+        // const torch::Tensor &kernel,
         const torch::Tensor &tauTF,
         const torch::Tensor &gradient,
         const std::vector<torch::Tensor> &grid
@@ -192,7 +176,8 @@ private:
         const torch::Tensor &rho,
         const torch::Tensor &q,
         const torch::Tensor &tanhq,
-        const torch::Tensor &kernel,
+        const Kernel *kernels,
+        // const torch::Tensor &kernel,
         const torch::Tensor &tauTF,
         const torch::Tensor &gradient,
         const torch::Tensor &gg

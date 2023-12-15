@@ -7,9 +7,11 @@ class Kernel
 {
     // ------------ fill the kernel in reciprocal space ----------
   public:
-    Kernel(const int kernel_type_in, const double scaling_in, const double yukawa_alpha_in)
+    Kernel(){};
+
+    void set_para(const int kernel_type_in, const double scaling_in, const double yukawa_alpha_in)
     {
-        this->kernel_type = kernel_type;
+        this->kernel_type = kernel_type_in;
         this->scaling = scaling_in;
         this->yukawa_alpha = yukawa_alpha_in;
     }
