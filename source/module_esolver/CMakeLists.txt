@@ -11,6 +11,7 @@ list(APPEND objects
     esolver_of.cpp
     kedf_ml.cpp
     kedf_ml_pot.cpp
+    kedf_ml_label.cpp
     ml_data.cpp
     ml-of/nn_of.cpp
 )

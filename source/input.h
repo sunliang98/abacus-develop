@@ -473,33 +473,37 @@ class Input
     // ML KEDF, sunliang added on 2022-11-07
     bool of_ml_gene_data; // Generate training data or not
     bool of_ml_local_test;  // Read in the density, and output the F and Pauli potential of it
+    int of_ml_feg; // if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0
+    // semi-local descriptors
     bool of_ml_gamma; // If the input variables contain gamma
     bool of_ml_p; // If the input variables contain p
     bool of_ml_q; // If the input variables contain q
-    bool of_ml_gammanl; // If the input variables contain gammanl
-    bool of_ml_pnl; // If the input variables contain pnl
-    bool of_ml_qnl; // If the input variables contain qnl
-    int of_ml_feg; // if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0
-    // new parameters 2023-02-13
-    bool of_ml_xi; // If the input variables contain xi
-    double of_ml_chi_xi; // tanhpxi = tanh(chi * xi)
-    bool of_ml_tanhxi; // If the input variables contain tanhxi
-    bool of_ml_tanhxi_nl; // If the input variables contain tanhxi_nl
-    double of_ml_chi_p; // tanhp = tanh(chi*p)
-    double of_ml_chi_q; // tanhp = tanh(chi*q)
     bool of_ml_tanhp; // If the input variables contain tanhp
     bool of_ml_tanhq; // If the input variables contain tanhq
-    double of_ml_chi_pnl; // tanh_pnl = tanh(chi*pnl)
-    double of_ml_chi_qnl; // tanh_pnl = tanh(chi*qnl)
-    bool of_ml_tanh_pnl; // If the input variables contain tanh_pnl
-    bool of_ml_tanh_qnl; // If the input variables contain tanh_qnl
-    bool of_ml_tanhp_nl; // If the input variables contain tanhp_nl
-    bool of_ml_tanhq_nl; // If the input variables contain tanhq_nl
+    double of_ml_chi_p; // tanhp = tanh(chi*p)
+    double of_ml_chi_q; // tanhp = tanh(chi*q)
+    // non-local descriptors
+    std::string of_ml_gammanl; // If the input variables contain gammanl
+    std::string of_ml_pnl; // If the input variables contain pnl
+    std::string of_ml_qnl; // If the input variables contain qnl
+    std::string of_ml_xi; // If the input variables contain xi
+    std::string of_ml_tanhxi; // If the input variables contain tanhxi
+    std::string of_ml_tanhxi_nl; // If the input variables contain tanhxi_nl
+    std::string of_ml_tanh_pnl; // If the input variables contain tanh_pnl
+    std::string of_ml_tanh_qnl; // If the input variables contain tanh_qnl
+    std::string of_ml_tanhp_nl; // If the input variables contain tanhp_nl
+    std::string of_ml_tanhq_nl; // If the input variables contain tanhq_nl
+    std::string of_ml_chi_xi; // tanhpxi = tanh(chi * xi)
+    std::string of_ml_chi_pnl; // tanh_pnl = tanh(chi*pnl)
+    std::string of_ml_chi_qnl; // tanh_pnl = tanh(chi*qnl)
     // size of nn 2023-04-19
     int of_ml_nnode;    // number of node
     int of_ml_nlayer;   // number of layer
-    int of_ml_kernel;   // type of kernel, 1 for wt, 2 for yukawa
-    double of_ml_yukawa_alpha; // parameter alpha of yukawa kernel
+    // kernel
+    int of_ml_nkernel;  // number of kernels
+    std::string of_ml_kernel;   // type of kernel, 1 for wt, 2 for yukawa
+    std::string of_ml_kernel_scaling; // scaling parameter of kernel
+    std::string of_ml_yukawa_alpha; // parameter alpha of yukawa kernel
     std::string of_ml_device; // run NN on GPU or CPU
 
     //==========================================================

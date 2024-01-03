@@ -97,31 +97,16 @@ void Train::init_input_index()
     if (this->input.ml_gamma){
         this->descriptor_type.push_back("gamma");
         this->kernel_index.push_back(-1);
-        // nn_input_index["gamma"] = ninput; 
         ninput++;
     } 
     if (this->input.ml_p){
         this->descriptor_type.push_back("p");
         this->kernel_index.push_back(-1);
-        // nn_input_index["p"] = ninput;
         ninput++;
     }
     if (this->input.ml_q){
         this->descriptor_type.push_back("q");
         this->kernel_index.push_back(-1);
-        // nn_input_index["q"] = ninput;
-        ninput++;
-    }
-    if (this->input.ml_tanhp){
-        this->descriptor_type.push_back("tanhp");
-        this->kernel_index.push_back(-1);
-        // nn_input_index["tanhp"] = ninput;
-        ninput++;
-    }
-    if (this->input.ml_tanhq){
-        this->descriptor_type.push_back("tanhq");
-        this->kernel_index.push_back(-1);
-        // nn_input_index["tanhq"] = ninput;
         ninput++;
     }
     // --------- non-local descriptors ---------
@@ -157,6 +142,21 @@ void Train::init_input_index()
             this->kernel_index.push_back(ik);
             this->ninput++;
         }
+    }
+    // --------- semi-local descriptors ---------
+    if (this->input.ml_tanhp){
+        this->descriptor_type.push_back("tanhp");
+        this->kernel_index.push_back(-1);
+        ninput++;
+    }
+    if (this->input.ml_tanhq){
+        this->descriptor_type.push_back("tanhq");
+        this->kernel_index.push_back(-1);
+        ninput++;
+    }
+    // --------- non-local descriptors ---------
+    for (int ik = 0; ik < this->input.nkernel; ++ik)
+    {
         if (this->input.ml_tanh_pnl[ik]){
             this->descriptor_type.push_back("tanh_pnl");
             this->kernel_index.push_back(ik);
@@ -210,8 +210,8 @@ void Train::init()
     
     this->nn = std::make_shared<NN_OFImpl>(this->data_train.nx_tot, this->data_vali.nx_tot, this->ninput, this->input.nnode, this->input.nlayer, this->device);
     // Input::print("init_nn done");
-    this->nn->set_data(this->data_train, this->descriptor_type, this->kernel_index, this->nn->inputs);
-    this->nn->set_data(this->data_vali, this->descriptor_type, this->kernel_index, this->nn->input_vali);
+    this->nn->set_data(&(this->data_train), this->descriptor_type, this->kernel_index, this->nn->inputs);
+    this->nn->set_data(&(this->data_vali), this->descriptor_type, this->kernel_index, this->nn->input_vali);
 }
 
 torch::Tensor Train::lossFunction(torch::Tensor enhancement, torch::Tensor target, torch::Tensor coef)
@@ -446,8 +446,8 @@ void Train::potTest()
     torch::load(this->nn, "net.pt", device_type);
     // this->nn->to(this->device);
     Input::print("init_nn done");
-    this->nn->set_data(this->data_train, this->descriptor_type, this->kernel_index, this->nn->inputs);
-    this->nn->set_data(this->data_vali, this->descriptor_type, this->kernel_index, this->nn->input_vali);
+    this->nn->set_data(&(this->data_train), this->descriptor_type, this->kernel_index, this->nn->inputs);
+    this->nn->set_data(&(this->data_vali), this->descriptor_type, this->kernel_index, this->nn->input_vali);
 
     this->nn->inputs.requires_grad_(true);
 

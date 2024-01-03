@@ -4,19 +4,38 @@
 // #include "time.h"
 
 void KEDF_ML::set_para(
-    int nx, 
-    double dV, 
-    double nelec, 
-    double tf_weight, 
-    double vw_weight, 
-    double chi_xi,
-    double chi_p,
-    double chi_q,
-    double chi_pnl,
-    double chi_qnl,
-    int nnode,
-    int nlayer,
-    std::string device_inpt,
+    const int nx, 
+    const double dV, 
+    const double nelec, 
+    const double tf_weight, 
+    const double vw_weight, 
+    const double chi_p,
+    const double chi_q,
+    const std::string chi_xi_,
+    const std::string chi_pnl_,
+    const std::string chi_qnl_,
+    const int nnode,
+    const int nlayer,
+    const int &nkernel,
+    const std::string &kernel_type_,
+    const std::string &kernel_scaling_,
+    const std::string &yukawa_alpha_,
+    const bool &of_ml_gamma,
+    const bool &of_ml_p,
+    const bool &of_ml_q,
+    const bool &of_ml_tanhp,
+    const bool &of_ml_tanhq,
+    const std::string &of_ml_gammanl_,
+    const std::string &of_ml_pnl_,
+    const std::string &of_ml_qnl_,
+    const std::string &of_ml_xi_,
+    const std::string &of_ml_tanhxi_,
+    const std::string &of_ml_tanhxi_nl_,
+    const std::string &of_ml_tanh_pnl_,
+    const std::string &of_ml_tanh_qnl_,
+    const std::string &of_ml_tanhp_nl_,
+    const std::string &of_ml_tanhq_nl_,
+    const std::string device_inpt,
     ModulePW::PW_Basis *pw_rho
 )
 {
@@ -27,150 +46,47 @@ void KEDF_ML::set_para(
     this->set_device(device_inpt);
 
     this->nx = nx;
+    this->nx_tot = nx;
     this->dV = dV;
-    this->chi_xi = chi_xi;
+    this->nkernel = nkernel;
     this->chi_p = chi_p;
     this->chi_q = chi_q;
-    this->chi_pnl = chi_pnl;
-    this->chi_qnl = chi_qnl;
-    this->nn_input_index = {{"gamma", -1}, {"p", -1}, {"q", -1},
-                            {"gammanl", -1}, {"pnl", -1}, {"qnl", -1}, 
-                            {"xi", -1}, {"tanhxi", -1}, {"tanhxi_nl", -1},
-                            {"tanhp", -1}, {"tanhq", -1}, 
-                            {"tanh_pnl", -1}, {"tanh_qnl", -1}, 
-                            {"tanhp_nl", -1}, {"tanhq_nl", -1}};
+    this->ml_data->split_string(chi_xi_, nkernel, 1., this->chi_xi);
+    this->ml_data->split_string(chi_pnl_, nkernel, 1., this->chi_pnl);
+    this->ml_data->split_string(chi_qnl_, nkernel, 1., this->chi_qnl);
 
-    this->ninput = 0;
-    if (GlobalV::of_ml_gamma || GlobalV::of_ml_gammanl || GlobalV::of_ml_xi || GlobalV::of_ml_tanhxi || GlobalV::of_ml_tanhxi_nl){
-        this->gamma = std::vector<double>(this->nx);
-        if (GlobalV::of_ml_gamma)
-        {
-            this->nn_input_index["gamma"] = this->ninput; 
-            this->ninput++;
-        } 
-    }    
-    if (GlobalV::of_ml_p || GlobalV::of_ml_pnl || GlobalV::of_ml_tanhp || GlobalV::of_ml_tanh_pnl || GlobalV::of_ml_tanhp_nl){
-        this->p = std::vector<double>(this->nx);
-        this->nablaRho = std::vector<std::vector<double> >(3, std::vector<double>(this->nx, 0.));
-        if (GlobalV::of_ml_p)
-        {
-            this->nn_input_index["p"] = this->ninput;
-            this->ninput++;
-        }
-    }
-    if (GlobalV::of_ml_q || GlobalV::of_ml_qnl || GlobalV::of_ml_tanhq || GlobalV::of_ml_tanh_qnl || GlobalV::of_ml_tanhq_nl){
-        this->q = std::vector<double>(this->nx);
-        if (GlobalV::of_ml_q)
-        {
-            this->nn_input_index["q"] = this->ninput;
-            this->ninput++;
-        }
-    }
-    if (GlobalV::of_ml_gammanl || GlobalV::of_ml_xi || GlobalV::of_ml_tanhxi || GlobalV::of_ml_tanhxi_nl){
-        this->gammanl = std::vector<double>(this->nx);
-        if (GlobalV::of_ml_gammanl)
-        {
-            this->nn_input_index["gammanl"] = this->ninput;
-            this->ninput++;
-        }
-    }
-    if (GlobalV::of_ml_pnl || GlobalV::of_ml_tanh_pnl){
-        this->pnl = std::vector<double>(this->nx);
-        if (GlobalV::of_ml_pnl)
-        {
-            this->nn_input_index["pnl"] = this->ninput;
-            this->ninput++;
-        }
-    }
-    if (GlobalV::of_ml_qnl || GlobalV::of_ml_tanh_qnl){
-        this->qnl = std::vector<double>(this->nx);
-        if (GlobalV::of_ml_qnl)
-        {
-            this->nn_input_index["qnl"] = this->ninput;
-            this->ninput++;
-        }
-    }
-    if (GlobalV::of_ml_xi || GlobalV::of_ml_tanhxi || GlobalV::of_ml_tanhxi_nl){
-        this->xi = std::vector<double>(this->nx);
-        if (GlobalV::of_ml_xi)
-        {
-            this->nn_input_index["xi"] = this->ninput;
-            this->ninput++;
-        }
-    }
-    if (GlobalV::of_ml_tanhxi || GlobalV::of_ml_tanhxi_nl){
-        this->tanhxi = std::vector<double>(this->nx); // we assume ONLY ONE of xi and tanhxi is used.
-        if (GlobalV::of_ml_tanhxi)
-        {
-            this->nn_input_index["tanhxi"] = this->ninput;
-            this->ninput++;
-        }
-    }
-    if (GlobalV::of_ml_tanhxi_nl){
-        this->tanhxi_nl = std::vector<double>(this->nx);
-        this->nn_input_index["tanhxi_nl"] = this->ninput;
-        this->ninput++;
-    }
-    if (GlobalV::of_ml_tanhp || GlobalV::of_ml_tanhp_nl){
-        this->tanhp = std::vector<double>(this->nx);
-        if (GlobalV::of_ml_tanhp)
-        {
-            this->nn_input_index["tanhp"] = this->ninput;
-            this->ninput++;
-        }
-    }
-    if (GlobalV::of_ml_tanhq || GlobalV::of_ml_tanhq_nl){
-        this->tanhq = std::vector<double>(this->nx);
-        if (GlobalV::of_ml_tanhq)
-        {
-            this->nn_input_index["tanhq"] = this->ninput;
-            this->ninput++;
-        }
-    }
-    if (GlobalV::of_ml_tanh_pnl){
-        this->tanh_pnl = std::vector<double>(this->nx);
-        this->nn_input_index["tanh_pnl"] = this->ninput;
-        this->ninput++;
-    }
-    if (GlobalV::of_ml_tanh_qnl){
-        this->tanh_qnl = std::vector<double>(this->nx);
-        this->nn_input_index["tanh_qnl"] = this->ninput;
-        this->ninput++;
-    }
-    if (GlobalV::of_ml_tanhp_nl){
-        this->tanhp_nl = std::vector<double>(this->nx);
-        this->nn_input_index["tanhp_nl"] = this->ninput;
-        this->ninput++;
-    }
-    if (GlobalV::of_ml_tanhq_nl){
-        this->tanhq_nl = std::vector<double>(this->nx);
-        this->nn_input_index["tanhq_nl"] = this->ninput;
-        this->ninput++;
-    }
+    this->init_data(
+        nkernel,
+        of_ml_gamma,
+        of_ml_p,
+        of_ml_q,
+        of_ml_tanhp,
+        of_ml_tanhq,
+        of_ml_gammanl_,
+        of_ml_pnl_,
+        of_ml_qnl_,
+        of_ml_xi_,
+        of_ml_tanhxi_,
+        of_ml_tanhxi_nl_,
+        of_ml_tanh_pnl_,
+        of_ml_tanh_qnl_,
+        of_ml_tanhp_nl_,
+        of_ml_tanhq_nl_);
+
+    std::cout << "ninput = " << ninput << std::endl;
 
     if (GlobalV::of_kinetic == "ml")
     {
-        this->nn = std::make_shared<NN_OFImpl>(this->nx, this->ninput, nnode, nlayer, this->device);
+        this->nn = std::make_shared<NN_OFImpl>(this->nx, 0, this->ninput, nnode, nlayer, this->device);
         torch::load(this->nn, "net.pt", this->device_type);
         std::cout << "load net done" << std::endl;
         if (GlobalV::of_ml_feg != 0)
         {
             torch::Tensor feg_inpt = torch::zeros(this->ninput, this->device_type);
-            if (GlobalV::of_ml_gamma) feg_inpt[this->nn_input_index["gamma"]] = 1.;
-            if (GlobalV::of_ml_p) feg_inpt[this->nn_input_index["p"]] = 0.;
-            if (GlobalV::of_ml_q) feg_inpt[this->nn_input_index["q"]] = 0.;
-            if (GlobalV::of_ml_gammanl) feg_inpt[this->nn_input_index["gammanl"]] = 0.;
-            if (GlobalV::of_ml_pnl) feg_inpt[this->nn_input_index["pnl"]] = 0.;
-            if (GlobalV::of_ml_qnl) feg_inpt[this->nn_input_index["qnl"]] = 0.;
-            if (GlobalV::of_ml_xi) feg_inpt[this->nn_input_index["xi"]] = 0;
-            if (GlobalV::of_ml_tanhxi) feg_inpt[this->nn_input_index["tanhxi"]] = 0;
-            if (GlobalV::of_ml_tanhxi_nl) feg_inpt[this->nn_input_index["tanhxi_nl"]] = 0;
-            if (GlobalV::of_ml_tanhp) feg_inpt[this->nn_input_index["tanhp"]] = 0;
-            if (GlobalV::of_ml_tanhq) feg_inpt[this->nn_input_index["tanhq"]] = 0;
-            if (GlobalV::of_ml_tanh_pnl) feg_inpt[this->nn_input_index["tanh_pnl"]] = 0;
-            if (GlobalV::of_ml_tanh_qnl) feg_inpt[this->nn_input_index["tanh_qnl"]] = 0;
-            if (GlobalV::of_ml_tanhp_nl) feg_inpt[this->nn_input_index["tanhp_nl"]] = 0;
-            if (GlobalV::of_ml_tanhq_nl) feg_inpt[this->nn_input_index["tanhq_nl"]] = 0;
+            for (int i = 0; i < this->ninput; ++i)
+            {
+                if (this->descriptor_type[i] == "gamma") feg_inpt[i] = 1.;
+            }
 
             // feg_inpt.requires_grad_(true);
 
@@ -189,8 +105,8 @@ void KEDF_ML::set_para(
     
     if (GlobalV::of_kinetic == "ml" || GlobalV::of_ml_gene_data == 1)
     {
-        this->ml_data->set_para(nx, nelec, tf_weight, vw_weight, 
-                                chi_xi, chi_p, chi_q, chi_pnl, chi_qnl, pw_rho);
+        this->ml_data->set_para(nx, nelec, tf_weight, vw_weight, chi_p, chi_q,
+                                chi_xi_, chi_pnl_, chi_qnl_, nkernel, kernel_type_, kernel_scaling_, yukawa_alpha_, pw_rho);
     }
 }
 
@@ -272,6 +188,7 @@ void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF
 
         this->get_potential_(prho, pw_rho, potential);
 
+        std::cout << "dumpdump\n";
         this->dumpTensor(enhancement, "enhancement.npy");
         this->dumpMatrix(potential, "potential.npy");
     }
@@ -288,7 +205,7 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/1_validation_set_bccAl/reference/rho.npy", cshape, fortran_order, temp_prho);
     // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", cshape, fortran_order, temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", temp_prho);
-    this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/11_ks-pbe-chip0.2q0.1xi0.6-alpha2/1_fccAl-eq-2023-10-02/rho.npy", temp_prho);
+    this->ml_data->loadVector("/home/xianyuer/data/1_sunliang/1_work/0_ml_kedf/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/1_fccAl-eq-2023-03-20/rho.npy", temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/1_ks/2_bccAl_27dim-2022-12-12/rho.npy", temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/3_ks-pbe-newpara/1_fccAl-eq-2023-02-14/rho.npy", temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/19_Li3Mg-mp-976254-eq-2023-03-20/rho.npy", temp_prho);
@@ -299,6 +216,7 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     // ==============================
 
     this->updateInput(prho, pw_rho);
+    std::cout << "update done" << std::endl;
 
     this->NN_forward(prho, pw_rho, true);
     
@@ -309,11 +227,13 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
 
     // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
     // std::cout << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
+    std::cout << "enhancement done" << std::endl;
 
     torch::Tensor enhancement = this->nn->F.reshape({this->nx});
     ModuleBase::matrix potential(1, this->nx);
 
     this->get_potential_(prho, pw_rho, potential);
+    std::cout << "potential done" << std::endl;
 
     this->dumpTensor(enhancement, "enhancement-abacus.npy");
     this->dumpMatrix(potential, "potential-abacus.npy");
@@ -347,11 +267,14 @@ void KEDF_ML::set_device(std::string device_inpt)
 void KEDF_ML::NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho, bool cal_grad)
 {
     ModuleBase::timer::tick("KEDF_ML", "Forward");
+    // std::cout << "nn_forward" << std::endl;
+
     this->nn->zero_grad();
     this->nn->inputs.requires_grad_(false);
-    this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl,
-                      this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl,
-                      this->device_type);
+    // this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl,
+    //                   this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl,
+    //                   this->device_type);
+    this->nn->set_data(this, this->descriptor_type, this->kernel_index, this->nn->inputs);
     this->nn->inputs.requires_grad_(true);
 
     this->nn->F = this->nn->forward(this->nn->inputs);    
@@ -377,6 +300,7 @@ void KEDF_ML::NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho
         this->nn->F.backward(torch::ones({this->nx, 1}, this->device_type));
         ModuleBase::timer::tick("KEDF_ML", "Backward");
     }
+    // std::cout << "nn_forward" << std::endl;
 }
 
 void KEDF_ML::dumpTensor(const torch::Tensor &data, std::string filename)
@@ -399,73 +323,68 @@ void KEDF_ML::dumpMatrix(const ModuleBase::matrix &data, std::string filename)
 void KEDF_ML::updateInput(const double * const * prho, ModulePW::PW_Basis *pw_rho)
 {
     ModuleBase::timer::tick("KEDF_ML", "updateInput");
-    if (this->nn_input_index["gammanl"] >= 0 || this->nn_input_index["gamma"] >= 0
-        || this->nn_input_index["xi"] >= 0 || GlobalV::of_ml_tanhxi || GlobalV::of_ml_tanhxi_nl)
-    {
-        this->ml_data->getGamma(prho, this->gamma);
-        if (this->nn_input_index["gammanl"] >= 0 || this->nn_input_index["xi"] >= 0 || GlobalV::of_ml_tanhxi || GlobalV::of_ml_tanhxi_nl)
-        {
-            this->ml_data->getGammanl(this->gamma, pw_rho, this->gammanl);
-            if (this->nn_input_index["xi"] >= 0 || GlobalV::of_ml_tanhxi || GlobalV::of_ml_tanhxi_nl)
-            {
-                this->ml_data->getXi(this->gamma, this->gammanl, this->xi);
-                if (GlobalV::of_ml_tanhxi || GlobalV::of_ml_tanhxi_nl)
-                {
-                    this->ml_data->tanh(this->xi, this->tanhxi, this->chi_xi);
-                    if (GlobalV::of_ml_tanhxi_nl)
-                    {
-                        this->ml_data->getTanhXi_nl(this->tanhxi, pw_rho, this->tanhxi_nl);
-                    }
-                }
-            }
-            // if (GlobalV::of_ml_tanhxi)
-            // {
-            //     this->ml_data->getTanhXi(this->gamma, this->gammanl, this->tanhxi);
-            // }
-        }
-    }
-    if (this->nn_input_index["pnl"] >= 0 || this->nn_input_index["p"] >= 0
-        || GlobalV::of_ml_tanhp || GlobalV::of_ml_tanhp_nl || GlobalV::of_ml_tanh_pnl)
+    // std::cout << "updata_input" << std::endl;
+    if (this->gene_data_label["gamma"][0])   this->ml_data->getGamma(prho, this->gamma);
+    if (this->gene_data_label["p"][0])
     {
         this->ml_data->getNablaRho(prho, pw_rho, this->nablaRho);
         this->ml_data->getP(prho, pw_rho, this->nablaRho, this->p);
-        if (this->nn_input_index["pnl"] >= 0 || GlobalV::of_ml_tanh_pnl)
-        {
-            this->ml_data->getPnl(this->p, pw_rho, this->pnl);
-            if (GlobalV::of_ml_tanh_pnl)
-            {
-                this->ml_data->getTanh_Pnl(this->pnl, this->tanh_pnl);
-            }
-        }
-        if (GlobalV::of_ml_tanhp || GlobalV::of_ml_tanhp_nl)
-        {
-            this->ml_data->getTanhP(this->p, this->tanhp);
-            if (GlobalV::of_ml_tanhp_nl)
-            {
-                this->ml_data->getTanhP_nl(this->tanhp, pw_rho, this->tanhp_nl);
-            }
-        }
     }
-    if (this->nn_input_index["qnl"] >= 0 || this->nn_input_index["q"] >= 0
-        || GlobalV::of_ml_tanhq || GlobalV::of_ml_tanhq_nl || GlobalV::of_ml_tanh_qnl)
+    if (this->gene_data_label["q"][0])       this->ml_data->getQ(prho, pw_rho, this->q);
+    if (this->gene_data_label["tanhp"][0])   this->ml_data->getTanhP(this->p, this->tanhp);
+    if (this->gene_data_label["tanhq"][0])   this->ml_data->getTanhQ(this->q, this->tanhq);
+
+    for (int ik = 0; ik < nkernel; ++ik)
     {
-        this->ml_data->getQ(prho, pw_rho, this->q);
-        if (this->nn_input_index["qnl"] >= 0 || GlobalV::of_ml_tanh_qnl)
-        {
-            this->ml_data->getQnl(this->q, pw_rho, this->qnl);
-            if (GlobalV::of_ml_tanh_qnl)
-            {
-                this->ml_data->getTanh_Qnl(this->qnl, this->tanh_qnl);
-            }
+        if (this->gene_data_label["gammanl"][ik]){
+            this->ml_data->getGammanl(ik, this->gamma, pw_rho, this->gammanl[ik]);
         }
-        if (GlobalV::of_ml_tanhq || GlobalV::of_ml_tanhq_nl)
-        {
-            this->ml_data->getTanhQ(this->q, this->tanhq);
-            if (GlobalV::of_ml_tanhq_nl)
-            {
-                this->ml_data->getTanhQ_nl(this->tanhq, pw_rho, this->tanhq_nl);
-            }
+        if (this->gene_data_label["pnl"][ik]){
+            this->ml_data->getPnl(ik, this->p, pw_rho, this->pnl[ik]);
+        }
+        if (this->gene_data_label["qnl"][ik]){
+            this->ml_data->getQnl(ik, this->q, pw_rho, this->qnl[ik]);
+        }
+        if (this->gene_data_label["xi"][ik]){
+            this->ml_data->getXi(this->gamma, this->gammanl[ik], this->xi[ik]);
+        }
+        if (this->gene_data_label["tanhxi"][ik]){
+            this->ml_data->getTanhXi(ik, this->gamma, this->gammanl[ik], this->tanhxi[ik]);
+        }
+        if (this->gene_data_label["tanhxi_nl"][ik]){
+            this->ml_data->getTanhXi_nl(ik, this->tanhxi[ik], pw_rho, this->tanhxi_nl[ik]);
+        }
+        if (this->gene_data_label["tanh_pnl"][ik]){
+            this->ml_data->getTanh_Pnl(ik, this->pnl[ik], this->tanh_pnl[ik]);
+        }
+        if (this->gene_data_label["tanh_qnl"][ik]){
+            this->ml_data->getTanh_Qnl(ik, this->qnl[ik], this->tanh_qnl[ik]);
+        }
+        if (this->gene_data_label["tanhp_nl"][ik]){
+            this->ml_data->getTanhP_nl(ik, this->tanhp, pw_rho, this->tanhp_nl[ik]);
+        }
+        if (this->gene_data_label["tanhq_nl"][ik]){
+            this->ml_data->getTanhQ_nl(ik, this->tanhq, pw_rho, this->tanhq_nl[ik]);
         }
     }
     ModuleBase::timer::tick("KEDF_ML", "updateInput");
+}
+
+torch::Tensor KEDF_ML::get_data(std::string parameter, const int ikernel){
+    if (parameter == "gamma")       return torch::tensor(this->gamma, this->device_type);
+    if (parameter == "p")           return torch::tensor(this->p, this->device_type);
+    if (parameter == "q")           return torch::tensor(this->q, this->device_type);
+    if (parameter == "tanhp")       return torch::tensor(this->tanhp, this->device_type);
+    if (parameter == "tanhq")       return torch::tensor(this->tanhq, this->device_type);
+    if (parameter == "gammanl")     return torch::tensor(this->gammanl[ikernel], this->device_type);
+    if (parameter == "pnl")         return torch::tensor(this->pnl[ikernel], this->device_type);
+    if (parameter == "qnl")         return torch::tensor(this->qnl[ikernel], this->device_type);
+    if (parameter == "xi")          return torch::tensor(this->xi[ikernel], this->device_type);
+    if (parameter == "tanhxi")      return torch::tensor(this->tanhxi[ikernel], this->device_type);
+    if (parameter == "tanhxi_nl")   return torch::tensor(this->tanhxi_nl[ikernel], this->device_type);
+    if (parameter == "tanh_pnl")    return torch::tensor(this->tanh_pnl[ikernel], this->device_type);
+    if (parameter == "tanh_qnl")    return torch::tensor(this->tanh_qnl[ikernel], this->device_type);
+    if (parameter == "tanhp_nl")    return torch::tensor(this->tanhp_nl[ikernel], this->device_type);
+    if (parameter == "tanhq_nl")    return torch::tensor(this->tanhq_nl[ikernel], this->device_type);
+    return torch::zeros({});
 }

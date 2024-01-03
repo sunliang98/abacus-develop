@@ -409,31 +409,36 @@ void Input::Print(const std::string &fn) const
 
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_gene_data", of_ml_gene_data, "Generate training data or not");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_local_test", of_ml_local_test, "Read in the density, and output the F and Pauli potential of it");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_feg", of_ml_feg, "if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0");
+
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_gamma", of_ml_gamma, "If the input variables contain gamma");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_p", of_ml_p, "If the input variables contain p");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_q", of_ml_q, "If the input variables contain q");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhp", of_ml_tanhp, "If the input variables contain tanhp");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhq", of_ml_tanhq, "If the input variables contain tanhq");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_p", of_ml_chi_p, "tanhp = tanh(chi*p)");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_q", of_ml_chi_q, "tanhp = tanh(chi*q)");
+
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_gammanl", of_ml_gammanl, "If the input variables contain gammanl");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_pnl", of_ml_pnl, "If the input variables contain pnl");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_qnl", of_ml_qnl, "If the input variables contain qnl");
-    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_feg", of_ml_feg, "if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0");
-
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_xi", of_ml_xi, "If the input variables contain xi");
-    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_xi", of_ml_chi_xi, "tanhpxi = tanh(chi * xi)");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhxi", of_ml_tanhxi, "If the input variables contain tanhxi");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhxi_nl", of_ml_tanhxi_nl, "If the input variables contain tanhxi_nl");
-    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_p", of_ml_chi_p, "tanhp = tanh(chi*p)");
-    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_q", of_ml_chi_q, "tanhp = tanh(chi*q)");
-    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhp", of_ml_tanhp, "If the input variables contain tanhp");
-    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhq", of_ml_tanhq, "If the input variables contain tanhq");
-    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_pnl", of_ml_chi_pnl, "tanh_pnl = tanh(chi*pnl)");
-    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_qnl", of_ml_chi_qnl, "tanh_pnl = tanh(chi*qnl)");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanh_pnl", of_ml_tanh_pnl, "If the input variables contain tanh_pnl");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanh_qnl", of_ml_tanh_qnl, "If the input variables contain tanh_qnl");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhp_nl", of_ml_tanhp_nl, "If the input variables contain tanhp_nl");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_tanhq_nl", of_ml_tanhq_nl, "If the input variables contain tanhq_nl");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_xi", of_ml_chi_xi, "tanhpxi = tanh(chi * xi)");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_pnl", of_ml_chi_pnl, "tanh_pnl = tanh(chi*pnl)");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_qnl", of_ml_chi_qnl, "tanh_pnl = tanh(chi*qnl)");
+
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_nnode", of_ml_nnode, "number of node");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_nlayer", of_ml_nlayer, "number of layer");
+    
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_nkernel", of_ml_nkernel, "number of kernels");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_kernel", of_ml_kernel, "type of kernel, 1 for wt, and 2 for yukawa");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_kernel_scaling", of_ml_kernel_scaling, "scaling parameter of kernel");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_yukawa_alpha", of_ml_yukawa_alpha, "parameter alpha of yukawa kernel");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_device", of_ml_device, "run NN on GPU or CPU");
 

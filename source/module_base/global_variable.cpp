@@ -241,33 +241,37 @@ std::string of_kernel_file = "WTkernel.txt";
 
 bool of_ml_gene_data = false;
 bool of_ml_local_test = false;
+int of_ml_feg = 0;
+
 bool of_ml_gamma = false;
 bool of_ml_p = false;
 bool of_ml_q = false;
-bool of_ml_gammanl = false;
-bool of_ml_pnl = false;
-bool of_ml_qnl = false;
-int of_ml_feg = 0;
-
-bool of_ml_xi = false;
-double of_ml_chi_xi = 1.;
-bool of_ml_tanhxi = false;
-bool of_ml_tanhxi_nl = false;
-double of_ml_chi_p = 1.;
-double of_ml_chi_q = 1.;
 bool of_ml_tanhp = false;
 bool of_ml_tanhq = false;
-double of_ml_chi_pnl = 1.;
-double of_ml_chi_qnl = 1.;
-bool of_ml_tanh_pnl = false;
-bool of_ml_tanh_qnl = false;
-bool of_ml_tanhp_nl = false;
-bool of_ml_tanhq_nl = false;
+double of_ml_chi_p = 1.;
+double of_ml_chi_q = 1.;
+
+std::string of_ml_gammanl = "0";
+std::string of_ml_pnl = "0";
+std::string of_ml_qnl = "0";
+std::string of_ml_xi = "0";
+std::string of_ml_tanhxi = "0";
+std::string of_ml_tanhxi_nl = "0";
+std::string of_ml_tanh_pnl = "0";
+std::string of_ml_tanh_qnl = "0";
+std::string of_ml_tanhp_nl = "0";
+std::string of_ml_tanhq_nl = "0";
+std::string of_ml_chi_xi = "1.0";
+std::string of_ml_chi_pnl = "1.0";
+std::string of_ml_chi_qnl = "1.0";
 
 int of_ml_nnode = 10;
 int of_ml_nlayer = 3;
-int of_ml_kernel = 1;
-double of_ml_yukawa_alpha = 1.;
+
+int of_ml_nkernel = 1;
+std::string of_ml_kernel = "1";
+std::string of_ml_kernel_scaling = "1.0";
+std::string of_ml_yukawa_alpha = "1.0";
 std::string of_ml_device = "cpu";
 
 // denghui added for device flag

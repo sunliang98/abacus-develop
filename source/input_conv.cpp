@@ -588,33 +588,39 @@ void Input_Conv::Convert(void)
     // sunliang add for ml kedf 2022-11-07
     GlobalV::of_ml_gene_data = INPUT.of_ml_gene_data;
     GlobalV::of_ml_local_test = INPUT.of_ml_local_test;
+    GlobalV::of_ml_feg = INPUT.of_ml_feg;
+    // semi-local descriptors
     GlobalV::of_ml_gamma = INPUT.of_ml_gamma;
     GlobalV::of_ml_p = INPUT.of_ml_p;
     GlobalV::of_ml_q = INPUT.of_ml_q;
+    GlobalV::of_ml_tanhp = INPUT.of_ml_tanhp;
+    GlobalV::of_ml_tanhq = INPUT.of_ml_tanhq;
+    GlobalV::of_ml_chi_p = INPUT.of_ml_chi_p;
+    GlobalV::of_ml_chi_q = INPUT.of_ml_chi_q;
+    // non-local descriptors
     GlobalV::of_ml_gammanl = INPUT.of_ml_gammanl;
     GlobalV::of_ml_pnl = INPUT.of_ml_pnl;
     GlobalV::of_ml_qnl = INPUT.of_ml_qnl;
-    GlobalV::of_ml_feg = INPUT.of_ml_feg;
-    // new parameters 2023-02-13
     GlobalV::of_ml_xi = INPUT.of_ml_xi;
-    GlobalV::of_ml_chi_xi = INPUT.of_ml_chi_xi;
     GlobalV::of_ml_tanhxi = INPUT.of_ml_tanhxi;
     GlobalV::of_ml_tanhxi_nl = INPUT.of_ml_tanhxi_nl;
-    GlobalV::of_ml_chi_p = INPUT.of_ml_chi_p;
-    GlobalV::of_ml_chi_q = INPUT.of_ml_chi_q;
-    GlobalV::of_ml_tanhp = INPUT.of_ml_tanhp;
-    GlobalV::of_ml_tanhq = INPUT.of_ml_tanhq;
-    GlobalV::of_ml_chi_pnl = INPUT.of_ml_chi_pnl;
-    GlobalV::of_ml_chi_qnl = INPUT.of_ml_chi_qnl;
     GlobalV::of_ml_tanh_pnl = INPUT.of_ml_tanh_pnl;
     GlobalV::of_ml_tanh_qnl = INPUT.of_ml_tanh_qnl;
     GlobalV::of_ml_tanhp_nl = INPUT.of_ml_tanhp_nl;
     GlobalV::of_ml_tanhq_nl = INPUT.of_ml_tanhq_nl;
+    GlobalV::of_ml_chi_xi = INPUT.of_ml_chi_xi;
+    GlobalV::of_ml_chi_pnl = INPUT.of_ml_chi_pnl;
+    GlobalV::of_ml_chi_qnl = INPUT.of_ml_chi_qnl;
+    // size of nn
     GlobalV::of_ml_nnode = INPUT.of_ml_nnode;
     GlobalV::of_ml_nlayer = INPUT.of_ml_nlayer;
+    // kernel
+    GlobalV::of_ml_nkernel = INPUT.of_ml_nkernel;
     GlobalV::of_ml_kernel = INPUT.of_ml_kernel;
+    GlobalV::of_ml_kernel_scaling = INPUT.of_ml_kernel_scaling;
     GlobalV::of_ml_yukawa_alpha = INPUT.of_ml_yukawa_alpha;
     GlobalV::of_ml_device = INPUT.of_ml_device;
+    
     ModuleBase::timer::tick("Input_Conv", "Convert");
     return;
 }

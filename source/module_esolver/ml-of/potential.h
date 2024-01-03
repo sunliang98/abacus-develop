@@ -15,8 +15,8 @@ public:
     int fftdim = 0;
     int istru = 0;
 
-    std::map<std::string, std::vector<int>> descriptor2kernel;
-    std::map<std::string, std::vector<int>> descriptor2index;
+    std::map<std::string, std::vector<int>> descriptor2kernel = {};
+    std::map<std::string, std::vector<int>> descriptor2index = {};
     
     // semi-local descriptors
     bool ml_gamma = false;

@@ -18,38 +18,19 @@ struct NN_OFImpl:torch::nn::Module{
         // delete[] this->fcs;
     };
 
-    void setData(
-        std::map<std::string, int> &input_index, 
-        std::vector<double> &gamma, 
-        std::vector<double> &p, 
-        std::vector<double> &q, 
-        std::vector<double> &gammanl, 
-        std::vector<double> &pnl, 
-        std::vector<double> &qnl,
-        std::vector<double> &xi,
-        std::vector<double> &tanhxi,
-        std::vector<double> &tanhxi_l,
-        std::vector<double> &tanhp,
-        std::vector<double> &tanhq,
-        std::vector<double> &tanh_pnl,
-        std::vector<double> &tanh_qnl,
-        std::vector<double> &tanhp_nl,
-        std::vector<double> &tanhq_nl,
-        torch::DeviceType device_type
-    );
 
     template <class T>
     void set_data(
-        T &data,
+        T *data,
         const std::vector<std::string> &descriptor_type,
         const std::vector<int> &kernel_index,
         torch::Tensor &nn_input
     )
     {
-        if (data.nx_tot <= 0) return;
+        if (data->nx_tot <= 0) return;
         for (int i = 0; i < descriptor_type.size(); ++i)
         {
-            nn_input.index({"...", i}) = data.get_data(descriptor_type[i], kernel_index[i]);
+            nn_input.index({"...", i}) = data->get_data(descriptor_type[i], kernel_index[i]);
         }
     }
 

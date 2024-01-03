@@ -483,33 +483,37 @@ void Input::Default(void)
     // ML KEDF sunliang add on 2022-11-07
     of_ml_gene_data = false;
     of_ml_local_test = false;
+    of_ml_feg = 0;
+    // semi-local descriptors
     of_ml_gamma = false;
     of_ml_p = false;
     of_ml_q = false;
-    of_ml_gammanl = false;
-    of_ml_pnl = false;
-    of_ml_qnl = false;
-    of_ml_feg = 0;
-    // new parameter 2023-02-13
-    of_ml_xi = false;
-    of_ml_chi_xi = 1.;
-    of_ml_tanhxi = false;
-    of_ml_tanhxi_nl = false;
-    of_ml_chi_p = 1.;
-    of_ml_chi_q = 1.;
     of_ml_tanhp = false;
     of_ml_tanhq = false;
-    of_ml_chi_pnl = 1.;
-    of_ml_chi_qnl = 1.;
-    of_ml_tanh_pnl = false;
-    of_ml_tanh_qnl = false;
-    of_ml_tanhp_nl = false;
-    of_ml_tanhq_nl = false;
+    of_ml_chi_p = 1.;
+    of_ml_chi_q = 1.;
+    // non-local descriptors
+    of_ml_gammanl = "0";
+    of_ml_pnl = "0";
+    of_ml_qnl = "0";
+    of_ml_xi = "0";
+    of_ml_tanhxi = "0";
+    of_ml_tanhxi_nl = "0";
+    of_ml_tanh_pnl = "0";
+    of_ml_tanh_qnl = "0";
+    of_ml_tanhp_nl = "0";
+    of_ml_tanhq_nl = "0";
+    of_ml_chi_xi = "1.0";
+    of_ml_chi_pnl = "1.0";
+    of_ml_chi_qnl = "1.0";
     // size of nn 2023-04-19
     of_ml_nnode = 10;
     of_ml_nlayer = 3;
-    of_ml_kernel = 1;
-    of_ml_yukawa_alpha = 1.;
+    // kernel
+    of_ml_nkernel = 1;
+    of_ml_kernel = "1";
+    of_ml_kernel_scaling = "1.0";
+    of_ml_yukawa_alpha = "1.0";
     of_ml_device = "cpu";
     //==========================================================
     //    OFDFT sunliang added on 2022-11-15
@@ -1908,9 +1912,17 @@ bool Input::Read(const std::string &fn)
         {
             read_value(ifs, of_ml_nlayer);
         }
+        else if (strcmp("of_ml_nkernel", word) == 0)
+        {
+            read_value(ifs, of_ml_nkernel);
+        }
         else if (strcmp("of_ml_kernel", word) == 0)
         {
             read_value(ifs, of_ml_kernel);
+        }
+        else if (strcmp("of_ml_kernel_scaling", word) == 0)
+        {
+            read_value(ifs, of_ml_kernel_scaling);
         }
         else if (strcmp("of_ml_yukawa_alpha", word) == 0)
         {
@@ -2710,32 +2722,37 @@ void Input::Bcast()
     // ML KEDF sunliang add on 2022-11-07
     Parallel_Common::bcast_bool(of_ml_gene_data);
     Parallel_Common::bcast_bool(of_ml_local_test);
+    Parallel_Common::bcast_int(of_ml_feg);
+    // semi-local descriptors
     Parallel_Common::bcast_bool(of_ml_gamma);
     Parallel_Common::bcast_bool(of_ml_p);
     Parallel_Common::bcast_bool(of_ml_q);
-    Parallel_Common::bcast_bool(of_ml_gammanl);
-    Parallel_Common::bcast_bool(of_ml_pnl);
-    Parallel_Common::bcast_bool(of_ml_qnl);
-    Parallel_Common::bcast_int(of_ml_feg);
-    // new parameters 2023-02-13
-    Parallel_Common::bcast_bool(of_ml_xi);
-    Parallel_Common::bcast_double(of_ml_chi_xi);
-    Parallel_Common::bcast_bool(of_ml_tanhxi);
-    Parallel_Common::bcast_bool(of_ml_tanhxi_nl);
-    Parallel_Common::bcast_double(of_ml_chi_p);
-    Parallel_Common::bcast_double(of_ml_chi_q);
     Parallel_Common::bcast_bool(of_ml_tanhp);
     Parallel_Common::bcast_bool(of_ml_tanhq);
-    Parallel_Common::bcast_double(of_ml_chi_pnl);
-    Parallel_Common::bcast_double(of_ml_chi_qnl);
-    Parallel_Common::bcast_bool(of_ml_tanh_pnl);
-    Parallel_Common::bcast_bool(of_ml_tanh_qnl);
-    Parallel_Common::bcast_bool(of_ml_tanhp_nl);
-    Parallel_Common::bcast_bool(of_ml_tanhq_nl);
+    Parallel_Common::bcast_double(of_ml_chi_p);
+    Parallel_Common::bcast_double(of_ml_chi_q);
+    // non-local descriptors
+    Parallel_Common::bcast_string(of_ml_gammanl);
+    Parallel_Common::bcast_string(of_ml_pnl);
+    Parallel_Common::bcast_string(of_ml_qnl);
+    Parallel_Common::bcast_string(of_ml_xi);
+    Parallel_Common::bcast_string(of_ml_tanhxi);
+    Parallel_Common::bcast_string(of_ml_tanhxi_nl);
+    Parallel_Common::bcast_string(of_ml_tanh_pnl);
+    Parallel_Common::bcast_string(of_ml_tanh_qnl);
+    Parallel_Common::bcast_string(of_ml_tanhp_nl);
+    Parallel_Common::bcast_string(of_ml_tanhq_nl);
+    Parallel_Common::bcast_string(of_ml_chi_xi);
+    Parallel_Common::bcast_string(of_ml_chi_pnl);
+    Parallel_Common::bcast_string(of_ml_chi_qnl);
+
     Parallel_Common::bcast_int(of_ml_nnode);
     Parallel_Common::bcast_int(of_ml_nlayer);
-    Parallel_Common::bcast_int(of_ml_kernel);
-    Parallel_Common::bcast_double(of_ml_yukawa_alpha);
+    // kernel
+    Parallel_Common::bcast_int(of_ml_nkernel);
+    Parallel_Common::bcast_string(of_ml_kernel);
+    Parallel_Common::bcast_string(of_ml_kernel_scaling);
+    Parallel_Common::bcast_string(of_ml_yukawa_alpha);
     Parallel_Common::bcast_string(of_ml_device);
 
     return;

@@ -238,8 +238,11 @@ void ESolver_OF::Init(Input &inp, UnitCell &ucell)
     this->wt.set_para(this->nrxx, this->dV, GlobalV::of_wt_alpha, GlobalV::of_wt_beta, this->nelec[0], GlobalV::of_tf_weight, GlobalV::of_vw_weight, GlobalV::of_read_kernel, GlobalV::of_kernel_file, this->pw_rho);
     this->lkt.set_para(this->nrxx, this->dV, GlobalV::of_lkt_a);
     this->ml.set_para(this->nrxx, this->dV, this->nelec[0], GlobalV::of_tf_weight, GlobalV::of_vw_weight, 
-                      GlobalV::of_ml_chi_xi, GlobalV::of_ml_chi_p, GlobalV::of_ml_chi_q, GlobalV::of_ml_chi_pnl, GlobalV::of_ml_chi_qnl,
-                      GlobalV::of_ml_nnode, GlobalV::of_ml_nlayer, GlobalV::of_ml_device, this->pw_rho);
+                      GlobalV::of_ml_chi_p, GlobalV::of_ml_chi_q, GlobalV::of_ml_chi_xi, GlobalV::of_ml_chi_pnl, GlobalV::of_ml_chi_qnl,
+                      GlobalV::of_ml_nnode, GlobalV::of_ml_nlayer, GlobalV::of_ml_nkernel, GlobalV::of_ml_kernel, GlobalV::of_ml_kernel_scaling,
+                      GlobalV::of_ml_yukawa_alpha, GlobalV::of_ml_gamma, GlobalV::of_ml_p, GlobalV::of_ml_q, GlobalV::of_ml_tanhp, GlobalV::of_ml_tanhq,
+                      GlobalV::of_ml_gammanl, GlobalV::of_ml_pnl, GlobalV::of_ml_qnl, GlobalV::of_ml_xi, GlobalV::of_ml_tanhxi,
+                      GlobalV::of_ml_tanhxi_nl, GlobalV::of_ml_tanh_pnl, GlobalV::of_ml_tanh_qnl, GlobalV::of_ml_tanhp_nl, GlobalV::of_ml_tanhq_nl, GlobalV::of_ml_device, this->pw_rho);
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT KEDF");
 
     // Initialize charge extrapolation
@@ -479,9 +482,9 @@ void ESolver_OF::solveV()
 // // ======================== for test ============================
 //     if (this->iter == 0)
 //     {
-//         for (int i = -200; i < 200; ++i)
+//         for (int i = -100; i < 100; ++i)
 //         {
-//             this->theta[0] = 0.0005 * i;
+//             this->theta[0] = 0.001 * i;
 //             for (int ir = 0; ir < this->nrxx; ++ir)
 //             {
 //                 ptempPhi[0][ir] = this->pphi[0][ir] * cos(this->theta[0]) + this->pdirect[0][ir] * sin(this->theta[0]);
