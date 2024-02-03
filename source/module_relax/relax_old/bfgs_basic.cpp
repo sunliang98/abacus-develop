@@ -1,5 +1,6 @@
 #include "bfgs_basic.h"
 
+#include "module_base/lapack_connector.h"
 #include "ions_move_basic.h"
 #include "module_base/global_function.h"
 #include "module_base/global_variable.h"
@@ -254,11 +255,63 @@ void BFGS_Basic::new_step(const double &lat0)
     if (bfgs_ndim == 1)
     {
         // out.printrm("inv_hess",inv_hess,1.0e-8);
+
+        // // ============== positive definite test ===============
+        // // inv_hess = v * d * v^T
+        // ModuleBase::matrix temp_inv_hess = this->inv_hess;
+        // for (int i = 0; i < dim; ++i)
+        // {
+        //     for (int j = i; j < dim; ++j)
+        //     {
+        //         temp_inv_hess(i,j) = (temp_inv_hess(i,j) + temp_inv_hess(j,i))/2.;
+        //     }
+        // }
+        // std::vector<double> eigenvalue(dim, 0);
+        
+        // char jobz = 'V', uplo = 'U';
+        // int info = 0;
+        // LapackConnector::dsyev(jobz, uplo, temp_inv_hess, eigenvalue.data(), info);
+        // // std::cout << "info   " << info << std::endl;
+
+        // // posi_inv_hess = v * abs(d) * v^T
+        // ModuleBase::matrix posi_inv_hess(dim, dim);
+        // for (int i = 0; i < dim; ++i)
+        // {
+        //     for (int j = 0; j < dim; ++j)
+        //     {
+        //         for (int k = 0; k < dim; ++k)
+        //         {
+        //             posi_inv_hess(i,j) += temp_inv_hess(k,i) * temp_inv_hess(k,j) * std::fabs(eigenvalue[k]);
+        //         }
+        //     }
+        // }
+
+        // // bool posi = true;
+        // // for (int i = 0; i < dim; ++i)
+        // // {
+        // //     if (eigenvalue[i] < 0) posi = false;
+        // // }
+        // // if (!posi)
+        // // {
+        // //     std::cout << "inv_hess is not positive difinite!" << std::endl;
+        // // }
+        // // else
+        // // {
+        // //     ModuleBase::matrix temp = posi_inv_hess - inv_hess;
+        // //     for (int i = 0; i < dim; ++i) std::cout << temp(0,i) << '\t';
+        // //     // for (int i = 0; i < dim; ++i) std::cout << inv_hess(0,i) << '\t';
+        // //     std::cout << std::endl;
+        // // }
+        // // ============== positive definite test ===============
+
         for (int i = 0; i < dim; i++)
         {
             double tmp = 0.0;
             for (int j = 0; j < dim; j++)
             {
+        // ============== positive definite test ===============
+                // tmp += posi_inv_hess(i, j) * this->grad[j];
+        // ============== positive definite test ===============
                 tmp += this->inv_hess(i, j) * this->grad[j];
             }
             // we have got a new direction and step length!
@@ -289,6 +342,23 @@ void BFGS_Basic::new_step(const double &lat0)
             move[i] = -grad[i];
         }
         this->reset_hessian();
+    }
+
+    double max_move = 0.;
+    double max_step = 0.2;
+    for (int i = 0; i < dim/3; ++i)
+    {
+        double temp = std::sqrt(this->move[3*i] * this->move[3*i]
+                                + this->move[3*i + 1] * this->move[3*i + 1]
+                                + this->move[3*i + 2] * this->move[3*i + 2]);
+        if (temp > max_move) max_move = temp;
+    }
+    if (max_move > max_step)
+    {
+        for (int i = 0; i < dim; ++i)
+        {
+            this->move[i] *= max_step / max_move;
+        }
     }
 
     //--------------------------------------------------------------------
