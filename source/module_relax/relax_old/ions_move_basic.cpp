@@ -31,7 +31,7 @@ void Ions_Move_Basic::setup_gradient(const UnitCell &ucell, const ModuleBase::ma
     assert(grad != NULL);
     assert(dim == 3 * ucell.nat);
 
-    ModuleBase::GlobalFunc::ZEROS(pos, dim);
+    // ModuleBase::GlobalFunc::ZEROS(pos, dim);
     ModuleBase::GlobalFunc::ZEROS(grad, dim);
 
     // (1) init gradient
@@ -46,7 +46,10 @@ void Ions_Move_Basic::setup_gradient(const UnitCell &ucell, const ModuleBase::ma
         {
             for (int ik = 0; ik < 3; ++ik)
             {
-                pos[3 * iat + ik] = atom->tau[ia][ik] * ucell.lat0;
+                if (istep == 1)
+                {
+                    pos[3 * iat + ik] = atom->tau[ia][ik] * ucell.lat0;
+                }
                 if (atom->mbl[ia][ik])
                 {
                     grad[3 * iat + ik] = -force(iat, ik) * ucell.lat0;
