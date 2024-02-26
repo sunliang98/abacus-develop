@@ -12,6 +12,7 @@ project(ABACUS
 
 option(ENABLE_LCAO "Enable LCAO calculation." ON)
 option(ENABLE_DEEPKS "Enable DeePKS functionality" OFF)
+option(ENABLE_DEEPKE "Enable DeePKE functionality" OFF)
 option(ENABLE_LIBXC "Enable LibXC functionality" OFF)
 option(USE_CUDA "Enable support to CUDA for PW." OFF)
 option(ENABLE_FLOAT_FFTW "Enable support to single precision FFTW library." OFF)
@@ -391,6 +392,9 @@ if(MKLROOT)
   if(NOT ENABLE_DEEPKS)
     list(APPEND math_libs IntelMKL::MKL)
   endif()
+  if(NOT ENABLE_DEEPKE)
+    list(APPEND math_libs IntelMKL::MKL)
+  endif()
 
   if(CMAKE_CXX_COMPILER_ID MATCHES Intel)
     list(APPEND math_libs -lifcore)
@@ -460,6 +464,31 @@ if(ENABLE_DEEPKS)
   endif()
   include_directories(${libnpy_SOURCE_DIR}/include)
   add_compile_definitions(__DEEPKS)
+endif()
+
+if(ENABLE_DEEPKE)
+  set(CMAKE_CXX_STANDARD 14)
+  find_package(Torch REQUIRED)
+  include_directories(${TORCH_INCLUDE_DIRS})
+  list(APPEND math_libs ${TORCH_LIBRARIES})
+
+  add_compile_options(${TORCH_CXX_FLAGS})
+
+  find_path(libnpy_SOURCE_DIR
+    npy.hpp
+    HINTS ${libnpy_INCLUDE_DIR}
+  )
+  if(NOT libnpy_SOURCE_DIR)
+    include(FetchContent)
+    FetchContent_Declare(
+      libnpy
+      GIT_REPOSITORY https://github.com/llohse/libnpy.git
+      GIT_SHALLOW TRUE
+      GIT_PROGRESS TRUE
+    )
+    FetchContent_MakeAvailable(libnpy)
+  endif()
+  include_directories(${libnpy_SOURCE_DIR}/include)
 endif()
 
 function(git_submodule_update)
