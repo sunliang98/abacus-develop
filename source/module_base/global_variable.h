@@ -273,6 +273,43 @@ extern int of_full_pw_dim;  // If of_full_pw = 1, the dimention of FFT will be t
 extern bool of_read_kernel; // If set to 1, the kernel of WT KEDF will be filled from file of_kernel_file, not from formula. Only usable for WT KEDF.
 extern std::string of_kernel_file; // The name of WT kernel file.
 
+// ml kedf sunliang add on 2022-11-07
+extern bool of_ml_gene_data; // Generate training data or not
+extern bool of_ml_local_test;  // Read in the density, and output the F and Pauli potential of it
+extern int of_ml_feg; // if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0;
+// semi-local descriptors
+extern bool of_ml_gamma; // If the input variables contain gamma
+extern bool of_ml_p; // If the input variables contain p
+extern bool of_ml_q; // If the input variables contain q
+extern bool of_ml_tanhp; // If the input variables contain tanhp
+extern bool of_ml_tanhq; // If the input variables contain tanhq
+extern double of_ml_chi_p; // tanhp = tanh(chi*p)
+extern double of_ml_chi_q; // tanhp = tanh(chi*q)
+// non-local descriptors
+extern std::string of_ml_gammanl; // If the input variables contain gammanl
+extern std::string of_ml_pnl; // If the input variables contain pnl
+extern std::string of_ml_qnl; // If the input variables contain qnl
+extern std::string of_ml_xi; // If the input variables contain xi
+extern std::string of_ml_tanhxi; // If the input variables contain tanhxi
+extern std::string of_ml_tanhxi_nl; // If the input variables contain tanhxi_nl
+extern std::string of_ml_tanh_pnl; // If the input variables contain tanh_pnl
+extern std::string of_ml_tanh_qnl; // If the input variables contain tanh_qnl
+extern std::string of_ml_tanhp_nl; // If the input variables contain tanhp_nl
+extern std::string of_ml_tanhq_nl; // If the input variables contain tanhq_nl
+extern std::string of_ml_chi_xi; // tanhpxi = tanh(chi * xi)
+extern std::string of_ml_chi_pnl; // tanh_pnl = tanh(chi*pnl)
+extern std::string of_ml_chi_qnl; // tanh_pnl = tanh(chi*qnl)
+// size of nn 2023-04-19
+extern int of_ml_nnode;     // number of node
+extern int of_ml_nlayer;    // number of layer
+// kernel
+extern int of_ml_nkernel;  // number of kernels
+extern std::string of_ml_kernel;   // type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK
+extern std::string of_ml_kernel_scaling; // scaling parameter of kernel
+extern std::string of_ml_yukawa_alpha; // parameter alpha of yukawa kernel
+extern std::string of_ml_kernel_file;   // the file of TKK
+extern std::string of_ml_device; // run NN on GPU or CPU
+
 // mixing parameters
 extern std::string MIXING_MODE;
 extern double MIXING_BETA;

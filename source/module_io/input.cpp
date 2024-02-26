@@ -595,6 +595,43 @@ void Input::Default(void)
     of_read_kernel = false;
     of_kernel_file = "WTkernel.txt";
 
+    // ML KEDF sunliang add on 2022-11-07
+    of_ml_gene_data = false;
+    of_ml_local_test = false;
+    of_ml_feg = 0;
+    // semi-local descriptors
+    of_ml_gamma = false;
+    of_ml_p = false;
+    of_ml_q = false;
+    of_ml_tanhp = false;
+    of_ml_tanhq = false;
+    of_ml_chi_p = 1.;
+    of_ml_chi_q = 1.;
+    // non-local descriptors
+    of_ml_gammanl = "0";
+    of_ml_pnl = "0";
+    of_ml_qnl = "0";
+    of_ml_xi = "0";
+    of_ml_tanhxi = "0";
+    of_ml_tanhxi_nl = "0";
+    of_ml_tanh_pnl = "0";
+    of_ml_tanh_qnl = "0";
+    of_ml_tanhp_nl = "0";
+    of_ml_tanhq_nl = "0";
+    of_ml_chi_xi = "1.0";
+    of_ml_chi_pnl = "1.0";
+    of_ml_chi_qnl = "1.0";
+    // size of nn 2023-04-19
+    of_ml_nnode = 10;
+    of_ml_nlayer = 3;
+    // kernel
+    of_ml_nkernel = 1;
+    of_ml_kernel = "1";
+    of_ml_kernel_scaling = "1.0";
+    of_ml_yukawa_alpha = "1.0";
+    of_ml_kernel_file = "none";
+    of_ml_device = "cpu";
+
     //==========================================================
     // spherical bessel  Peize Lin added on 2022-12-15
     //==========================================================
@@ -2224,6 +2261,130 @@ bool Input::Read(const std::string& fn)
         {
             read_value(ifs, of_kernel_file);
         }
+        else if (strcmp("of_ml_gene_data", word) == 0)
+        {
+            read_value(ifs, of_ml_gene_data);
+        }
+        else if (strcmp("of_ml_local_test", word) == 0)
+        {
+            read_value(ifs, of_ml_local_test);
+        }
+        else if (strcmp("of_ml_gamma", word) == 0)
+        {
+            read_value(ifs, of_ml_gamma);
+        }
+        else if (strcmp("of_ml_p", word) == 0)
+        {
+            read_value(ifs, of_ml_p);
+        }
+        else if (strcmp("of_ml_q", word) == 0)
+        {
+            read_value(ifs, of_ml_q);
+        }
+        else if (strcmp("of_ml_gammanl", word) == 0)
+        {
+            read_value(ifs, of_ml_gammanl);
+        }
+        else if (strcmp("of_ml_pnl", word) == 0)
+        {
+            read_value(ifs, of_ml_pnl);
+        }
+        else if (strcmp("of_ml_qnl", word) == 0)
+        {
+            read_value(ifs, of_ml_qnl);
+        }
+        else if (strcmp("of_ml_feg", word) == 0)
+        {
+            read_value(ifs, of_ml_feg);
+        }
+        else if (strcmp("of_ml_xi", word) == 0)
+        {
+            read_value(ifs, of_ml_xi);
+        }
+        else if (strcmp("of_ml_chi_xi", word) == 0)
+        {
+            read_value(ifs, of_ml_chi_xi);
+        }
+        else if (strcmp("of_ml_tanhxi", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhxi);
+        }
+        else if (strcmp("of_ml_tanhxi_nl", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhxi_nl);
+        }
+        else if (strcmp("of_ml_chi_p", word) == 0)
+        {
+            read_value(ifs, of_ml_chi_p);
+        }
+        else if (strcmp("of_ml_chi_q", word) == 0)
+        {
+            read_value(ifs, of_ml_chi_q);
+        }
+        else if (strcmp("of_ml_tanhp", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhp);
+        }
+        else if (strcmp("of_ml_tanhq", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhq);
+        }
+        else if (strcmp("of_ml_chi_pnl", word) == 0)
+        {
+            read_value(ifs, of_ml_chi_pnl);
+        }
+        else if (strcmp("of_ml_chi_qnl", word) == 0)
+        {
+            read_value(ifs, of_ml_chi_qnl);
+        }
+        else if (strcmp("of_ml_tanh_pnl", word) == 0)
+        {
+            read_value(ifs, of_ml_tanh_pnl);
+        }
+        else if (strcmp("of_ml_tanh_qnl", word) == 0)
+        {
+            read_value(ifs, of_ml_tanh_qnl);
+        }
+        else if (strcmp("of_ml_tanhp_nl", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhp_nl);
+        }
+        else if (strcmp("of_ml_tanhq_nl", word) == 0)
+        {
+            read_value(ifs, of_ml_tanhq_nl);
+        }
+        else if (strcmp("of_ml_nnode", word) == 0)
+        {
+            read_value(ifs, of_ml_nnode);
+        }
+        else if (strcmp("of_ml_nlayer", word) == 0)
+        {
+            read_value(ifs, of_ml_nlayer);
+        }
+        else if (strcmp("of_ml_nkernel", word) == 0)
+        {
+            read_value(ifs, of_ml_nkernel);
+        }
+        else if (strcmp("of_ml_kernel", word) == 0)
+        {
+            read_value(ifs, of_ml_kernel);
+        }
+        else if (strcmp("of_ml_kernel_scaling", word) == 0)
+        {
+            read_value(ifs, of_ml_kernel_scaling);
+        }
+        else if (strcmp("of_ml_yukawa_alpha", word) == 0)
+        {
+            read_value(ifs, of_ml_yukawa_alpha);
+        }
+        else if (strcmp("of_ml_kernel_file", word) == 0)
+        {
+            read_value(ifs, of_ml_kernel_file);
+        }
+        else if (strcmp("of_ml_device", word) == 0)
+        {
+            read_value(ifs, of_ml_device);
+        }
         else if (strcmp("bessel_nao_smooth", word) == 0)
         {
             read_value(ifs, bessel_nao_smooth);
@@ -3650,6 +3811,43 @@ void Input::Bcast()
     Parallel_Common::bcast_int(of_full_pw_dim);
     Parallel_Common::bcast_bool(of_read_kernel);
     Parallel_Common::bcast_string(of_kernel_file);
+
+    // ML KEDF sunliang add on 2022-11-07
+    Parallel_Common::bcast_bool(of_ml_gene_data);
+    Parallel_Common::bcast_bool(of_ml_local_test);
+    Parallel_Common::bcast_int(of_ml_feg);
+    // semi-local descriptors
+    Parallel_Common::bcast_bool(of_ml_gamma);
+    Parallel_Common::bcast_bool(of_ml_p);
+    Parallel_Common::bcast_bool(of_ml_q);
+    Parallel_Common::bcast_bool(of_ml_tanhp);
+    Parallel_Common::bcast_bool(of_ml_tanhq);
+    Parallel_Common::bcast_double(of_ml_chi_p);
+    Parallel_Common::bcast_double(of_ml_chi_q);
+    // non-local descriptors
+    Parallel_Common::bcast_string(of_ml_gammanl);
+    Parallel_Common::bcast_string(of_ml_pnl);
+    Parallel_Common::bcast_string(of_ml_qnl);
+    Parallel_Common::bcast_string(of_ml_xi);
+    Parallel_Common::bcast_string(of_ml_tanhxi);
+    Parallel_Common::bcast_string(of_ml_tanhxi_nl);
+    Parallel_Common::bcast_string(of_ml_tanh_pnl);
+    Parallel_Common::bcast_string(of_ml_tanh_qnl);
+    Parallel_Common::bcast_string(of_ml_tanhp_nl);
+    Parallel_Common::bcast_string(of_ml_tanhq_nl);
+    Parallel_Common::bcast_string(of_ml_chi_xi);
+    Parallel_Common::bcast_string(of_ml_chi_pnl);
+    Parallel_Common::bcast_string(of_ml_chi_qnl);
+
+    Parallel_Common::bcast_int(of_ml_nnode);
+    Parallel_Common::bcast_int(of_ml_nlayer);
+    // kernel
+    Parallel_Common::bcast_int(of_ml_nkernel);
+    Parallel_Common::bcast_string(of_ml_kernel);
+    Parallel_Common::bcast_string(of_ml_kernel_scaling);
+    Parallel_Common::bcast_string(of_ml_yukawa_alpha);
+    Parallel_Common::bcast_string(of_ml_kernel_file);
+    Parallel_Common::bcast_string(of_ml_device);
 
     //==========================================================
     // spherical bessel  Peize Lin added on 2022-12-15

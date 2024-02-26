@@ -1596,6 +1596,130 @@ void input_parameters_set(std::map<std::string, InputParameter> input_parameters
     {
         INPUT.of_kernel_file = static_cast<SimpleString*>(input_parameters["of_kernel_file"].get())->c_str();
     }
+    else if (input_parameters.count("of_ml_gene_data") != 0)
+    {
+        INPUT.of_ml_gene_data = *static_cast<bool*>(input_parameters["of_ml_gene_data"].get());
+    }
+    else if (input_parameters.count("of_ml_local_test") != 0)
+    {
+        INPUT.of_ml_local_test = *static_cast<bool*>(input_parameters["of_ml_local_test"].get());
+    }
+    else if (input_parameters.count("of_ml_feg") != 0)
+    {
+        INPUT.of_ml_feg = *static_cast<int*>(input_parameters["of_ml_feg"].get());
+    }
+    else if (input_parameters.count("of_ml_gamma") != 0)
+    {
+        INPUT.of_ml_gamma = *static_cast<bool*>(input_parameters["of_ml_gamma"].get());
+    }
+    else if (input_parameters.count("of_ml_p") != 0)
+    {
+        INPUT.of_ml_p = *static_cast<bool*>(input_parameters["of_ml_p"].get());
+    }
+    else if (input_parameters.count("of_ml_q") != 0)
+    {
+        INPUT.of_ml_q = *static_cast<bool*>(input_parameters["of_ml_q"].get());
+    }
+    else if (input_parameters.count("of_ml_tanhp") != 0)
+    {
+        INPUT.of_ml_tanhp = *static_cast<bool*>(input_parameters["of_ml_tanhp"].get());
+    }
+    else if (input_parameters.count("of_ml_tanhq") != 0)
+    {
+        INPUT.of_ml_tanhq = *static_cast<bool*>(input_parameters["of_ml_tanhq"].get());
+    }
+    else if (input_parameters.count("of_ml_chi_p") != 0)
+    {
+        INPUT.of_ml_chi_p = *static_cast<double*>(input_parameters["of_ml_chi_p"].get());
+    }
+    else if (input_parameters.count("of_ml_chi_q") != 0)
+    {
+        INPUT.of_ml_chi_q = *static_cast<double*>(input_parameters["of_ml_chi_q"].get());
+    }
+    else if (input_parameters.count("of_ml_gammanl") != 0)
+    {
+        INPUT.of_ml_gammanl = *static_cast<SimpleString*>(input_parameters["of_ml_gammanl"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_pnl") != 0)
+    {
+        INPUT.of_ml_pnl = *static_cast<SimpleString*>(input_parameters["of_ml_pnl"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_qnl") != 0)
+    {
+        INPUT.of_ml_qnl = *static_cast<SimpleString*>(input_parameters["of_ml_qnl"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_xi") != 0)
+    {
+        INPUT.of_ml_xi = *static_cast<SimpleString*>(input_parameters["of_ml_xi"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_tanhxi") != 0)
+    {
+        INPUT.of_ml_tanhxi = *static_cast<SimpleString*>(input_parameters["of_ml_tanhxi"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_tanhxi_nl") != 0)
+    {
+        INPUT.of_ml_tanhxi_nl = *static_cast<SimpleString*>(input_parameters["of_ml_tanhxi_nl"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_tanh_pnl") != 0)
+    {
+        INPUT.of_ml_tanh_pnl = *static_cast<SimpleString*>(input_parameters["of_ml_tanh_pnl"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_tanh_qnl") != 0)
+    {
+        INPUT.of_ml_tanh_qnl = *static_cast<SimpleString*>(input_parameters["of_ml_tanh_qnl"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_tanhp_nl") != 0)
+    {
+        INPUT.of_ml_tanhp_nl = *static_cast<SimpleString*>(input_parameters["of_ml_tanhp_nl"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_tanhq_nl") != 0)
+    {
+        INPUT.of_ml_tanhq_nl = *static_cast<SimpleString*>(input_parameters["of_ml_tanhq_nl"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_chi_xi") != 0)
+    {
+        INPUT.of_ml_chi_xi = *static_cast<SimpleString*>(input_parameters["of_ml_chi_xi"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_chi_pnl") != 0)
+    {
+        INPUT.of_ml_chi_pnl = *static_cast<SimpleString*>(input_parameters["of_ml_chi_pnl"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_chi_qnl") != 0)
+    {
+        INPUT.of_ml_chi_qnl = *static_cast<SimpleString*>(input_parameters["of_ml_chi_qnl"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_nnode") != 0)
+    {
+        INPUT.of_ml_nnode = *static_cast<int*>(input_parameters["of_ml_nnode"].get());
+    }
+    else if (input_parameters.count("of_ml_nlayer") != 0)
+    {
+        INPUT.of_ml_nlayer = *static_cast<int*>(input_parameters["of_ml_nlayer"].get());
+    }
+    else if (input_parameters.count("of_ml_nkernel") != 0)
+    {
+        INPUT.of_ml_nkernel = *static_cast<int*>(input_parameters["of_ml_nkernel"].get());
+    }
+    else if (input_parameters.count("of_ml_kernel") != 0)
+    {
+        INPUT.of_ml_kernel = *static_cast<SimpleString*>(input_parameters["of_ml_kernel"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_kernel_scaling") != 0)
+    {
+        INPUT.of_ml_kernel_scaling = *static_cast<SimpleString*>(input_parameters["of_ml_kernel_scaling"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_yukawa_alpha") != 0)
+    {
+        INPUT.of_ml_yukawa_alpha = *static_cast<SimpleString*>(input_parameters["of_ml_yukawa_alpha"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_kernel_file") != 0)
+    {
+        INPUT.of_ml_kernel_file = *static_cast<SimpleString*>(input_parameters["of_ml_kernel_file"].get())->c_str();
+    }
+    else if (input_parameters.count("of_ml_device") != 0)
+    {
+        INPUT.of_ml_device = *static_cast<SimpleString*>(input_parameters["of_ml_device"].get())->c_str();
+    }
     else if (input_parameters.count("bessel_nao_smooth") != 0)
     {
         INPUT.bessel_nao_smooth = *static_cast<bool*>(input_parameters["bessel_nao_smooth"].get());
