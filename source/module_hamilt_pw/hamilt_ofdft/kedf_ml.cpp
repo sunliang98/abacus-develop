@@ -130,12 +130,12 @@ double KEDF_ML::get_energy(const double * const * prho, ModulePW::PW_Basis *pw_r
     }
     std::cout << "energy" << energy << std::endl;
     energy *= this->dV * this->cTF;
-    this->MLenergy = energy;
-    Parallel_Reduce::reduce_all(this->MLenergy);
-    return this->MLenergy;
+    this->ml_energy = energy;
+    Parallel_Reduce::reduce_all(this->ml_energy);
+    return this->ml_energy;
 }
 
-void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential)
+void KEDF_ML::ml_potential(const double * const * prho, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential)
 {
     this->updateInput(prho, pw_rho);
 
@@ -164,8 +164,8 @@ void KEDF_ML::ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
         energy += enhancement_cpu_ptr[ir] * pow(prho[0][ir], 5./3.);
     }
     energy *= this->dV * this->cTF;
-    this->MLenergy = energy;
-    Parallel_Reduce::reduce_all(this->MLenergy);
+    this->ml_energy = energy;
+    Parallel_Reduce::reduce_all(this->ml_energy);
     ModuleBase::timer::tick("KEDF_ML", "Pauli Energy");
 }
 

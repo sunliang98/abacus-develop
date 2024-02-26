@@ -63,7 +63,7 @@ public:
 
     double get_energy(const double * const * prho, ModulePW::PW_Basis *pw_rho);
     // double get_energy_density(const double * const *prho, int is, int ir, ModulePW::PW_Basis *pw_rho);
-    void ML_potential(const double * const * prho, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential);
+    void ml_potential(const double * const * prho, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential);
     // void get_stress(double cellVol, const double * const * prho, ModulePW::PW_Basis *pw_rho, double vw_weight);
     // double diffLinhard(double eta, double vw_weight);
 
@@ -128,7 +128,7 @@ public:
     // double weightml = 1.;
     const double cTF = 3.0/10.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0) * 2; // 10/3*(3*pi^2)^{2/3}, multiply by 2 to convert unit from Hartree to Ry, finally in Ry*Bohr^(-2)
     const double pqcoef = 1.0 / (4.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0)); // coefficient of p and q
-    double MLenergy = 0.;
+    double ml_energy = 0.;
     // ModuleBase::matrix stress;
     double feg_net_F = 0.;
     double feg3_correct = 0.541324854612918; // ln(e - 1)

@@ -224,6 +224,8 @@ void ESolver_OF::Run(int istep, UnitCell& ucell)
     this->before_opt(istep, ucell);
     this->iter_ = 0;
 
+    if (GlobalV::of_ml_local_test) this->ml_->localTest(pelec->charge->rho, this->pw_rho);
+
     while (true)
     {
         // once we get a new rho and phi, update potential

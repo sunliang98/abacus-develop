@@ -43,6 +43,8 @@
 #include "module_psi/psi_initializer_atomic_random.h"
 #include "module_psi/psi_initializer_nao_random.h"
 //---------------------------------------------------
+#include "module_hamilt_pw/hamilt_ofdft/ml_data.h"
+//---------------------------------------------------
 #ifdef USE_PAW
 #include "module_cell/module_paw/paw_cell.h"
 #endif
@@ -1153,6 +1155,17 @@ void ESolver_KS_PW<T, Device>::postprocess()
     if (INPUT.cal_cond)
     {
         this->KG(INPUT.cond_smear, INPUT.cond_fwhm, INPUT.cond_wcut, INPUT.cond_dw, INPUT.cond_dt, this->pelec->wg);
+    }
+
+    if(GlobalV::of_ml_gene_data == 1)
+    {
+        this->pelec->pot->update_from_charge(this->pelec->charge, &GlobalC::ucell);
+
+        ML_data ml_data;
+        ml_data.set_para(this->pelec->charge->nrxx, GlobalV::nelec, GlobalV::of_tf_weight, GlobalV::of_vw_weight,
+                            GlobalV::of_ml_chi_p, GlobalV::of_ml_chi_q, GlobalV::of_ml_chi_xi, GlobalV::of_ml_chi_pnl, GlobalV::of_ml_chi_qnl,
+                            GlobalV::of_ml_nkernel, GlobalV::of_ml_kernel, GlobalV::of_ml_kernel_scaling, GlobalV::of_ml_yukawa_alpha, GlobalV::of_ml_kernel_file, this->pw_rho);
+        ml_data.generateTrainData_KS(this->kspw_psi, this->pelec, this->pw_wfc, this->pw_rho, this->pelec->pot->get_effective_v(0));
     }
 }
 

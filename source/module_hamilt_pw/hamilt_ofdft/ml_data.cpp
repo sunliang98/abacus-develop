@@ -139,6 +139,8 @@ void ML_data::generateTrainData_KS(
     ptempRho->rho_core = pelec->charge->rho_core;
     ptempRho->rho = new double*[1];
     ptempRho->rho[0] = new double[this->nx];
+    ptempRho->rhog = new std::complex<double>*[1];
+    ptempRho->rhog[0] = new std::complex<double>[pw_rho->npw];
 
     for (int ir = 0; ir < this->nx; ++ir) ptempRho->rho[0][ir] = container[ir];
     srho.begin(0, *ptempRho, pw_rho, GlobalC::Pgrid, GlobalC::ucell.symm);
@@ -170,6 +172,8 @@ void ML_data::generateTrainData_KS(
         container[ir] = veff[ir];
     }
     npy::SaveArrayAsNumpy("veff.npy", false, 1, cshape, container);
+
+    delete ptempRho;
 }
 
 void ML_data::generate_descriptor(

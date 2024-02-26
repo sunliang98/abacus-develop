@@ -51,6 +51,13 @@ public:
         ModulePW::PW_Basis *pw_rho,
         const double *veff
     );
+    void generateTrainData_KS(
+        psi::Psi<std::complex<float>> *psi,
+        elecstate::ElecState *pelec,
+        ModulePW::PW_Basis_K *pw_psi,
+        ModulePW::PW_Basis *pw_rho,
+        const double *veff
+    ){} // a mock function
     void generate_descriptor(
         const double * const *prho, 
         ModulePW::PW_Basis *pw_rho,
