@@ -298,9 +298,10 @@ extern int of_ml_nnode;     // number of node
 extern int of_ml_nlayer;    // number of layer
 // kernel
 extern int of_ml_nkernel;  // number of kernels
-extern std::string of_ml_kernel;   // type of kernel, 1 for wt, 2 for yukawa
+extern std::string of_ml_kernel;   // type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK
 extern std::string of_ml_kernel_scaling; // scaling parameter of kernel
 extern std::string of_ml_yukawa_alpha; // parameter alpha of yukawa kernel
+extern std::string of_ml_kernel_file;   // the file of TKK
 extern std::string of_ml_device; // run NN on GPU or CPU
 
 //==========================================================

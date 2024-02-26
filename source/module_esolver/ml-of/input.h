@@ -33,6 +33,7 @@ class Input
         delete[] this->kernel_type;
         delete[] this->kernel_scaling;
         delete[] this->yukawa_alpha;
+        delete[] this->kernel_file;
 
     };
 
@@ -119,6 +120,7 @@ class Input
     int* kernel_type = nullptr;
     double* kernel_scaling = nullptr;
     double* yukawa_alpha = nullptr;
+    std::string* kernel_file = nullptr;
 
     // GPU
     std::string device_type = "gpu";

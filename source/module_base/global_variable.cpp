@@ -272,6 +272,7 @@ int of_ml_nkernel = 1;
 std::string of_ml_kernel = "1";
 std::string of_ml_kernel_scaling = "1.0";
 std::string of_ml_yukawa_alpha = "1.0";
+std::string of_ml_kernel_file = "none";
 std::string of_ml_device = "cpu";
 
 // denghui added for device flag

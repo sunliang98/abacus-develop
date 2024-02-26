@@ -501,9 +501,10 @@ class Input
     int of_ml_nlayer;   // number of layer
     // kernel
     int of_ml_nkernel;  // number of kernels
-    std::string of_ml_kernel;   // type of kernel, 1 for wt, 2 for yukawa
+    std::string of_ml_kernel;   // type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK
     std::string of_ml_kernel_scaling; // scaling parameter of kernel
     std::string of_ml_yukawa_alpha; // parameter alpha of yukawa kernel
+    std::string of_ml_kernel_file; // the file of TKK
     std::string of_ml_device; // run NN on GPU or CPU
 
     //==========================================================

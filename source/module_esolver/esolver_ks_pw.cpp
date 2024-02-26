@@ -681,7 +681,7 @@ namespace ModuleESolver
             ML_data ml_data;
             ml_data.set_para(this->pelec->charge->nrxx, GlobalV::nelec, GlobalV::of_tf_weight, GlobalV::of_vw_weight,
                              GlobalV::of_ml_chi_p, GlobalV::of_ml_chi_q, GlobalV::of_ml_chi_xi, GlobalV::of_ml_chi_pnl, GlobalV::of_ml_chi_qnl,
-                             GlobalV::of_ml_nkernel, GlobalV::of_ml_kernel, GlobalV::of_ml_kernel_scaling, GlobalV::of_ml_yukawa_alpha, this->pw_rho);
+                             GlobalV::of_ml_nkernel, GlobalV::of_ml_kernel, GlobalV::of_ml_kernel_scaling, GlobalV::of_ml_yukawa_alpha, GlobalV::of_ml_kernel_file, this->pw_rho);
             ml_data.generateTrainData_KS(this->kspw_psi, this->pelec, this->pw_wfc, this->pw_rho, this->pelec->pot->get_effective_v(0));
         }
     }

@@ -235,6 +235,7 @@ void Input::readInput()
             this->kernel_type = new int[this->nkernel];
             this->kernel_scaling = new double[this->nkernel];
             this->yukawa_alpha = new double[this->nkernel];
+            this->kernel_file = new std::string[this->nkernel];
             for (int ik = 0; ik < this->nkernel; ++ik)
             {
                 this->ml_gammanl[ik] = 0;
@@ -253,6 +254,7 @@ void Input::readInput()
                 this->kernel_type[ik] = 1;
                 this->kernel_scaling[ik] = 1.;
                 this->yukawa_alpha[ik] = 1.;
+                this->kernel_file[ik] = "none";
             }
         }
         else if (strcmp("kernel_type", word) == 0)
@@ -266,6 +268,10 @@ void Input::readInput()
         else if (strcmp("kernel_scaling", word) == 0)
         {
             this->read_values(ifs, this->nkernel, this->kernel_scaling);
+        }
+        else if (strcmp("kernel_file", word) == 0)
+        {
+            this->read_values(ifs, this->nkernel, this->kernel_file);
         }
         else if (strcmp("device_type", word) == 0)
         {

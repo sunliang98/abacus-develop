@@ -20,6 +20,7 @@ void KEDF_ML::set_para(
     const std::string &kernel_type_,
     const std::string &kernel_scaling_,
     const std::string &yukawa_alpha_,
+    const std::string &kernel_file_,
     const bool &of_ml_gamma,
     const bool &of_ml_p,
     const bool &of_ml_q,
@@ -49,11 +50,6 @@ void KEDF_ML::set_para(
     this->nx_tot = nx;
     this->dV = dV;
     this->nkernel = nkernel;
-    this->chi_p = chi_p;
-    this->chi_q = chi_q;
-    this->ml_data->split_string(chi_xi_, nkernel, 1., this->chi_xi);
-    this->ml_data->split_string(chi_pnl_, nkernel, 1., this->chi_pnl);
-    this->ml_data->split_string(chi_qnl_, nkernel, 1., this->chi_qnl);
 
     this->init_data(
         nkernel,
@@ -105,8 +101,16 @@ void KEDF_ML::set_para(
     
     if (GlobalV::of_kinetic == "ml" || GlobalV::of_ml_gene_data == 1)
     {
+        this->ml_data = new ML_data;
+
+        this->chi_p = chi_p;
+        this->chi_q = chi_q;
+        this->ml_data->split_string(chi_xi_, nkernel, 1., this->chi_xi);
+        this->ml_data->split_string(chi_pnl_, nkernel, 1., this->chi_pnl);
+        this->ml_data->split_string(chi_qnl_, nkernel, 1., this->chi_qnl);
+
         this->ml_data->set_para(nx, nelec, tf_weight, vw_weight, chi_p, chi_q,
-                                chi_xi_, chi_pnl_, chi_qnl_, nkernel, kernel_type_, kernel_scaling_, yukawa_alpha_, pw_rho);
+                                chi_xi_, chi_pnl_, chi_qnl_, nkernel, kernel_type_, kernel_scaling_, yukawa_alpha_, kernel_file_, pw_rho);
     }
 }
 

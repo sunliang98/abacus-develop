@@ -20,6 +20,7 @@ void ML_data::set_para(
     const std::string &kernel_type_,
     const std::string &kernel_scaling_,
     const std::string &yukawa_alpha_,
+    const std::string &kernel_file_,
     ModulePW::PW_Basis *pw_rho
 )
 {
@@ -34,6 +35,8 @@ void ML_data::set_para(
     this->split_string(kernel_type_, nkernel, 1, this->kernel_type);
     this->split_string(kernel_scaling_, nkernel, 1., this->kernel_scaling);
     this->split_string(yukawa_alpha_, nkernel, 1., this->yukawa_alpha);
+    std::string temp = "none";
+    this->split_string(kernel_file_, nkernel, temp, this->kernel_file);
     std::cout << "nkernel    " << nkernel << std::endl;
 
     if (GlobalV::of_wt_rho0 != 0)
@@ -53,17 +56,24 @@ void ML_data::set_para(
     {
         // delete[] this->kernel[ik];
         this->kernel[ik] = new double[pw_rho->npw];
-        double eta = 0.;
-        for (int ip = 0; ip < pw_rho->npw; ++ip)
+        if (this->kernel_type[ik] == 3 || this->kernel_type[ik] == 4) // 3 for TKK Al, and 4 for TKK Si
         {
-            eta = sqrt(pw_rho->gg[ip]) * pw_rho->tpiba / this->tkF * this->kernel_scaling[ik];
-            if (this->kernel_type[ik] == 1)
+            this->read_kernel(this->kernel_file[ik], this->kernel_scaling[ik], pw_rho, this->kernel[ik]);
+        }
+        else
+        {
+            double eta = 0.;
+            for (int ip = 0; ip < pw_rho->npw; ++ip)
             {
-                this->kernel[ik][ip] = std::pow(1. / this->kernel_scaling[ik], 3) * this->MLkernel(eta, tf_weight, vw_weight);
-            }
-            else if (this->kernel_type[ik] == 2)
-            {
-                this->kernel[ik][ip] = this->MLkernel_yukawa(eta, this->yukawa_alpha[ik]);
+                eta = sqrt(pw_rho->gg[ip]) * pw_rho->tpiba / this->tkF * this->kernel_scaling[ik];
+                if (this->kernel_type[ik] == 1)
+                {
+                    this->kernel[ik][ip] = std::pow(1. / this->kernel_scaling[ik], 3) * this->MLkernel(eta, tf_weight, vw_weight);
+                }
+                else if (this->kernel_type[ik] == 2)
+                {
+                    this->kernel[ik][ip] = this->MLkernel_yukawa(eta, this->yukawa_alpha[ik]);
+                }
             }
         }
     }
@@ -766,6 +776,82 @@ double ML_data::MLkernel(double eta, double tf_weight, double vw_weight)
 double ML_data::MLkernel_yukawa(double eta, double alpha)
 {
     return (eta == 0 && alpha == 0) ? 0. : M_PI / (eta * eta + alpha * alpha / 4.);
+}
+
+// Read kernel from file
+void ML_data::read_kernel(const std::string &fileName, const double& scaling, ModulePW::PW_Basis *pw_rho, double* kernel_)
+{
+    std::ifstream ifs(fileName.c_str(), ios::in);
+
+    GlobalV::ofs_running << "Read WT kernel from " << fileName << std::endl;
+    if (!ifs) ModuleBase::WARNING_QUIT("ml_data.cpp", "The kernel file not found");
+
+    int kineType = 0;
+    double kF_in = 0.;
+    double rho0_in = 0.;
+    int nq_in = 0;
+    double maxEta_in = 0.;
+
+    ifs >> kineType;
+    ifs >> kF_in;
+    ifs >> rho0_in;
+    ifs >> nq_in;
+
+    double *eta_in = new double[nq_in];
+    double *w0_in = new double[nq_in];
+
+    for (int iq = 0; iq < nq_in; ++iq)
+    {
+        ifs >> eta_in[iq] >> w0_in[iq];
+    }
+
+    maxEta_in = eta_in[nq_in-1];
+
+    double eta = 0.;
+    double maxEta = 0.;
+    int ind1 = 0;
+    int ind2 = 0;
+    int ind_mid = 0;
+    double fac1 = 0.;
+    double fac2 = 0.;
+    for (int ig = 0; ig < pw_rho->npw; ++ig)
+    {
+        eta = sqrt(pw_rho->gg[ig]) * pw_rho->tpiba / this->tkF;
+        eta = eta * scaling;
+        maxEta = std::max(eta, maxEta);
+
+        if (eta <= eta_in[0])
+            kernel_[ig] = w0_in[0];
+        else if (eta > maxEta_in)
+            kernel_[ig] = w0_in[nq_in-1];
+        else
+        {
+            ind1 = 1;
+            ind2 = nq_in;
+            while (ind1 < ind2 - 1)
+            {
+                ind_mid = (ind1 + ind2)/2;
+                if (eta > eta_in[ind_mid])
+                {
+                    ind1 = ind_mid;
+                }
+                else
+                {
+                    ind2 = ind_mid;
+                }
+            }
+            fac1 = (eta_in[ind2] - eta)/(eta_in[ind2] - eta_in[ind1]);
+            fac2 = (eta - eta_in[ind1])/(eta_in[ind2] - eta_in[ind1]);
+            kernel_[ig] = fac1 * w0_in[ind1] + fac2 * w0_in[ind2];
+            kernel_[ig] *= std::pow(1. / scaling, 3);
+        }
+    }
+
+    if (maxEta > maxEta_in) ModuleBase::WARNING("kedf_wt.cpp", "Please increase the maximal eta value in KEDF kernel file");
+
+    delete[] eta_in;
+    delete[] w0_in;
+    ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "FILL WT KERNEL");
 }
 
 void ML_data::multiKernel(const int ikernel, double *pinput, ModulePW::PW_Basis *pw_rho, double *routput)

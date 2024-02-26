@@ -437,9 +437,10 @@ void Input::Print(const std::string &fn) const
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_nlayer", of_ml_nlayer, "number of layer");
     
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_nkernel", of_ml_nkernel, "number of kernels");
-    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_kernel", of_ml_kernel, "type of kernel, 1 for wt, and 2 for yukawa");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_kernel", of_ml_kernel, "type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_kernel_scaling", of_ml_kernel_scaling, "scaling parameter of kernel");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_yukawa_alpha", of_ml_yukawa_alpha, "parameter alpha of yukawa kernel");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_kernel_file", of_ml_kernel_file, "file of TKK");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_device", of_ml_device, "run NN on GPU or CPU");
 
     ofs << "\n#Parameters (19.dft+u)" << std::endl;

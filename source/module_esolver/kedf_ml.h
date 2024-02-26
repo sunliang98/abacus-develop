@@ -20,7 +20,6 @@ class KEDF_ML
 public:
     KEDF_ML()
     {
-        this->ml_data = new ML_data;
         // this->stress.create(3,3);
     }
     ~KEDF_ML()
@@ -48,6 +47,7 @@ public:
         const std::string &kernel_type_,
         const std::string &kernel_scaling_,
         const std::string &yukawa_alpha_,
+        const std::string &kernel_file_,
         const bool &of_ml_gamma,
         const bool &of_ml_p,
         const bool &of_ml_q,

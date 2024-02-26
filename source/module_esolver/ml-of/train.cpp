@@ -25,7 +25,7 @@ void Train::setUpFFT()
     this->kernel_train = new Kernel[this->input.nkernel];
     for (int ik = 0; ik < this->input.nkernel; ++ik)
     {
-        this->kernel_train[ik].set_para(this->input.kernel_type[ik], this->input.kernel_scaling[ik], this->input.yukawa_alpha[ik]);
+        this->kernel_train[ik].set_para(this->input.kernel_type[ik], this->input.kernel_scaling[ik], this->input.yukawa_alpha[ik], this->input.kernel_file[ik]);
         this->kernel_train[ik].fill_kernel(
             this->input.fftdim,
             this->input.ntrain,
@@ -49,7 +49,7 @@ void Train::setUpFFT()
         this->kernel_vali = new Kernel[this->input.nkernel];
         for (int ik = 0; ik < this->input.nkernel; ++ik)
         {
-            this->kernel_vali[ik].set_para(this->input.kernel_type[ik], this->input.kernel_scaling[ik], this->input.yukawa_alpha[ik]);
+            this->kernel_vali[ik].set_para(this->input.kernel_type[ik], this->input.kernel_scaling[ik], this->input.yukawa_alpha[ik], this->input.kernel_file[ik]);
             this->kernel_vali[ik].fill_kernel(
                 this->input.fftdim,
                 this->input.nvalidation,

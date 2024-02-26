@@ -240,7 +240,7 @@ void ESolver_OF::Init(Input &inp, UnitCell &ucell)
     this->ml.set_para(this->nrxx, this->dV, this->nelec[0], GlobalV::of_tf_weight, GlobalV::of_vw_weight, 
                       GlobalV::of_ml_chi_p, GlobalV::of_ml_chi_q, GlobalV::of_ml_chi_xi, GlobalV::of_ml_chi_pnl, GlobalV::of_ml_chi_qnl,
                       GlobalV::of_ml_nnode, GlobalV::of_ml_nlayer, GlobalV::of_ml_nkernel, GlobalV::of_ml_kernel, GlobalV::of_ml_kernel_scaling,
-                      GlobalV::of_ml_yukawa_alpha, GlobalV::of_ml_gamma, GlobalV::of_ml_p, GlobalV::of_ml_q, GlobalV::of_ml_tanhp, GlobalV::of_ml_tanhq,
+                      GlobalV::of_ml_yukawa_alpha, GlobalV::of_ml_kernel_file, GlobalV::of_ml_gamma, GlobalV::of_ml_p, GlobalV::of_ml_q, GlobalV::of_ml_tanhp, GlobalV::of_ml_tanhq,
                       GlobalV::of_ml_gammanl, GlobalV::of_ml_pnl, GlobalV::of_ml_qnl, GlobalV::of_ml_xi, GlobalV::of_ml_tanhxi,
                       GlobalV::of_ml_tanhxi_nl, GlobalV::of_ml_tanh_pnl, GlobalV::of_ml_tanh_qnl, GlobalV::of_ml_tanhp_nl, GlobalV::of_ml_tanhq_nl, GlobalV::of_ml_device, this->pw_rho);
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT KEDF");

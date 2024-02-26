@@ -34,6 +34,7 @@ public:
         const std::string &kernel_type_,
         const std::string &kernel_scaling_,
         const std::string &yukawa_alpha_,
+        const std::string &kernel_file_,
         ModulePW::PW_Basis *pw_rho);
     // output all parameters
     void generateTrainData_WT(
@@ -104,6 +105,7 @@ public:
     // tools
     double MLkernel(double eta, double tf_weight, double vw_weight);
     double MLkernel_yukawa(double eta, double alpha);
+    void read_kernel(const std::string &fileName, const double& scaling, ModulePW::PW_Basis *pw_rho, double* kernel_);
     void multiKernel(const int ikernel, double *pinput, ModulePW::PW_Basis *pw_rho, double *routput);
     void Laplacian(double * pinput, ModulePW::PW_Basis *pw_rho, double * routput);
     void divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * routput);
@@ -137,6 +139,7 @@ public:
     int *kernel_type = nullptr;
     double *kernel_scaling = nullptr;
     double *yukawa_alpha = nullptr;
+    std::string *kernel_file = nullptr;
     double **kernel = nullptr;
 
     template<class T>

@@ -12,33 +12,42 @@ void Kernel::fill_kernel(const int fftdim,
     double tkF = 0.;
     double eta = 0.;
     this->kernel = std::vector<torch::Tensor>(ndata);
-    for (int id = 0; id < ndata; ++id)
+
+    // read in the kernel
+    if (this->kernel_type == 3 || this->kernel_type == 4) // 3 for TKK Al, and 4 for TKK Si
     {
-        rho0 = torch::sum(rho[id]).item<double>() / std::pow(fftdim, 3);
-        std::cout << "There are " << rho0 * volume[id] << " electrons in " << cell[id] << " strcture." << std::endl;
-        tkF = 2. * pow(3. * pow(M_PI, 2) * rho0, 1. / 3.);
-        this->kernel[id] = torch::zeros({fftdim, fftdim, fftdim}).to(device);
-        for (int ix = 0; ix < fftdim; ++ix)
+        this->read_kernel(fftdim, ndata, rho, volume, cell, device, fft_gg);
+    }
+    else
+    {
+        for (int id = 0; id < ndata; ++id)
         {
-            for (int iy = 0; iy < fftdim; ++iy)
+            rho0 = torch::sum(rho[id]).item<double>() / std::pow(fftdim, 3);
+            std::cout << "There are " << rho0 * volume[id] << " electrons in " << cell[id] << " strcture." << std::endl;
+            tkF = 2. * pow(3. * pow(M_PI, 2) * rho0, 1. / 3.);
+            this->kernel[id] = torch::zeros({fftdim, fftdim, fftdim}).to(device);
+            for (int ix = 0; ix < fftdim; ++ix)
             {
-                for (int iz = 0; iz < fftdim; ++iz)
+                for (int iy = 0; iy < fftdim; ++iy)
                 {
-                    eta = sqrt(fft_gg[id][ix][iy][iz].item<double>()) / tkF;
-                    eta = eta * this->scaling;
-                    if (this->kernel_type == 1)
+                    for (int iz = 0; iz < fftdim; ++iz)
                     {
-                        this->kernel[id][ix][iy][iz] = std::pow(1. / this->scaling, 3) * this->wt_kernel(eta);
-                        // if (ix == 26 && iy == 0 && iz == 26)
-                        // {
-                        //     std::cout << "kernel1    " << this->kernel[id][ix][iy][iz] << std::endl;
-                        //     std::cout << "eta        " << eta << std::endl;
-                        //     std::cout << "tkF        " << tkF << std::endl;
-                        // }
-                    }
-                    else if (this->kernel_type == 2)
-                    {
-                        this->kernel[id][ix][iy][iz] = this->yukawa_kernel(eta, this->yukawa_alpha);
+                        eta = sqrt(fft_gg[id][ix][iy][iz].item<double>()) / tkF;
+                        eta = eta * this->scaling;
+                        if (this->kernel_type == 1)
+                        {
+                            this->kernel[id][ix][iy][iz] = std::pow(1. / this->scaling, 3) * this->wt_kernel(eta);
+                            // if (ix == 26 && iy == 0 && iz == 26)
+                            // {
+                            //     std::cout << "kernel1    " << this->kernel[id][ix][iy][iz] << std::endl;
+                            //     std::cout << "eta        " << eta << std::endl;
+                            //     std::cout << "tkF        " << tkF << std::endl;
+                            // }
+                        }
+                        else if (this->kernel_type == 2)
+                        {
+                            this->kernel[id][ix][iy][iz] = this->yukawa_kernel(eta, this->yukawa_alpha);
+                        }
                     }
                 }
             }
@@ -97,4 +106,108 @@ double Kernel::wt_kernel(double eta, double tf_weight, double vw_weight)
 double Kernel::yukawa_kernel(double eta, double alpha)
 {
     return (eta == 0 && alpha == 0) ? 0. : M_PI / (eta * eta + alpha * alpha / 4.);
+}
+
+// Read kernel from file
+void Kernel::read_kernel(const int fftdim,
+                         const int ndata,
+                         const torch::Tensor &rho,
+                         const double *volume,
+                         const std::string *cell,
+                         const torch::Device device,
+                         const std::vector<torch::Tensor> &fft_gg)
+{
+    std::ifstream ifs(kernel_file.c_str(), std::ios::in);
+
+    if (!ifs)
+    {
+        std::cout << " Can't find the kernel file " << kernel_file << std::endl;
+        exit(0);
+    }
+
+    std::cout << "Read WT kernel from " << kernel_file << std::endl;
+
+    int kineType = 0;
+    double kF_in = 0.;
+    double rho0_in = 0.;
+    int nq_in = 0;
+    double maxEta_in = 0.;
+
+    ifs >> kineType;
+    ifs >> kF_in;
+    ifs >> rho0_in;
+    ifs >> nq_in;
+
+    double *eta_in = new double[nq_in];
+    double *w0_in = new double[nq_in];
+
+    for (int iq = 0; iq < nq_in; ++iq)
+    {
+        ifs >> eta_in[iq] >> w0_in[iq];
+    }
+
+    maxEta_in = eta_in[nq_in-1];
+
+    double rho0 = 0.;
+    double tkF = 0.;
+    double eta = 0.;
+    for (int id = 0; id < ndata; ++id)
+    {
+        rho0 = torch::sum(rho[id]).item<double>() / std::pow(fftdim, 3);
+        std::cout << "There are " << rho0 * volume[id] << " electrons in " << cell[id] << " strcture." << std::endl;
+        tkF = 2. * pow(3. * pow(M_PI, 2) * rho0, 1. / 3.);
+        this->kernel[id] = torch::zeros({fftdim, fftdim, fftdim}).to(device);
+
+        double eta = 0.;
+        double maxEta = 0.;
+        int ind1 = 0;
+        int ind2 = 0;
+        int ind_mid = 0;
+        double fac1 = 0.;
+        double fac2 = 0.;
+
+        for (int ix = 0; ix < fftdim; ++ix)
+        {
+            for (int iy = 0; iy < fftdim; ++iy)
+            {
+                for (int iz = 0; iz < fftdim; ++iz)
+                {
+                    eta = sqrt(fft_gg[id][ix][iy][iz].item<double>()) / tkF;
+                    eta = eta * this->scaling;
+                    maxEta = std::max(eta, maxEta);
+
+                    if (eta <= eta_in[0])
+                        this->kernel[id][ix][iy][iz] = w0_in[0];
+                    else if (eta > maxEta_in)
+                        this->kernel[id][ix][iy][iz] = w0_in[nq_in-1];
+                    else
+                    {
+                        ind1 = 1;
+                        ind2 = nq_in;
+                        while (ind1 < ind2 - 1)
+                        {
+                            ind_mid = (ind1 + ind2)/2;
+                            if (eta > eta_in[ind_mid])
+                            {
+                                ind1 = ind_mid;
+                            }
+                            else
+                            {
+                                ind2 = ind_mid;
+                            }
+                        }
+                        fac1 = (eta_in[ind2] - eta)/(eta_in[ind2] - eta_in[ind1]);
+                        fac2 = (eta - eta_in[ind1])/(eta_in[ind2] - eta_in[ind1]);
+                        this->kernel[id][ix][iy][iz] = fac1 * w0_in[ind1] + fac2 * w0_in[ind2];
+                        this->kernel[id][ix][iy][iz] *= std::pow(1. / this->scaling, 3);
+                    }
+                }
+            }
+        }
+        if (maxEta > maxEta_in) std::cout << "Please increase the maximal eta value in KEDF kernel file" << std::endl;
+    }
+
+
+    delete[] eta_in;
+    delete[] w0_in;
 }
