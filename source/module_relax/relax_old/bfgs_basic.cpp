@@ -1,5 +1,6 @@
 #include "bfgs_basic.h"
 
+#include "module_base/lapack_connector.h"
 #include "ions_move_basic.h"
 #include "module_base/global_function.h"
 #include "module_base/global_variable.h"
@@ -186,12 +187,13 @@ void BFGS_Basic::check_wolfe_conditions(void)
 
 void BFGS_Basic::reset_hessian(void)
 {
+    double alpha = 1.0 / 70.0 * ModuleBase::Ry_to_eV * ModuleBase::BOHR_TO_A * ModuleBase::BOHR_TO_A; // 1/70 A^2/eV in ASE, here convert it ro Bohr^2/Ry
     for (int i = 0; i < dim; i++)
     {
         for (int j = 0; j < dim; j++)
         {
             if (i == j)
-                inv_hess(i, j) = 1.0;
+                inv_hess(i, j) = alpha;
             else
                 inv_hess(i, j) = 0.0;
         }

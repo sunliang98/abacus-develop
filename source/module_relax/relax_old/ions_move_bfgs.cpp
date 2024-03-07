@@ -220,7 +220,7 @@ void Ions_Move_BFGS::bfgs_routine(const double& lat0)
         if (den > 1.0e-16)
         {
             // get optimized trust radius
-            trust_radius = -0.5 * dE0s * trust_radius_old / den;
+            trust_radius = -0.5 * dE0s * trust_radius_old * trust_radius_old / den;
 
             if (GlobalV::test_relax_method)
             {
@@ -300,20 +300,26 @@ void Ions_Move_BFGS::bfgs_routine(const double& lat0)
     ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "update iteration", Ions_Move_Basic::update_iter);
 
     // combine the direction and move length now
-    double norm = dot_func(this->move, this->move, dim);
-    norm = sqrt(norm);
+    double max_move = 0.;
+    for (int i = 0; i < dim/3; ++i)
+    {
+        double temp = std::sqrt(this->move[3*i] * this->move[3*i]
+                                + this->move[3*i + 1] * this->move[3*i + 1]
+                                + this->move[3*i + 2] * this->move[3*i + 2]);
+        if (temp > max_move) max_move = temp;
+    }
 
-    if (norm < 1.0e-16)
+    if (max_move < 1.0e-16)
     {
         ModuleBase::WARNING_QUIT("Ions_Move_BFGS", "BFGS: move-length unreasonably short");
     }
-    else
+    else if (max_move > Ions_Move_Basic::trust_radius)
     {
         // new move using trust_radius is
         // move / |move| * trust_radius (Bohr)
         for (int i = 0; i < dim; i++)
         {
-            move[i] *= Ions_Move_Basic::trust_radius / norm;
+            move[i] *= Ions_Move_Basic::trust_radius / max_move;
         }
     }
 

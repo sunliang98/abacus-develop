@@ -49,7 +49,7 @@ void Ions_Move_Basic::setup_gradient(const UnitCell &ucell, const ModuleBase::ma
                 pos[3 * iat + ik] = atom->tau[ia][ik] * ucell.lat0;
                 if (atom->mbl[ia][ik])
                 {
-                    grad[3 * iat + ik] = -force(iat, ik) * ucell.lat0;
+                    grad[3 * iat + ik] = -force(iat, ik);
                 }
             }
             ++iat;
