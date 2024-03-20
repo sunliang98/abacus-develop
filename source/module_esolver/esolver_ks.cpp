@@ -402,8 +402,13 @@ namespace ModuleESolver
                             hsolver_error = this->phsol->cal_hsolerror();
                         }
                     }
-
-                    this->conv_elec = (drho < this->scf_thr && iter!=GlobalV::MIXING_RESTART);
+                    // mixing will restart at this->p_chgmix->mixing_restart steps
+                    if (drho <= GlobalV::MIXING_RESTART && GlobalV::MIXING_RESTART > 0.0 && this->p_chgmix->mixing_restart > iter)
+                    {
+                        this->p_chgmix->mixing_restart = iter + 1;
+                    }
+                    // drho will be 0 at this->p_chgmix->mixing_restart step, which is not ground state
+                    this->conv_elec = (drho < this->scf_thr && !(iter==this->p_chgmix->mixing_restart && GlobalV::MIXING_RESTART > 0.0));
 
                     // If drho < hsolver_error in the first iter or drho < scf_thr, we do not change rho.
                     if (drho < hsolver_error || this->conv_elec)
@@ -413,25 +418,8 @@ namespace ModuleESolver
                     else
                     {
                         //----------charge mixing---------------
-                        //before first calling mix_rho(), bandgap and cell structure can be analyzed to get better default parameters
-                        // if(iter == 1)
-                        // {
-                        //     double bandgap_for_autoset = 0.0;
-                        //     if (!GlobalV::TWO_EFERMI)
-                        //     {
-                        //         this->pelec->cal_bandgap();
-                        //         bandgap_for_autoset = this->pelec->bandgap;
-                        //     }
-                        //     else
-                        //     {
-                        //         this->pelec->cal_bandgap_updw();
-                        //         bandgap_for_autoset = std::min(this->pelec->bandgap_up, this->pelec->bandgap_dw);
-                        //     }
-                        //     p_chgmix->auto_set(bandgap_for_autoset, GlobalC::ucell);
-                        // }
-                        // mixing will restart after GlobalV::MIXING_RESTART steps
-                        // So, GlobalV::MIXING_RESTART=1 means mix from scratch
-                        if (GlobalV::MIXING_RESTART > 0 && iter == GlobalV::MIXING_RESTART - 1)
+                        // mixing will restart after this->p_chgmix->mixing_restart steps
+                        if (GlobalV::MIXING_RESTART > 0 && iter == this->p_chgmix->mixing_restart - 1)
                         {
                             // do not mix charge density
                         }
@@ -461,7 +449,12 @@ namespace ModuleESolver
                 /*
                     SCF print: G1    -3.435545e+03  0.000000e+00   3.607e-01  2.862e-01
                 */
-                printiter(iter, drho, duration, diag_ethr);
+                double dkin = 0.0; // for meta-GGA
+                if (XC_Functional::get_func_type() == 3 || XC_Functional::get_func_type() == 5)
+                {
+                    dkin = p_chgmix->get_dkin(pelec->charge, GlobalV::nelec);
+                }
+                printiter(iter, drho, dkin, duration, diag_ethr);
                 if (this->conv_elec)
                 {
                     this->niter = iter;
@@ -469,7 +462,7 @@ namespace ModuleESolver
                     if(stop) break;
                 }
                 // notice for restart
-                if (GlobalV::MIXING_RESTART > 0 && iter == GlobalV::MIXING_RESTART - 1)
+                if (GlobalV::MIXING_RESTART > 0 && iter == this->p_chgmix->mixing_restart - 1)
                 {
                     std::cout<<"SCF restart after this step!"<<std::endl;
                 }
@@ -499,11 +492,15 @@ namespace ModuleESolver
         std::cout << std::setw(15) << "ETOT(eV)";
         std::cout << std::setw(15) << "EDIFF(eV)";
         std::cout << std::setw(11) << "DRHO";
+        if (XC_Functional::get_func_type() == 3 || XC_Functional::get_func_type() == 5)
+        {
+            std::cout << std::setw(11) << "DKIN";
+        }
         std::cout << std::setw(11) << "TIME(s)" << std::endl;
     }
 
     template<typename T, typename Device>
-    void ESolver_KS<T, Device>::printiter(const int iter, const double drho, const double duration, const double ethr)
+    void ESolver_KS<T, Device>::printiter(const int iter, const double drho, const double dkin, const double duration, const double ethr)
     {
         double pseudopot_energy = 0.;                   // electron-ion interaction energy
         for (int is = 0; is < GlobalV::NSPIN; ++is)
