@@ -18,6 +18,7 @@
 //--------------Temporary----------------
 #include "module_base/global_variable.h"
 #include "module_hamilt_pw/hamilt_pwdft/global.h"
+#include "module_base/parallel_reduce.h"
 //---------------------------------------
 
 #ifdef USE_PAW
@@ -504,6 +505,14 @@ namespace ModuleESolver
     template<typename T, typename Device>
     void ESolver_KS<T, Device>::printiter(const int iter, const double drho, const double duration, const double ethr)
     {
+        double pseudopot_energy = 0.;                   // electron-ion interaction energy
+        for (int is = 0; is < GlobalV::NSPIN; ++is)
+        {
+            pseudopot_energy += BlasConnector::dot(this->pw_rho->nrxx, this->pelec->pot->get_fixed_v(), 1, pelec->charge->rho[is], 1)
+                                 * GlobalC::ucell.omega / this->pw_rho->nxyz;
+        }
+        Parallel_Reduce::reduce_all(pseudopot_energy);
+        this->pelec->f_en.eion_elec = pseudopot_energy;
         this->pelec->print_etot(this->conv_elec, iter, drho, duration, INPUT.printe, ethr);
     }
 
