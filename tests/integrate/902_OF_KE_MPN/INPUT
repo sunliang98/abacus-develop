@@ -32,5 +32,5 @@ of_ml_tanhxi_nl    1
 of_ml_tanhp    1
 of_ml_tanhp_nl    1
 of_ml_feg      3
-of_ml_nnode    100
+of_ml_nnode    10
 of_ml_nlayer   3
