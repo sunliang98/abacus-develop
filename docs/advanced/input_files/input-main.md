@@ -276,6 +276,7 @@
     - [hubbard\_u](#hubbard_u)
     - [yukawa\_potential](#yukawa_potential)
     - [yukawa\_lambda](#yukawa_lambda)
+    - [uramping](#uramping)
     - [omc](#omc)
     - [onsite\_radius](#onsite_radius)
   - [vdW correction](#vdw-correction)
@@ -338,8 +339,8 @@
     - [td\_trigo\_amp](#td_trigo_amp)
     - [td\_heavi\_t0](#td_heavi_t0)
     - [td\_heavi\_amp](#td_heavi_amp)
-    - [td\_out\_dipole](#td_out_dipole)
-    - [td\_out\_efield](#td_out_efield)
+    - [out\_dipole](#out_dipole)
+    - [out\_efield](#out_efield)
     - [ocp](#ocp)
     - [ocp\_set](#ocp_set)
   - [Variables useful for debugging](#variables-useful-for-debugging)
@@ -441,8 +442,9 @@ These variables are used to control general system parameters.
   - 0: Only time reversal symmetry would be considered in symmetry operations, which implied k point and -k point would be treated as a single k point with twice the weight.
   - 1: Symmetry analysis will be performed to determine the type of Bravais lattice and associated symmetry operations. (point groups, space groups, primitive cells, and irreducible k-points)
 - **Default**: 
-  - -1: if (*[dft_fuctional](#dft_functional)==hse/hf/pbe0/scan0/opt_orb* or *[rpa](#rpa)==True*) and *[calculation](#calculation)!=nscf*. Currently symmetry is not supported in EXX (exact exchange) calculation.
-  - 0: if *[calculation](#calculation)==md/nscf/get_pchg/get_wf/get_S* or *[gamma_only]==True*
+  - 0:
+    - if *[calculation](#calculation)==md/nscf/get_pchg/get_wf/get_S* or *[gamma_only]==True*;  
+    - If (*[dft_fuctional](#dft_functional)==hse/hf/pbe0/scan0/opt_orb* or *[rpa](#rpa)==True*). Currently *symmetry==1* is not supported in EXX (exact exchange) calculation.
   - 1: else
 
 ### symmetry_prec
@@ -1452,6 +1454,8 @@ These variables are used to control the output of properties.
   - npsin = 4: SPIN1_CHG.cube, SPIN2_CHG.cube, SPIN3_CHG.cube, and SPIN4_CHG.cube.
 
   The circle order of the charge density on real space grids is: x is the outer loop, then y and finally z (z is moving fastest).
+
+  If EXX(exact exchange) is calculated, (i.e. *[dft_fuctional](#dft_functional)==hse/hf/pbe0/scan0/opt_orb* or *[rpa](#rpa)==True*), the Hexx(R) files will be output in the folder `OUT.${suffix}` too, which can be read in NSCF calculation.
 - **Default**: False
 
 ### out_pot
@@ -1655,16 +1659,20 @@ These variables are used to control the output of properties.
 
 - **Type**: Boolean
 - **Availability**: Numerical atomic orbital basis
-- **Description**: Whether to save charge density files and Hamiltonian matrix files per ionic step, which are used to restart calculations. According to the value of [read_file_dir](#read_file_dir):
+- **Description**: Whether to save charge density files per ionic step, which are used to restart calculations. According to the value of [read_file_dir](#read_file_dir):
   - auto: These files are saved in folder `OUT.${suffix}/restart/`;
   - other: These files are saved in folder `${read_file_dir}/restart/`.
+  
+  If EXX(exact exchange) is calculated (i.e. *[dft_fuctional](#dft_functional)==hse/hf/pbe0/scan0/opt_orb* or *[rpa](#rpa)==True*), the Hexx(k) files for each k-point will also be saved in the above folder, which can be read in EXX calculation with *[restart_load](#restart_load)==True*.
 - **Default**: False
 
 ### restart_load
 
 - **Type**: Boolean
 - **Availability**: Numerical atomic orbital basis
-- **Description**: If [restart_save](#restart_save) is set to true and an electronic iteration is finished, calculations can be restarted from the charge density file and Hamiltonian matrix file, which are saved in the former calculation. Please ensure [read_file_dir](#read_file_dir) is correct, and  the charge density file and Hamiltonian matrix file exist.
+- **Description**: If [restart_save](#restart_save) is set to true and an electronic iteration is finished, calculations can be restarted from the charge density file, which are saved in the former calculation. Please ensure [read_file_dir](#read_file_dir) is correct, and  the charge density file exist.
+
+  If EXX(exact exchange) is calculated (i.e. *[dft_fuctional](#dft_functional)==hse/hf/pbe0/scan0/opt_orb* or *[rpa](#rpa)==True*), the Hexx(k) files in the same folder for each k-point will also be read.
 - **Default**: False
 
 ### rpa
@@ -2603,6 +2611,14 @@ These variables are used to control DFT+U correlated parameters
 - **Description**: The screen length of Yukawa potential. If left to default, the screen length will be calculated as an average of the entire system. It's better to stick to the default setting unless there is a very good reason.
 - **Default**: Calculated on the fly.
 
+### uramping
+
+- **Type**: Real
+- **Unit**: eV
+- **Availability**: DFT+U calculations with `mixing_restart > 0`.
+- **Description**: Once `uramping` > 0.15 eV. DFT+U calculations will start SCF with U = 0 eV, namely normal LDA/PBE calculations. Once SCF restarts when `drho<mixing_restart`, U value will increase by `uramping` eV. SCF will repeat above calcuations until U values reach target defined in `hubbard_u`. As for `uramping=1.0 eV`, the recommendations of `mixing_restart` is around `5e-4`.  
+- **Default**: -1.0.
+
 ### omc
 
 - **Type**: Integer
@@ -3170,7 +3186,7 @@ These variables are used to control berry phase and wannier90 interface paramete
   E = 0.0 , t>t0
 - **Default**: 2.74
 
-### td_out_dipole
+### out_dipole
 
 - **Type**: Boolean
 - **Description**:
@@ -3178,10 +3194,10 @@ These variables are used to control berry phase and wannier90 interface paramete
   - False: do not output dipole.
 - **Default**: False
 
-### td_out_efield
+### out_efield
 
 - **Type**: Boolean
-- **Description**: The unit of output file is atomic unit (1 a.u. = 1 Ry/(bohr $\cdot$ e) = 51.422 V/Angstrom).
+- **Description**: output TDDFT Efield or not(V/Angstrom)
   - True: output efield.
   - False: do not output efield.
 - **Default**: False

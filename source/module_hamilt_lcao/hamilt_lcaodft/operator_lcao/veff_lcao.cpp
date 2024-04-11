@@ -6,11 +6,6 @@
 namespace hamilt
 {
 
-template class Veff<OperatorLCAO<double, double>>;
-
-template class Veff<OperatorLCAO<std::complex<double>, double>>;
-
-template class Veff<OperatorLCAO<std::complex<double>, std::complex<double>>>;
 
 // initialize_HR()
 template <typename TK, typename TR>
@@ -126,7 +121,7 @@ void Veff<OperatorLCAO<TK, TR>>::contributeHR()
 
 // special case of gamma-only
 template<>
-void Veff<OperatorLCAO<double, double>>::contributeHR()
+void Veff<OperatorLCAO<double, double>>::contributeHR(void)
 {
     ModuleBase::TITLE("Veff", "contributeHR");
     ModuleBase::timer::tick("Veff", "contributeHR");
@@ -156,6 +151,13 @@ void Veff<OperatorLCAO<double, double>>::contributeHR()
     this->GG->transfer_pvpR(this->hR);
 
     this->new_e_iteration = false;
+    ModuleBase::timer::tick("Veff", "contributeHR");
 }
 
+// definition of class template should in the end of file to avoid compiling warning 
+template class Veff<OperatorLCAO<double, double>>;
+
+template class Veff<OperatorLCAO<std::complex<double>, double>>;
+
+template class Veff<OperatorLCAO<std::complex<double>, std::complex<double>>>;
 }

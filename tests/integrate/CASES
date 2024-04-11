@@ -5,7 +5,8 @@
 101_PW_15_pseudopots_LibxcLDA
 101_PW_15_paw
 101_PW_blps_pseudopots
-101_PW_lps_pseudopots
+101_PW_lps6_pseudopots
+101_PW_lps8_pseudopots
 101_PW_OU_pseudopots
 101_PW_upf100_Al_pseudopots
 101_PW_upf201_Al_pseudopots
@@ -181,6 +182,7 @@
 260_NO_DJ_PK_PU_FM
 260_NO_DJ_PK_PU_SO
 260_NO_DJ_PK_PU_S1
+260_NO_DJ_PK_PU_AFM_URAMPING
 270_NO_MD_1O
 270_NO_MD_2O
 281_NO_KP_HSE
