@@ -57,7 +57,10 @@ public:
         const std::string &of_ml_tanhp_nl_,
         const std::string &of_ml_tanhq_nl_,
         const std::string device_inpt,
-        ModulePW::PW_Basis *pw_rho);
+        const double &mu,
+        const double &n_max,
+        ModulePW::PW_Basis *pw_rho,
+        const UnitCell& ucell);
 
     void set_device(std::string device_inpt);
 
@@ -132,6 +135,10 @@ public:
     // ModuleBase::matrix stress;
     double feg_net_F = 0.;
     double feg3_correct = 0.541324854612918; // ln(e - 1)
+    // descriptor of position 2024-04-22
+    double mu = 1.0;
+    double rcut = 1.0;
+    int n_max = 1;
 
     // informations about input
     int ninput = 0;
@@ -159,6 +166,8 @@ public:
     // plan 2
     std::vector<std::vector<double>> tanhp_nl = {};
     std::vector<std::vector<double>> tanhq_nl = {};
+    // atomic positions
+    std::vector<std::vector<std::vector<double>>> r_matrix = {};
     // GPU
     torch::DeviceType device_type = torch::kCPU;
     torch::Device device = torch::Device(torch::kCPU);
@@ -187,7 +196,8 @@ public:
         const std::string &of_ml_tanh_pnl_,
         const std::string &of_ml_tanh_qnl_,
         const std::string &of_ml_tanhp_nl_,
-        const std::string &of_ml_tanhq_nl_
+        const std::string &of_ml_tanhq_nl_,
+        const int &nxyz
     );
     
     bool ml_gamma = false;

@@ -309,6 +309,8 @@ extern std::string of_ml_kernel_scaling; // scaling parameter of kernel
 extern std::string of_ml_yukawa_alpha; // parameter alpha of yukawa kernel
 extern std::string of_ml_kernel_file;   // the file of TKK
 extern std::string of_ml_device; // run NN on GPU or CPU
+extern double of_ml_mu; // rcut
+extern int of_ml_n_max; // max number of neighbor atoms
 
 // mixing parameters
 extern std::string MIXING_MODE;

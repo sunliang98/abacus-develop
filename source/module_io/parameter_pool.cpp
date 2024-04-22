@@ -1729,6 +1729,14 @@ void input_parameters_set(std::map<std::string, InputParameter> input_parameters
     {
         INPUT.of_ml_device = *static_cast<SimpleString*>(input_parameters["of_ml_device"].get())->c_str();
     }
+    else if (input_parameters.count("of_ml_mu") != 0)
+    {
+        INPUT.bessel_nao_sigma = *static_cast<double*>(input_parameters["of_ml_mu"].get());
+    }
+    else if (input_parameters.count("of_ml_n_max") != 0)
+    {
+        INPUT.bessel_nao_sigma = *static_cast<int*>(input_parameters["of_ml_n_max"].get());
+    }
     else if (input_parameters.count("bessel_nao_smooth") != 0)
     {
         INPUT.bessel_nao_smooth = *static_cast<bool*>(input_parameters["bessel_nao_smooth"].get());

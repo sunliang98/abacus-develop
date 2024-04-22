@@ -144,7 +144,7 @@ void ESolver_OF::init(Input& inp, UnitCell& ucell)
         this->nelec_[0] = this->pelec->nelec_spin[0];
         this->nelec_[1] = this->pelec->nelec_spin[1];
     }
-    this->init_kedf(inp);
+    this->init_kedf(inp, ucell);
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT KEDF");
 
     // Initialize optimization methods
@@ -186,7 +186,7 @@ void ESolver_OF::init_after_vc(Input& inp, UnitCell& ucell)
     GlobalC::ppcell.init_vnl(ucell, pw_rho);
 
     // Initialize KEDF
-    this->init_kedf(inp);
+    this->init_kedf(inp, ucell);
 
     // Initialize optimization methods
     this->init_opt();

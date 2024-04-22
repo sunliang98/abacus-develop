@@ -281,6 +281,8 @@ std::string of_ml_kernel_scaling = "1.0";
 std::string of_ml_yukawa_alpha = "1.0";
 std::string of_ml_kernel_file = "none";
 std::string of_ml_device = "cpu";
+double of_ml_mu = 2.0;
+int of_ml_n_max = 50;
 
 // mixing parameters
 std::string MIXING_MODE = "broyden";

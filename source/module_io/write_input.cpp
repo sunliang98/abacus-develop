@@ -485,6 +485,8 @@ ModuleBase::GlobalFunc::OUTP(ofs, "out_bandgap", out_bandgap, "if true, print ou
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_yukawa_alpha", of_ml_yukawa_alpha, "parameter alpha of yukawa kernel");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_kernel_file", of_ml_kernel_file, "file of TKK");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_device", of_ml_device, "run NN on GPU or CPU");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_mu", of_ml_mu, "rcut");
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_n_max", of_ml_n_max, "max number of neighbor atoms");
 
     ofs << "\n#Parameters (20.dft+u)" << std::endl;
     ModuleBase::GlobalFunc::OUTP(ofs, "dft_plus_u", dft_plus_u, "1/2:new/old DFT+U correction method; 0: standard DFT calcullation(default)");

@@ -635,6 +635,8 @@ void Input::Default(void)
     of_ml_yukawa_alpha = "1.0";
     of_ml_kernel_file = "none";
     of_ml_device = "cpu";
+    of_ml_mu = 2.0;
+    of_ml_n_max = 50;
 
     //==========================================================
     // spherical bessel  Peize Lin added on 2022-12-15
@@ -2399,6 +2401,14 @@ bool Input::Read(const std::string& fn)
         {
             read_value(ifs, of_ml_device);
         }
+        else if (strcmp("of_ml_mu", word) == 0)
+        {
+            read_value(ifs, of_ml_mu);
+        }
+        else if (strcmp("of_ml_n_max", word) == 0)
+        {
+            read_value(ifs, of_ml_n_max);
+        }
         else if (strcmp("bessel_nao_smooth", word) == 0)
         {
             read_value(ifs, bessel_nao_smooth);
@@ -3893,6 +3903,8 @@ void Input::Bcast()
     Parallel_Common::bcast_string(of_ml_yukawa_alpha);
     Parallel_Common::bcast_string(of_ml_kernel_file);
     Parallel_Common::bcast_string(of_ml_device);
+    Parallel_Common::bcast_double(of_ml_mu);
+    Parallel_Common::bcast_int(of_ml_n_max);
 
     //==========================================================
     // spherical bessel  Peize Lin added on 2022-12-15

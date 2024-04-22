@@ -582,6 +582,8 @@ class Input
     std::string of_ml_yukawa_alpha; // parameter alpha of yukawa kernel
     std::string of_ml_kernel_file; // the file of TKK
     std::string of_ml_device; // run NN on GPU or CPU
+    double of_ml_mu; // rcut
+    int of_ml_n_max; // max number of neighbor atoms
 
     //==========================================================
     // spherical bessel  Peize Lin added on 2022-12-15

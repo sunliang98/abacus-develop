@@ -130,7 +130,7 @@ class ESolver_OF : public ESolver_FP
     }
 
     // ---------------------- interfaces to KEDF ------------------------
-    void init_kedf(Input& inp);
+    void init_kedf(Input& inp, UnitCell& ucell);
     void kinetic_potential(double** prho, double** pphi, ModuleBase::matrix& rpot);
     double kinetic_energy();
     void kinetic_stress(ModuleBase::matrix& kinetic_stress);

@@ -16,7 +16,8 @@ void KEDF_ML::init_data(
     const std::string &of_ml_tanh_pnl_,
     const std::string &of_ml_tanh_qnl_,
     const std::string &of_ml_tanhp_nl_,
-    const std::string &of_ml_tanhq_nl_
+    const std::string &of_ml_tanhq_nl_,
+    const int &nxyz
 )
 {
     bool* of_ml_gammanl = new bool[nkernel];
@@ -315,4 +316,8 @@ void KEDF_ML::init_data(
             this->tanhq_nl[ik] = std::vector<double>(this->nx, 0.);
         }
     }
+
+    this->r_matrix = std::vector<std::vector<std::vector<double>>>(
+        nxyz,
+        std::vector<std::vector<double>>(this->n_max, std::vector<double>(4, 0.0)));
 }

@@ -816,6 +816,8 @@ void Input_Conv::Convert(void)
     GlobalV::of_ml_yukawa_alpha = INPUT.of_ml_yukawa_alpha;
     GlobalV::of_ml_kernel_file = INPUT.of_ml_kernel_file;
     GlobalV::of_ml_device = INPUT.of_ml_device;
+    GlobalV::of_ml_mu = INPUT.of_ml_mu;
+    GlobalV::of_ml_n_max = INPUT.of_ml_n_max;
 
     //-----------------------------------------------
     // Deltaspin related parameters

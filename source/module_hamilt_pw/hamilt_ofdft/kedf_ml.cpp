@@ -37,7 +37,10 @@ void KEDF_ML::set_para(
     const std::string &of_ml_tanhp_nl_,
     const std::string &of_ml_tanhq_nl_,
     const std::string device_inpt,
-    ModulePW::PW_Basis *pw_rho
+    const double &mu,
+    const double &n_max,
+    ModulePW::PW_Basis *pw_rho,
+    const UnitCell& ucell
 )
 {
     torch::set_default_dtype(caffe2::TypeMeta::fromScalarType(torch::kDouble));
@@ -50,6 +53,11 @@ void KEDF_ML::set_para(
     this->nx_tot = nx;
     this->dV = dV;
     this->nkernel = nkernel;
+
+    double rcut0 = std::pow(ucell.omega / ucell.nat, 1./3.);
+    this->mu = mu;
+    this->rcut = mu * rcut0;
+    this->n_max = n_max;
 
     this->init_data(
         nkernel,
@@ -67,9 +75,12 @@ void KEDF_ML::set_para(
         of_ml_tanh_pnl_,
         of_ml_tanh_qnl_,
         of_ml_tanhp_nl_,
-        of_ml_tanhq_nl_);
+        of_ml_tanhq_nl_,
+        pw_rho->nxyz);
 
     std::cout << "ninput = " << ninput << std::endl;
+    std::cout << "mu = " << mu << std::endl;
+    std::cout << "rcut = " << rcut << std::endl;
 
     if (GlobalV::of_kinetic == "ml")
     {
@@ -110,7 +121,8 @@ void KEDF_ML::set_para(
         this->ml_data->split_string(chi_qnl_, nkernel, 1., this->chi_qnl);
 
         this->ml_data->set_para(nx, nelec, tf_weight, vw_weight, chi_p, chi_q,
-                                chi_xi_, chi_pnl_, chi_qnl_, nkernel, kernel_type_, kernel_scaling_, yukawa_alpha_, kernel_file_, pw_rho);
+                                chi_xi_, chi_pnl_, chi_qnl_, nkernel, kernel_type_, kernel_scaling_, yukawa_alpha_, kernel_file_, this->mu, this->n_max, pw_rho, ucell);
+        this->ml_data->get_r_matrix(ucell, pw_rho, this->rcut, this->n_max, this->r_matrix);
     }
 }
 

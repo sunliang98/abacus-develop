@@ -35,7 +35,10 @@ public:
         const std::string &kernel_scaling_,
         const std::string &yukawa_alpha_,
         const std::string &kernel_file_,
-        ModulePW::PW_Basis *pw_rho);
+        const double &mu,
+        const double &n_max,
+        ModulePW::PW_Basis *pw_rho,
+        const UnitCell& ucell);
     // output all parameters
     void generateTrainData_WT(
         const double * const *prho, 
@@ -109,6 +112,9 @@ public:
     // get intermediate variables of V_Pauli
     void getNablaRho(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &rnablaRho);
 
+    void get_r_matrix(const UnitCell &ucell, ModulePW::PW_Basis *pw_rho, const double rcut, const int n_max, std::vector<std::vector<std::vector<double>>> &r_matrix);
+    double soft(const double norm, const double r_cut);
+
     // tools
     double MLkernel(double eta, double tf_weight, double vw_weight);
     double MLkernel_yukawa(double eta, double alpha);
@@ -148,6 +154,11 @@ public:
     double *yukawa_alpha = nullptr;
     std::string *kernel_file = nullptr;
     double **kernel = nullptr;
+
+    // descriptor of position 2024-04-22
+    double mu = 1.0;
+    double rcut = 1.0;
+    int n_max = 1;
 
     template<class T>
     void split_string(const std::string &input, const int &length, const T &default_, T* &output)
