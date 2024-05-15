@@ -307,8 +307,15 @@ bool K_Vectors::read_kpoints(const std::string &fn)
         }
 
         ifk >> nmp[0] >> nmp[1] >> nmp[2];
+        
+        koffset[0] = 0;
+        koffset[1] = 0;
+        koffset[2] = 0;
+        if (!(ifk >> koffset[0] >> koffset[1] >> koffset[2]))
+        {
+            ModuleBase::WARNING("K_Vectors::read_kpoints", "Missing k-point offsets in the k-points file.");
+        }
 
-        ifk >> koffset[0] >> koffset[1] >> koffset[2];
         this->Monkhorst_Pack(nmp, koffset, k_type);
     }
     else if (nkstot > 0)
@@ -1347,9 +1354,10 @@ void K_Vectors::set_after_vc(
     this->set_both_kvec_after_vc(reciprocal_vec, latvec);
     //this->set_both_kvec(reciprocal_vec, latvec);
 
-    this->mpi_k_after_vc();
+    //Since the number of kpoints is not changed, we do not need to do the following.
+    // this->mpi_k_after_vc(); 
 
-    this->set_kup_and_kdw_after_vc();
+    // this->set_kup_and_kdw_after_vc();
 
     this->print_klists(GlobalV::ofs_running);
 
@@ -1358,6 +1366,7 @@ void K_Vectors::set_after_vc(
 
 //LiuXh add a new function here,
 //20180515
+//Useless now, it has bugs in it.
 void K_Vectors::mpi_k_after_vc(void)
 {
 #ifdef __MPI
@@ -1395,6 +1404,7 @@ void K_Vectors::mpi_k_after_vc(void)
 
     if (GlobalV::MY_RANK == 0)
     {
+        // It is wrong! kvec_c and kvec_d are local variables.
         for (int ik = 0;ik < nkstot;ik++)
         {
             isk_aux[ik] = isk[ik];
@@ -1503,6 +1513,7 @@ void K_Vectors::set_both_kvec_after_vc(const ModuleBase::Matrix3 &G, const Modul
     return;
 }
 
+//Useless now
 void K_Vectors::set_kup_and_kdw_after_vc(void)
 {
     ModuleBase::TITLE("K_Vectors", "setup_kup_and_kdw_after_vc");
@@ -1535,7 +1546,7 @@ void K_Vectors::set_kup_and_kdw_after_vc(void)
         }
 
         this->nks *= 2;
-        //this->nkstot *= 2;
+        //this->nkstot *= 2; //This makes the code difficult to read.
 
         ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running,"nks(nspin=2)",nks);
         ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running,"nkstot(nspin=2)",nkstot);

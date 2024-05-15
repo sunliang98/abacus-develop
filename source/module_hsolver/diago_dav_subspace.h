@@ -31,6 +31,8 @@ class Diago_DavSubspace : public DiagH<T, Device>
 
     static int PW_DIAG_NDIM;
 
+    static double dav_large_thr;
+
   private:
     bool is_subspace = false;
 
@@ -81,8 +83,7 @@ class Diago_DavSubspace : public DiagH<T, Device>
                   const psi::Psi<T, Device>& basis,
                   const T* hphi,
                   T* hcc,
-                  T* scc,
-                  bool init);
+                  T* scc);
 
     void refresh(const int& dim,
                  const int& nband,
@@ -137,6 +138,9 @@ class Diago_DavSubspace : public DiagH<T, Device>
 
 template <typename Real, typename Device>
 int Diago_DavSubspace<Real, Device>::PW_DIAG_NDIM = 4;
+
+template <typename Real, typename Device>
+double Diago_DavSubspace<Real, Device>::dav_large_thr = 1e-5;
 
 } // namespace hsolver
 
