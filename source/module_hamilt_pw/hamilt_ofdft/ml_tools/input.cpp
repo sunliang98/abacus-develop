@@ -277,6 +277,27 @@ void Input::readInput()
         {
             this->read_value(ifs, this->device_type);
         }
+        else if (strcmp("n_max", word) == 0)
+        {
+            this->read_value(ifs, this->n_max);
+        }
+        else if (strcmp("m_right", word) == 0)
+        {
+            this->read_value(ifs, this->m_right);
+        }
+        else if (strcmp("m_left", word) == 0)
+        {
+            this->read_value(ifs, this->m_left);
+        }
+        else if (strcmp("n_rho_out", word) == 0)
+        {
+            this->read_value(ifs, this->n_rho_out);
+        }
+        else
+        {
+            std::cout << "Unknown keyword: " << word << std::endl;
+            ierr = 1;
+        }
     }
 
     std::cout << "Read nnINPUT done" << std::endl;

@@ -208,7 +208,8 @@ void Train::init()
     if (this->input.loss == "potential" || this->input.loss == "both" || this->input.loss == "both_new") this->setUpFFT();
     // Input::print("init fft done");
     
-    this->nn = std::make_shared<NN_OFImpl>(this->data_train.nx_tot, this->data_vali.nx_tot, this->ninput, this->input.nnode, this->input.nlayer, this->device);
+    this->nn = std::make_shared<NN_OFImpl>(this->data_train.nx_tot, this->data_vali.nx_tot, this->ninput, this->input.nnode, this->input.nlayer,
+                                        this->input.n_rho_out, this->input.n_max, this->input.m_right, this->input.m_left, this->device);
     // Input::print("init_nn done");
     this->nn->set_data(&(this->data_train), this->descriptor_type, this->kernel_index, this->nn->inputs);
     this->nn->set_data(&(this->data_vali), this->descriptor_type, this->kernel_index, this->nn->input_vali);
@@ -271,7 +272,9 @@ void Train::train()
             {
                 torch::Tensor inpt = torch::slice(this->nn->inputs, 0, batch_index*this->data_train.nx, (batch_index + 1)*this->data_train.nx);
                 inpt.requires_grad_(true);
-                torch::Tensor prediction = this->nn->forward(inpt);
+                torch::Tensor R = torch::slice(this->data_train.R, 0, batch_index*this->data_train.nx, (batch_index + 1)*this->data_train.nx);
+                R.requires_grad_(true);
+                torch::Tensor prediction = this->nn->forward(inpt, R);
                 startL = std::chrono::high_resolution_clock::now();
                 torch::Tensor loss = this->lossFunction(prediction, torch::slice(this->data_train.enhancement, 0, batch_index*this->data_train.nx, (batch_index + 1)*this->data_train.nx), this->data_train.enhancement_mean[batch_index]) * this->input.coef_e;
                 lossTrain = loss.item<double>();
@@ -287,7 +290,9 @@ void Train::train()
             {
                 torch::Tensor inpt = torch::slice(this->nn->inputs, 0, batch_index*this->data_train.nx, (batch_index + 1)*this->data_train.nx);
                 inpt.requires_grad_(true);
-                torch::Tensor prediction = this->nn->forward(inpt);
+                torch::Tensor R = this->data_train.R[batch_index];
+                R.requires_grad_(true);
+                torch::Tensor prediction = this->nn->forward(inpt, R);
 
                 if (this->input.feg_limit != 3)
                 {
@@ -296,7 +301,7 @@ void Train::train()
                 if (this->input.feg_limit != 0)
                 {
                     // if (this->feg_inpt.grad().numel()) this->feg_inpt.grad().zero_();
-                    this->feg_predict = this->nn->forward(this->feg_inpt);
+                    this->feg_predict = this->nn->forward(this->feg_inpt, R);
                     // if (this->input.ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},
                     //                                                                 {torch::ones_like(this->feg_predict)}, true, true)[0][this->nn_input_index["gamma"]];
                     if (this->input.feg_limit == 1) prediction = prediction - torch::softplus(this->feg_predict) + 1.;
@@ -363,7 +368,7 @@ void Train::train()
             if (epoch % this->input.print_fre == 0) {
                 if (this->input.nvalidation > 0)
                 {
-                    torch::Tensor valid_pre = this->nn->forward(this->nn->input_vali);
+                    torch::Tensor valid_pre = this->nn->forward(this->nn->input_vali, this->data_vali.R[0]);
                     if (this->input.feg_limit == 3)
                     {
                         valid_pre = torch::softplus(valid_pre - this->feg_predict + this->feg3_correct);
@@ -441,7 +446,8 @@ void Train::potTest()
     Input::print("init fft done");
     
     std::chrono::_V2::system_clock::time_point start, end;
-    this->nn = std::make_shared<NN_OFImpl>(this->data_train.nx_tot, this->data_vali.nx_tot, this->ninput, this->input.nnode, this->input.nlayer, this->device);
+    this->nn = std::make_shared<NN_OFImpl>(this->data_train.nx_tot, this->data_vali.nx_tot, this->ninput, this->input.nnode, this->input.nlayer,
+                                        this->input.n_rho_out, this->input.n_max, this->input.m_right, this->input.m_left, this->device);
     torch::DeviceType device_type = torch::kCPU;
     torch::load(this->nn, "net.pt", device_type);
     // this->nn->to(this->device);
@@ -459,7 +465,9 @@ void Train::potTest()
         {
             torch::Tensor inpts = torch::slice(this->nn->inputs, 0, ii*this->data_train.nx, (ii + 1)*this->data_train.nx);
             inpts.requires_grad_(true);
-            torch::Tensor prediction = this->nn->forward(inpts);
+            torch::Tensor R = this->data_train.R[batch_index];
+            R.requires_grad_(true);
+            torch::Tensor prediction = this->nn->forward(inpts, R);
             if (this->input.feg_limit != 3)
             {
                 prediction = torch::softplus(prediction);
@@ -468,7 +476,7 @@ void Train::potTest()
             {
                 // if (this->input.ml_gamma) if (this->feg_inpt[this->nn_input_index["gamma"]].grad().numel()) this->feg_inpt[this->nn_input_index["gamma"]].grad().zero_();
                 if (this->feg_inpt.grad().numel()) this->feg_inpt.grad().zero_();
-                this->feg_predict = this->nn->forward(this->feg_inpt);
+                this->feg_predict = this->nn->forward(this->feg_inpt, R);
                 // if (this->input.ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt[this->nn_input_index["gamma"]]},
                 //                                                                 {torch::ones(1)}, true, true)[0];
                 // if (this->input.ml_gamma) this->feg_dFdgamma = torch::autograd::grad({this->feg_predict}, {this->feg_inpt},

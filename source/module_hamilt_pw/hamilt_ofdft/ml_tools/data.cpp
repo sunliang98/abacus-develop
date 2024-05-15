@@ -19,7 +19,7 @@ void Data::load_data(Input &input, const int ndata, std::string *dir, const torc
 {
     if (ndata <= 0) return;
     this->init_label(input);
-    this->init_data(input.nkernel, ndata, input.fftdim, device);
+    this->init_data(input.nkernel, ndata, input.fftdim, input.n_max, device);
     this->load_data_(input, ndata, input.fftdim, dir);
     std::cout << "enhancement mean: " << this->enhancement_mean << std::endl;
     std::cout << "exponent: " << input.exponent << std::endl;
@@ -116,11 +116,12 @@ void Data::init_label(Input &input)
     // Input::print("init_label done");
 }
 
-void Data::init_data(const int nkernel, const int ndata, const int fftdim, const torch::Device device)
+void Data::init_data(const int nkernel, const int ndata, const int fftdim, const int n_max, const torch::Device device)
 {
     // Input::print("init_data");
     this->nx = pow(fftdim, 3);
     this->nx_tot = this->nx * ndata;
+    this->n_max = n_max;
 
     this->rho = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
     if (this->load_p) this->nablaRho = torch::zeros({ndata, 3, fftdim, fftdim, fftdim}).to(device);
@@ -161,6 +162,8 @@ void Data::init_data(const int nkernel, const int ndata, const int fftdim, const
         if (this->load_tanhp_nl[ik])  this->tanhp_nl[ik]  = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
         if (this->load_tanhq_nl[ik])  this->tanhq_nl[ik]  = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
     }
+
+    this->R = torch::zeros({ndata, nx, n_max, 4}).to(device);
     // Input::print("init_data done");
 }
 
@@ -247,6 +250,15 @@ void Data::load_data_(
     pauli.resize_({nx_tot, 1});
 
     this->tau_tf = this->cTF * torch::pow(this->rho, 5./3.);
+
+    std::vector<long unsigned int> cshape_R = {(long unsigned) this->nx * this->n_max * 4};
+    std::vector<double> container_R(this->nx * this->n_max * 4);
+    for (int idata = 0; idata < ndata; ++idata)
+    {
+        npy::LoadArrayFromNumpy(dir[idata] + "/r_matrix.npy", cshape_R, fortran_order, container_R);
+        this->R[idata] = torch::tensor(container_R).reshape({nx, this->n_max, 4});
+    }
+
     // Input::print("load_data done");
 }
 

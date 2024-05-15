@@ -43,7 +43,8 @@ void ML_data::set_para(
 
     double rcut0 = std::pow(ucell.omega / ucell.nat, 1./3.);
     this->mu = mu;
-    this->rcut = mu * rcut0;
+    // this->rcut = mu * rcut0;
+    this->rcut = mu;
     this->n_max = n_max;
     std::cout << "mu = " << mu << std::endl;
     std::cout << std::setprecision(20) << "rcut = " << rcut << std::setprecision(3) << std::endl;
@@ -305,19 +306,8 @@ void ML_data::generate_descriptor(
         // npy::SaveArrayAsNumpy(this->file_name("fq_nl", ktype, kscaling), false, 1, cshape, new_containernl);
     }
 
-    std::vector<std::vector<std::vector<double>>> r_matrix(
-        pw_rho->nxyz,
-        std::vector<std::vector<double>>(this->n_max, std::vector<double>(4, 0.0)));
-    this->get_r_matrix(GlobalC::ucell, pw_rho, this->rcut, this->n_max, r_matrix);
-
-    std::vector<double> r_matrix_1d;
-    for (int i = 0; i < this->nx; ++i) {
-        for (int j = 0; j < n_max; ++j) {
-            for (int k = 0; k < 4; ++k) {
-                r_matrix_1d.push_back(r_matrix[i][j][k]);
-            }
-        }
-    }
+    std::vector<double> r_matrix_1d(this->nx * this->n_max * 4, 0.0);
+    this->get_r_matrix(GlobalC::ucell, pw_rho, this->rcut, this->n_max, r_matrix_1d);
     const long unsigned r_matrix_shape[] = {(long unsigned)(this->nx * n_max * 4)};
     npy::SaveArrayAsNumpy("r_matrix.npy", false, 1, r_matrix_shape, r_matrix_1d);
 }

@@ -101,6 +101,10 @@ class Input
     double* chi_xi = nullptr;
     double* chi_pnl = nullptr;
     double* chi_qnl = nullptr;
+    // atomic position
+    int n_max = 50;
+    int m_right = 40;
+    int m_left = 12;
 
     int feg_limit = 0; // Free Electron Gas
     int change_step = 0; // when feg_limit=3, change the output of net after change_step
@@ -114,10 +118,11 @@ class Input
     // size of nn
     int nnode = 10;
     int nlayer = 3;
+    int n_rho_out = 200;
 
     // kernel
     int nkernel = 1;
-    int* kernel_type = nullptr;
+    int* kernel_type = nullptr; // 1 WT, 2 Yukawa, 3 4 TKK
     double* kernel_scaling = nullptr;
     double* yukawa_alpha = nullptr;
     std::string* kernel_file = nullptr;

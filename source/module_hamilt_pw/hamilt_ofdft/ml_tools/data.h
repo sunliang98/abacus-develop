@@ -13,6 +13,7 @@ class Data
     
     int nx = 0;
     int nx_tot = 0;
+    int n_max = 0;
 
     // =========== data ===========
     torch::Tensor rho;
@@ -35,8 +36,10 @@ class Data
     std::vector<torch::Tensor> tanh_qnl = {};
     std::vector<torch::Tensor> tanhp_nl = {};
     std::vector<torch::Tensor> tanhq_nl = {};
+    // atomic position
+    torch::Tensor R;
     // target
-    torch::Tensor enhancement;
+    torch::Tensor enhancement; 
     torch::Tensor pauli;
     torch::Tensor enhancement_mean;
     torch::Tensor tau_mean; // mean Pauli energy
@@ -64,7 +67,7 @@ class Data
 
   private:
     void init_label(Input &input);
-    void init_data(const int nkernel, const int ndata, const int fftdim, const torch::Device device);
+    void init_data(const int nkernel, const int ndata, const int fftdim, const int n_max, const torch::Device device);
     void load_data_(Input &input, const int ndata, const int fftdim, std::string *dir);
     
     const double cTF = 3.0/10.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0) * 2; // 10/3*(3*pi^2)^{2/3}, multiply by 2 to convert unit from Hartree to Ry, finally in Ry*Bohr^(-2)

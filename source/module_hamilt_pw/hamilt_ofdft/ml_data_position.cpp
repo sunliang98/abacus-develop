@@ -4,14 +4,14 @@ void ML_data::get_r_matrix(const UnitCell& ucell,
                            ModulePW::PW_Basis* pw_rho,
                            const double rcut,
                            const int n_max,
-                           std::vector<std::vector<std::vector<double>>>& r_matrix)
+                           std::vector<double>& r_matrix)
 {
     double* height = new double[3];
     height[0] = ucell.omega / ((ucell.a2 ^ ucell.a3).norm() * ucell.lat0 * ucell.lat0);
     height[1] = ucell.omega / ((ucell.a3 ^ ucell.a1).norm() * ucell.lat0 * ucell.lat0);
     height[2] = ucell.omega / ((ucell.a1 ^ ucell.a2).norm() * ucell.lat0 * ucell.lat0);
 
-    std::cout << "volume: " << ucell.omega << std::endl;
+    std::cout << "Volume: " << ucell.omega << std::endl;
     std::cout << "Height: " << height[0] << ", " << height[1] << ", " << height[2] << std::endl;
     int* search_range = new int[3];
     for (int i = 0; i < 3; ++i)
@@ -67,19 +67,20 @@ void ML_data::get_r_matrix(const UnitCell& ucell,
                                         }
                                         double s = this->soft(R_row_norm, rcut);
                                         int r_index = ix * pw_rho->ny * pw_rho->nz + iy * pw_rho->nz + iz;
-                                        r_matrix[r_index][n_found][0] = s;
+                                        int tot_index = r_index * n_max * 4 + n_found * 4;
+                                        r_matrix[tot_index] = s;
                                         if (R_row_norm == 0)
                                         {
                                             for (int nn = 0; nn < 3; ++nn)
                                             {
-                                                r_matrix[r_index][n_found][nn + 1] = 0;
+                                                r_matrix[tot_index + nn + 1] = 0;
                                             }
                                         }
                                         else
                                         {
                                             for (int nn = 0; nn < 3; ++nn)
-                                            {
-                                                r_matrix[r_index][n_found][nn + 1] = s * R_row[nn] / R_row_norm;
+                                            {   
+                                                r_matrix[tot_index + nn + 1] = s * R_row[nn] / R_row_norm;
                                             }
                                         }
                                         n_found++;

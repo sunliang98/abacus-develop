@@ -56,7 +56,8 @@ void KEDF_ML::set_para(
 
     double rcut0 = std::pow(ucell.omega / ucell.nat, 1./3.);
     this->mu = mu;
-    this->rcut = mu * rcut0;
+    // this->rcut = mu * rcut0;
+    this->rcut = mu;
     this->n_max = n_max;
 
     this->init_data(
@@ -82,34 +83,8 @@ void KEDF_ML::set_para(
     std::cout << "mu = " << mu << std::endl;
     std::cout << "rcut = " << rcut << std::endl;
 
-    if (GlobalV::of_kinetic == "ml")
-    {
-        this->nn = std::make_shared<NN_OFImpl>(this->nx, 0, this->ninput, nnode, nlayer, this->device);
-        torch::load(this->nn, "net.pt", this->device_type);
-        std::cout << "load net done" << std::endl;
-        if (GlobalV::of_ml_feg != 0)
-        {
-            torch::Tensor feg_inpt = torch::zeros(this->ninput, this->device_type);
-            for (int i = 0; i < this->ninput; ++i)
-            {
-                if (this->descriptor_type[i] == "gamma") feg_inpt[i] = 1.;
-            }
-
-            // feg_inpt.requires_grad_(true);
-
-            if (GlobalV::of_ml_feg == 1) 
-                // this->feg_net_F = torch::softplus(this->nn->forward(feg_inpt));
-                this->feg_net_F = torch::softplus(this->nn->forward(feg_inpt)).to(this->device_CPU).contiguous().data_ptr<double>()[0];
-            else
-            {
-                // this->feg_net_F = this->nn->forward(feg_inpt);
-                this->feg_net_F = this->nn->forward(feg_inpt).to(this->device_CPU).contiguous().data_ptr<double>()[0];
-            }
-
-            std::cout << "feg_net_F = " << this->feg_net_F << std::endl;
-        }
-    } 
-    
+    std::vector<double> r_matrix_1d(this->nx * this->n_max * 4, 0.0);
+    torch::Tensor r_matrix_tensor;
     if (GlobalV::of_kinetic == "ml" || GlobalV::of_ml_gene_data == 1)
     {
         this->ml_data = new ML_data;
@@ -122,7 +97,53 @@ void KEDF_ML::set_para(
 
         this->ml_data->set_para(nx, nelec, tf_weight, vw_weight, chi_p, chi_q,
                                 chi_xi_, chi_pnl_, chi_qnl_, nkernel, kernel_type_, kernel_scaling_, yukawa_alpha_, kernel_file_, this->mu, this->n_max, pw_rho, ucell);
-        this->ml_data->get_r_matrix(ucell, pw_rho, this->rcut, this->n_max, this->r_matrix);
+
+        this->ml_data->get_r_matrix(ucell, pw_rho, this->rcut, this->n_max, r_matrix_1d);
+
+        r_matrix_tensor = torch::Tensor(torch::from_blob(r_matrix_1d.data(), {this->nx, this->n_max, 4}, torch::kDouble).to(this->device).contiguous());
+    }
+
+    if (GlobalV::of_kinetic == "ml")
+    {
+        int n_rho_out = 320;
+        int m_right = 40;
+        int m_left = 8;
+        this->nn = std::make_shared<NN_OFImpl>(this->nx, 0, this->ninput, nnode, nlayer, n_rho_out, this->n_max, m_right, m_left, this->device);
+        std::cout << "load net begin" << std::endl;
+        torch::load(this->nn, "net.pt", this->device_type);
+
+        // int64_t total_params = 0;
+        // for (const auto& p : this->nn->parameters()) {
+        //     total_params += p.numel();
+        // }
+        // std::cout << "Total parameters: " << total_params << std::endl;
+
+        std::cout << "load net done" << std::endl;
+
+        this->D = this->nn->get_D(r_matrix_tensor).detach();
+
+        if (GlobalV::of_ml_feg != 0)
+        {
+            torch::Tensor feg_inpt = torch::zeros(this->ninput, this->device_type);
+            for (int i = 0; i < this->ninput; ++i)
+            {
+                if (this->descriptor_type[i] == "gamma") feg_inpt[i] = 1.;
+            }
+
+            // feg_inpt.requires_grad_(true);
+
+            if (GlobalV::of_ml_feg == 1) 
+                // this->feg_net_F = torch::softplus(this->nn->forward(feg_inpt));
+                this->feg_net_F = torch::softplus(this->nn->forward_with_D(feg_inpt, this->D)).to(this->device_CPU).contiguous().data_ptr<double>()[0];
+            else
+            {
+                // this->feg_net_F = this->nn->forward(feg_inpt);
+                this->feg_net_F = this->nn->forward_with_D(feg_inpt, this->D).to(this->device_CPU).contiguous().data_ptr<double>()[0];
+                // this->feg_net_F = this->nn->forward(feg_inpt, this->r_matrix_tensor).to(this->device_CPU).contiguous().data_ptr<double>()[0];
+            }
+
+            std::cout << "feg_net_F = " << this->feg_net_F << std::endl;
+        }
     }
 }
 
@@ -152,7 +173,7 @@ void KEDF_ML::ml_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     this->updateInput(prho, pw_rho);
 
     this->NN_forward(prho, pw_rho, true);
-    
+
     torch::Tensor enhancement_cpu_tensor = this->nn->F.to(this->device_CPU).contiguous();
     this->enhancement_cpu_ptr = enhancement_cpu_tensor.data_ptr<double>();
     torch::Tensor gradient_cpu_tensor = this->nn->inputs.grad().to(this->device_CPU).contiguous();
@@ -293,7 +314,7 @@ void KEDF_ML::NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho
     this->nn->set_data(this, this->descriptor_type, this->kernel_index, this->nn->inputs);
     this->nn->inputs.requires_grad_(true);
 
-    this->nn->F = this->nn->forward(this->nn->inputs);    
+    this->nn->F = this->nn->forward_with_D(this->nn->inputs, this->D);
     if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
 
     if (GlobalV::of_ml_feg != 3)

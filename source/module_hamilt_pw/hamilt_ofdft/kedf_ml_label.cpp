@@ -316,8 +316,4 @@ void KEDF_ML::init_data(
             this->tanhq_nl[ik] = std::vector<double>(this->nx, 0.);
         }
     }
-
-    this->r_matrix = std::vector<std::vector<std::vector<double>>>(
-        nxyz,
-        std::vector<std::vector<double>>(this->n_max, std::vector<double>(4, 0.0)));
 }

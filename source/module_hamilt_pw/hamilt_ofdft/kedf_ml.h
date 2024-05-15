@@ -167,7 +167,7 @@ public:
     std::vector<std::vector<double>> tanhp_nl = {};
     std::vector<std::vector<double>> tanhq_nl = {};
     // atomic positions
-    std::vector<std::vector<std::vector<double>>> r_matrix = {};
+    torch::Tensor D; // atomic position D=G<^T R R^T G
     // GPU
     torch::DeviceType device_type = torch::kCPU;
     torch::Device device = torch::Device(torch::kCPU);

@@ -112,7 +112,7 @@ public:
     // get intermediate variables of V_Pauli
     void getNablaRho(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &rnablaRho);
 
-    void get_r_matrix(const UnitCell &ucell, ModulePW::PW_Basis *pw_rho, const double rcut, const int n_max, std::vector<std::vector<std::vector<double>>> &r_matrix);
+    void get_r_matrix(const UnitCell &ucell, ModulePW::PW_Basis *pw_rho, const double rcut, const int n_max, std::vector<double> &r_matrix);
     double soft(const double norm, const double r_cut);
 
     // tools
