@@ -209,13 +209,19 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/1_validation_set_bccAl/reference/rho.npy", cshape, fortran_order, temp_prho);
     // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", cshape, fortran_order, temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", temp_prho);
-    this->ml_data->loadVector("/home/xianyuer/data/1_sunliang/1_work/0_ml_kedf/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/1_fccAl-eq-2023-03-20/rho.npy", temp_prho);
+    // this->ml_data->loadVector("/home/xianyuer/data/1_sunliang/1_work/0_ml_kedf/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/1_fccAl-eq-2023-03-20/rho.npy", temp_prho);
+    this->ml_data->loadVector("/home/xianyuer/data/1_sunliang/1_work/0_ml_kedf/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/10_cdSi_27dim-eq-2023-03-20/1_ecut60/rho.npy", temp_prho);
+    // this->ml_data->loadVector("/home/xianyuer/data/1_sunliang/1_work/0_ml_kedf/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/25_betatinSi_27dim-2023-03-20/0_ecut60/step_0/rho.npy", temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/1_ks/2_bccAl_27dim-2022-12-12/rho.npy", temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/3_ks-pbe-newpara/1_fccAl-eq-2023-02-14/rho.npy", temp_prho);
     // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/19_Li3Mg-mp-976254-eq-2023-03-20/rho.npy", temp_prho);
     double ** prho = new double *[1];
     prho[0] = new double[this->nx];
     for (int ir = 0; ir < this->nx; ++ir) prho[0][ir] = temp_prho[ir];
+    for (int ir = 0; ir < this->nx; ++ir) 
+    {
+        if (prho[0][ir] == 0.) std::cout << "WARNING: rho = 0" << std::endl;
+    };
     std::cout << "Load rho done" << std::endl;
     // ==============================
 
