@@ -52,7 +52,7 @@ void ESolver_FP::init(Input& inp, UnitCell& cell)
 #ifdef __MPI
 	this->pw_rho->initmpi(GlobalV::NPROC_IN_POOL, GlobalV::RANK_IN_POOL, POOL_WORLD);
 #endif
-	if (this->classname == "ESolver_OF")
+	if (this->classname == "ESolver_OF" || GlobalV::of_ml_gene_data == 1)
     {
 		this->pw_rho->setfullpw(inp.of_full_pw, inp.of_full_pw_dim);
     }

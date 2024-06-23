@@ -12,7 +12,11 @@ namespace ModuleESolver
 void ESolver_OF::init_kedf(Input& inp)
 {
     //! Thomas-Fermi (TF) KEDF, TF+ KEDF, and Want-Teter (WT) KEDF
-    if (this->of_kinetic_ == "tf" || this->of_kinetic_ == "tf+" || this->of_kinetic_ == "wt")
+    if (this->of_kinetic_ == "tf"
+     || this->of_kinetic_ == "tf+"
+     || this->of_kinetic_ == "wt"
+     || this->of_kinetic_ == "ml"
+     || this->of_kinetic_ == "mpn")
     {
 		if (this->tf_ == nullptr)
 		{
@@ -103,6 +107,7 @@ void ESolver_OF::kinetic_potential(double** prho, double** pphi, ModuleBase::mat
     if (this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
     {
         this->ml_->ml_potential(prho, this->pw_rho, rpot);
+        this->tf_->get_energy(prho); // temp
     }
 
     // Before call vw_potential, change rpot to rpot * 2 * pphi
@@ -164,6 +169,11 @@ double ESolver_OF::kinetic_energy()
     if (this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
     {
         kinetic_energy += this->ml_->ml_energy;
+        if (this->ml_->ml_energy >= this->tf_->tf_energy)
+        {
+            std::cout << "WARNING: ML >= TF" << std::endl;
+            std::cout << "ML Term = " << this->ml_->ml_energy << " Ry, TF Term = " << this->tf_->tf_energy << " Ry." << std::endl;
+        }
     }
 
     return kinetic_energy;

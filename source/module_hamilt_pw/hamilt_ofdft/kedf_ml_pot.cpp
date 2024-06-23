@@ -43,6 +43,7 @@ void KEDF_ML::get_potential_(const double * const * prho, ModulePW::PW_Basis *pw
                     //   + xinlterm[ir] + tanhxinlterm[ir] + tanhxi_nlterm[ir]
                     //   + tanhptanh_pnlterm[ir] + tanhqtanh_qnlterm[ir]
                     //   + tanhptanhp_nlterm[ir] + tanhqtanhq_nlterm[ir];
+        // if (pauli_potential[ir] < 0) pauli_potential[ir] = 0;
         rpotential(0, ir) += pauli_potential[ir];
 
         // if (this->enhancement_cpu_ptr[ir] < 0)

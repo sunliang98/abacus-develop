@@ -584,6 +584,35 @@ void ESolver_OF::after_opt(const int istep, UnitCell& ucell)
             &(ucell),
             this->pelec->pot->get_fixed_v());
     }
+    if (this->of_kinetic_ == "mpn" || this->of_kinetic_ == "ml")
+    {
+        this->tf_->get_energy(this->pelec->charge->rho);
+        std::cout << "ML Term = " << this->ml_->ml_energy << " Ry, TF Term = " << this->tf_->tf_energy << " Ry." << std::endl;
+        if (this->ml_->ml_energy >= this->tf_->tf_energy)
+        {
+            std::cout << "WARNING: ML >= TF" << std::endl;
+        }
+    }
+
+    if (GlobalV::of_ml_gene_data)
+    {
+        this->pelec->pot->update_from_charge(pelec->charge, &GlobalC::ucell); // Hartree + XC + external
+        this->kinetic_potential(pelec->charge->rho, this->pphi_, this->pelec->pot->get_effective_v()); // (kinetic + Hartree + XC + external) * 2 * phi
+        
+        const double* vr_eff = this->pelec->pot->get_effective_v(0);
+        for (int ir = 0; ir < this->pw_rho->nrxx; ++ir)
+        {
+            this->pdEdphi_[0][ir] = vr_eff[ir];
+        }
+        this->mu_[0] = this->cal_mu(this->pphi_[0], this->pdEdphi_[0], this->nelec_[0]);
+
+        // === temporary ===
+        // assert(GlobalV::of_kinetic == "wt" || GlobalV::of_kinetic == "ml");
+        // =================
+        std::cout << "Generating Training data..." << std::endl;
+        std::cout << "mu = " << this->mu_[0] << std::endl;
+        this->ml_->generateTrainData(pelec->charge->rho, *(this->wt_), *(this->tf_), this->pw_rho, vr_eff);
+    }
 }
 
 /**
