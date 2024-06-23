@@ -9,7 +9,7 @@ unkOverlap_lcao::unkOverlap_lcao()
 {
     allocate_flag = false;
     /*
-    const int kpoints_number = kv.nkstot;
+    const int kpoints_number = kv.get_nkstot();
     lcao_wfc_global = new std::complex<double>**[kpoints_number];
     for(int ik = 0; ik < kpoints_number; ik++)
     {
@@ -239,8 +239,6 @@ void unkOverlap_lcao::init(const Grid_Technique& gt, std::complex<double>*** wfc
 	return;
 }
 
-//REMARK: the code next seemed to duplicate with those in 
-//module_hamilt_pw/hamilt/pwdft/wavefunc.cpp.
 int unkOverlap_lcao::iw2it(int iw)
 {
     int ic, type;
@@ -648,7 +646,7 @@ void unkOverlap_lcao::get_lcao_wfc_global_ik(const Grid_Technique& gt, std::comp
 			{
 				// send trace_lo
 				tag = GlobalV::DRANK * 3 + 1;
-				MPI_Send(gt.trace_lo, GlobalV::NLOCAL, MPI_INT, 0, tag, DIAG_WORLD);
+				MPI_Send(gt.trace_lo.data(), GlobalV::NLOCAL, MPI_INT, 0, tag, DIAG_WORLD);
 
 				// send cc
 				std::complex<double>* csend = new std::complex<double>[GlobalV::NBANDS*gt.lgd];
@@ -801,7 +799,7 @@ std::complex<double> unkOverlap_lcao::det_berryphase(const int ik_L,
 
 void unkOverlap_lcao::test(const Grid_Technique& gt, std::complex<double>*** wfc_k_grid, const K_Vectors& kv)
 {
-	this->init(gt, wfc_k_grid, kv.nkstot);
+	this->init(gt, wfc_k_grid, kv.get_nkstot());
 	this->cal_R_number();
 	this->cal_orb_overlap();
 

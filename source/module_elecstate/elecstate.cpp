@@ -2,9 +2,9 @@
 
 #include "module_base/global_variable.h"
 #include "module_base/memory.h"
+#include "module_base/parallel_reduce.h"
 #include "module_base/tool_title.h"
 #include "occupy.h"
-#include "module_base/parallel_reduce.h"
 
 namespace elecstate
 {
@@ -16,11 +16,15 @@ const double* ElecState::getRho(int spin) const
     return &(this->charge->rho[spin][0]);
 }
 
-void ElecState::fixed_weights(const std::vector<double>& ocp_kb)
+void ElecState::fixed_weights(const std::vector<double>& ocp_kb, const int& nbands, const double& nelec)
 {
 
-    int num = 0;
-    num = this->klist->nks * GlobalV::NBANDS;
+    assert(nbands > 0);
+    assert(nelec > 0.0);
+
+    const double ne_thr = 1.0e-5;
+
+    const int num = this->klist->get_nks() * nbands;
     if (num != ocp_kb.size())
     {
         ModuleBase::WARNING_QUIT("ElecState::fixed_weights",
@@ -28,24 +32,27 @@ void ElecState::fixed_weights(const std::vector<double>& ocp_kb)
     }
 
     double num_elec = 0.0;
-    for (int i = 0; i < ocp_kb.size(); i++)
+    for (int i = 0; i < ocp_kb.size(); ++i)
     {
         num_elec += ocp_kb[i];
     }
-    if (std::abs(num_elec - GlobalV::nelec) > 1.0e-5)
+
+    if (std::abs(num_elec - nelec) > ne_thr)
     {
         ModuleBase::WARNING_QUIT("ElecState::fixed_weights",
                                  "total number of occupations is wrong , please check ocp_set");
     }
 
-    for (int ik = 0; ik < this->wg.nr; ik++)
+    for (int ik = 0; ik < this->wg.nr; ++ik)
     {
-        for (int ib = 0; ib < this->wg.nc; ib++)
+        for (int ib = 0; ib < this->wg.nc; ++ib)
         {
             this->wg(ik, ib) = ocp_kb[ik * this->wg.nc + ib];
         }
     }
     this->skip_weights = true;
+
+    return;
 }
 
 void ElecState::init_nelec_spin()
@@ -158,7 +165,7 @@ void ElecState::calculate_weights()
         }
 #ifdef __MPI
         // qianrui fix a bug on 2021-7-21
-        Parallel_Reduce::reduce_double_allpool(this->f_en.demet);
+        Parallel_Reduce::reduce_double_allpool(GlobalV::KPAR, GlobalV::NPROC_IN_POOL, this->f_en.demet);
 #endif
     }
     else if (Occupy::fixed_occupations)
@@ -175,7 +182,7 @@ void ElecState::calEBand()
     // calculate ebands using wg and ekb
     double eband = 0.0;
 #ifdef _OPENMP
-#pragma omp parallel for collapse(2) reduction(+:eband)
+#pragma omp parallel for collapse(2) reduction(+ : eband)
 #endif
     for (int ik = 0; ik < this->ekb.nr; ++ik)
     {
@@ -202,7 +209,7 @@ void ElecState::init_scf(const int istep, const ModuleBase::ComplexMatrix& struc
 {
     //---------Charge part-----------------
     // core correction potential.
-    if(!GlobalV::use_paw)
+    if (!GlobalV::use_paw)
     {
         this->charge->set_rho_core(strucfac);
     }
@@ -218,6 +225,7 @@ void ElecState::init_scf(const int istep, const ModuleBase::ComplexMatrix& struc
     if (istep == 0)
     {
         this->charge->init_rho(this->eferm, strucfac, this->bigpw->nbz, this->bigpw->bz);
+        this->charge->check_rho(); // check the rho
     }
 
     // renormalize the charge density

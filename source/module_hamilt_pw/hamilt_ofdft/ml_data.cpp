@@ -5,6 +5,7 @@
 #include "module_base/global_function.h"
 #include "module_hamilt_pw/hamilt_pwdft/global.h"
 #include "module_elecstate/module_charge/symmetry_rho.h"
+#include "module_base/module_device/types.h"
 
 void ML_data::set_para(
     const int &nx,
@@ -497,7 +498,7 @@ void ML_data::getF_KS1(
     double epsilonM = pelec->ekb(0,0);
     assert(GlobalV::NSPIN == 1);
 
-    psi::DEVICE_CPU *dev = {};
+    base_device::DEVICE_CPU* ctx;
 
     // calculate positive definite kinetic energy density
     for (int ik = 0; ik < psi->get_nk(); ++ik)
@@ -513,7 +514,7 @@ void ML_data::getF_KS1(
                 continue;
             }
 
-            pw_psi->recip_to_real(dev, &psi->operator()(ibnd,0), wfcr, ik);
+            pw_psi->recip_to_real(ctx, &psi->operator()(ibnd,0), wfcr, ik);
             const double w1 = pelec->wg(ik, ibnd) / GlobalC::ucell.omega;
             
             // output one wf, to check KS equation
@@ -635,7 +636,7 @@ void ML_data::getF_KS2(
     double epsilonM = pelec->ekb(0,0);
     assert(GlobalV::NSPIN == 1);
 
-    psi::DEVICE_CPU *dev = {};
+    base_device::DEVICE_CPU* ctx;
 
     // calculate kinetic energy density
     for (int ik = 0; ik < psi->get_nk(); ++ik)
@@ -653,7 +654,7 @@ void ML_data::getF_KS2(
                 continue;
             }
 
-            pw_psi->recip_to_real(dev, &psi->operator()(ibnd,0), wfcr, ik);
+            pw_psi->recip_to_real(ctx, &psi->operator()(ibnd,0), wfcr, ik);
             const double w1 = pelec->wg(ik, ibnd) / GlobalC::ucell.omega;
 
             // if (w1 != 0.0)

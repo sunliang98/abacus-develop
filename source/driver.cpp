@@ -16,7 +16,7 @@ Driver::Driver()
 
 Driver::~Driver()
 {
-    // Release the device memory within singleton object GlobalC::ppcell 
+    // Release the device memory within singleton object GlobalC::ppcell
     // before the main function exits.
     GlobalC::ppcell.release_memory();
 }
@@ -25,29 +25,30 @@ void Driver::init()
 {
     ModuleBase::TITLE("Driver", "init");
 
-    time_t time_start = std::time(NULL);
+    time_t time_start = std::time(nullptr);
     ModuleBase::timer::start();
 
     // (1) read the input parameters.
-    this->reading();
+    // INPUT should be initalized here and then pass to atomic world, mohan 2024-05-12
+    // INPUT should not be GlobalC, mohan 2024-05-12
+    Driver::reading();
 
     // (2) welcome to the atomic world!
     this->atomic_world();
 
     // (3) output information
-    time_t time_finish = std::time(NULL);
+    time_t time_finish = std::time(nullptr);
     Print_Info::print_time(time_start, time_finish);
 
     // (4) close all of the running logs
     INPUT.close_log();
 
     // (5) output the json file
-    //Json::create_Json(&GlobalC::ucell.symm,GlobalC::ucell.atoms,&INPUT);
-    Json::create_Json(&GlobalC::ucell,&INPUT);
-    return;
+    // Json::create_Json(&GlobalC::ucell.symm,GlobalC::ucell.atoms,&INPUT);
+    Json::create_Json(&GlobalC::ucell, &INPUT);
 }
 
-void Driver::reading(void)
+void Driver::reading()
 {
     ModuleBase::timer::tick("Driver", "reading");
 
@@ -58,8 +59,17 @@ void Driver::reading(void)
     Input_Conv::Convert();
 
     // (3) define the 'DIAGONALIZATION' world in MPI
-    Parallel_Global::split_diag_world(GlobalV::DIAGO_PROC);
-    Parallel_Global::split_grid_world(GlobalV::DIAGO_PROC);
+    Parallel_Global::split_diag_world(GlobalV::DIAGO_PROC,
+                                      GlobalV::NPROC,
+                                      GlobalV::MY_RANK,
+                                      GlobalV::DRANK,
+                                      GlobalV::DSIZE,
+                                      GlobalV::DCOLOR);
+    Parallel_Global::split_grid_world(GlobalV::DIAGO_PROC,
+                                      GlobalV::NPROC,
+                                      GlobalV::MY_RANK,
+                                      GlobalV::GRANK,
+                                      GlobalV::GSIZE);
     ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "DRANK", GlobalV::DRANK + 1);
     ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "DSIZE", GlobalV::DSIZE);
     ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "DCOLOR", GlobalV::DCOLOR + 1);
@@ -68,7 +78,16 @@ void Driver::reading(void)
 
 #ifdef __MPI
     // (4)  divide the GlobalV::NPROC processors into GlobalV::KPAR for k-points parallelization.
-    Parallel_Global::init_pools();
+    Parallel_Global::init_pools(GlobalV::NPROC,
+                                GlobalV::MY_RANK,
+                                GlobalV::NSTOGROUP,
+                                GlobalV::KPAR,
+                                GlobalV::NPROC_IN_STOGROUP,
+                                GlobalV::RANK_IN_STOGROUP,
+                                GlobalV::MY_STOGROUP,
+                                GlobalV::NPROC_IN_POOL,
+                                GlobalV::RANK_IN_POOL,
+                                GlobalV::MY_POOL);
 #endif
 
     // (5) Read in parameters about wannier functions.
@@ -81,10 +100,9 @@ void Driver::reading(void)
     // ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running,"READING CARDS");
 
     ModuleBase::timer::tick("Driver", "reading");
-    return;
 }
 
-void Driver::atomic_world(void)
+void Driver::atomic_world()
 {
     ModuleBase::TITLE("Driver", "atomic_world");
     //--------------------------------------------------
@@ -99,6 +117,4 @@ void Driver::atomic_world(void)
 
     ModuleBase::timer::finish(GlobalV::ofs_running);
     ModuleBase::Memory::print_all(GlobalV::ofs_running);
-
-    return;
 }

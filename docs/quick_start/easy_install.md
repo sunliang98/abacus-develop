@@ -176,7 +176,16 @@ Use 4 MPI processes to run, for example:
 mpirun -n 4 abacus
 ```
 
-> The total thread count(i.e. OpenMP per-process thread count * MPI process count) should not exceed the number of cores in your machine.
+The total thread count (i.e. OpenMP per-process thread count * MPI process count) should not exceed the number of cores in your machine.
+To use 4 threads and 4 MPI processes, set the environment variable `OMP_NUM_THREADS` before running `mpirun`:
+
+```bash
+OMP_NUM_THREADS=4 mpirun -n 4 abacus
+```
+
+In this case, the total thread count is 16.
+
+ABACUS will try to determine the number of threads used by each process if `OMP_NUM_THREADS` is not set. However, it is **required** to set `OMP_NUM_THREADS` before running `mpirun` to avoid potential performance issues.
 
 Please refer to [hands-on guide](./hands_on.md) for more instructions.
 
@@ -244,3 +253,31 @@ And, follow the instructions in [Build and Install](#build-and-install) part abo
 See [the advanced installation guide](../advanced/install.md) for more features.
 Make sure the environment variables are set before running `cmake`.
 Possible command: `cmake -B build -DENABLE_DEEPKS=ON -DENABLE_LIBXC=ON -DENABLE_LIBRI=ON`.
+
+## Command line options
+
+Users can check the version of ABACUS by running the command `abacus --version`, the result will be like:
+```
+ABACUS version v3.6.5
+```
+
+Users may check the correctness of the setting of parameters in the `INPUT` file by running the command `abacus --check-input`, the result will be like:
+```
+                              ABACUS v3.6.5
+
+               Atomic-orbital Based Ab-initio Computation at UStc
+
+                     Website: http://abacus.ustc.edu.cn/
+               Documentation: https://abacus.deepmodeling.com/
+                  Repository: https://github.com/abacusmodeling/abacus-develop
+                              https://github.com/deepmodeling/abacus-develop
+                      Commit: unknown
+
+ Tue Jun 18 14:20:31 2024
+ MAKE THE DIR         : OUT.ABACUS/
+----------------------------------------------------------
+  INPUT parameters have been successfully checked!
+----------------------------------------------------------
+```
+
+Warnings will be given if there are any errors in the `INPUT` file.

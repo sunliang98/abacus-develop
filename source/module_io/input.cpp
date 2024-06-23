@@ -5,17 +5,6 @@
 // #include "global.h"
 #include "module_io/input.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-
-#include <algorithm>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <vector>
-
 #include "module_base/constants.h"
 #include "module_base/global_file.h"
 #include "module_base/global_function.h"
@@ -23,6 +12,16 @@
 #include "module_base/parallel_common.h"
 #include "module_base/timer.h"
 #include "version.h"
+
+#include <algorithm>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <vector>
 Input INPUT;
 
 void Input::Init(const std::string& fn)
@@ -70,6 +69,14 @@ void Input::Init(const std::string& fn)
                                           this->mdp.md_restart,
                                           this->out_alllog); // xiaohui add 2013-09-01
     Check();
+    // if only check the input, then quit
+    if (this->check_input)
+    {
+        std::cout << "----------------------------------------------------------" << std::endl;
+        std::cout << "  INPUT parameters have been successfully checked!" << std::endl;
+        std::cout << "----------------------------------------------------------" << std::endl;
+        exit(0);
+    }
 #ifdef VERSION
     const char* version = VERSION;
 #else
@@ -162,6 +169,7 @@ void Input::Default(void)
     nbands_sto = 256;
     nbndsto_str = "256";
     nbands_istate = 5;
+    bands_to_print_ = "";
     pw_seed = 1;
     emin_sto = 0.0;
     emax_sto = 0.0;
@@ -275,6 +283,7 @@ void Input::Default(void)
     pw_diag_nmax = 50;
     diago_cg_prec = 1; // mohan add 2012-03-31
     pw_diag_ndim = 4;
+    diago_full_acc = false;
     pw_diag_thr = 1.0e-2;
     nb2d = 0;
     nurse = 0;
@@ -314,7 +323,7 @@ void Input::Default(void)
     mixing_angle = -10.0;    // defaultly close for npsin = 4
     mixing_tau = false;
     mixing_dftu = false;
-    mixing_dmr = false;      // whether to mixing real space density matrix
+    mixing_dmr = false; // whether to mixing real space density matrix
     //----------------------------------------------------------
     // potential / charge / wavefunction / energy
     //----------------------------------------------------------
@@ -332,12 +341,11 @@ void Input::Default(void)
 
     out_bandgap = 0; // QO added for bandgap printing
 
-    band_print_num = 0;
-
     deepks_out_labels = 0; // caoyu added 2020-11-24, mohan added 2021-01-03
     deepks_scf = 0;
     deepks_bandgap = 0;
     deepks_out_unittest = 0;
+    deepks_equiv = 0;
 
     out_pot = 0;
     out_wfc_pw = 0;
@@ -347,6 +355,9 @@ void Input::Default(void)
     out_proj_band = 0;
     out_mat_hs = {0, 8};
     out_mat_xc = 0;
+    out_hr_npz = 0;
+    out_dm_npz = 0;
+    dm_to_rho = 0;
     cal_syns = 0;
     dmax = 0.01;
     out_mat_hs2 = 0; // LiuXh add 2019-07-15
@@ -370,8 +381,9 @@ void Input::Default(void)
     lcao_ecut = 0; // (Ry)
     lcao_dk = 0.01;
     lcao_dr = 0.01;
-    lcao_rmax = 30; // (a.u.)
+    lcao_rmax = 30;    // (a.u.)
     onsite_radius = 0; // (a.u.)
+    nstream = 4;
     //----------------------------------------------------------
     // efield and dipole correction     Yu Liu add 2022-05-18
     //----------------------------------------------------------
@@ -437,6 +449,7 @@ void Input::Default(void)
     exx_cauchy_stress_threshold = 1E-7;
     exx_ccp_threshold = 1E-8;
     exx_ccp_rmesh_times = "default";
+    rpa_ccp_rmesh_times = 10.0;
 
     exx_distribute_type = "htime";
 
@@ -464,6 +477,8 @@ void Input::Default(void)
     out_dipole = false;
     out_efield = false;
     out_current = false;
+    out_vecpot = false;
+    init_vecpot_file = false;
 
     td_print_eij = -1.0;
     td_edm = 0;
@@ -553,7 +568,8 @@ void Input::Default(void)
     //==========================================================
     //    DFT+U     Xin Qu added on 2020-10-29
     //==========================================================
-    dft_plus_u = 0; // 2:DFT+U correction with dual occupations 1:DFT+U correction with full occupations; 0: standard DFT calcullation
+    dft_plus_u = 0; // 2:DFT+U correction with dual occupations 1:DFT+U correction with full occupations; 0: standard
+                    // DFT calcullation
     yukawa_potential = false;
     yukawa_lambda = -1.0;
     omc = 0;
@@ -682,6 +698,38 @@ void Input::Default(void)
     qo_thr = 1e-6;
     qo_screening_coeff = {};
 
+    //==========================================================
+    // variables for PEXSI
+    //==========================================================
+    pexsi_npole = 40;
+    pexsi_inertia = true;
+    pexsi_nmax = 80;
+    // pexsi_symbolic = 1;
+    pexsi_comm = true;
+    pexsi_storage = true;
+    pexsi_ordering = 0;
+    pexsi_row_ordering = 1;
+    pexsi_nproc = 1;
+    pexsi_symm = true;
+    pexsi_trans = false;
+    pexsi_method = 1;
+    pexsi_nproc_pole = 1;
+    // pexsi_spin = 2;
+    pexsi_temp = 0.015;
+    pexsi_gap = 0;
+    pexsi_delta_e = 20.0;
+    pexsi_mu_lower = -10;
+    pexsi_mu_upper = 10;
+    pexsi_mu = 0.0;
+    pexsi_mu_thr = 0.05;
+    pexsi_mu_expand = 0.3;
+    pexsi_mu_guard = 0.2;
+    pexsi_elec_thr = 0.001;
+    pexsi_zero_thr = 1e-10;
+    //==========================================================
+    // variables for elpa
+    //==========================================================
+    elpa_num_thread = -1;
     return;
 }
 
@@ -820,6 +868,10 @@ bool Input::Read(const std::string& fn)
             // Originally disabled in line 2401.
             // if (nbands_istate < 0)
             // 	ModuleBase::WARNING_QUIT("Input", "NBANDS_ISTATE must > 0");
+        }
+        else if (strcmp("bands_to_print", word) == 0)
+        {
+            getline(ifs, bands_to_print_);
         }
         else if (strcmp("nche_sto", word) == 0) // Chebyshev expansion order
         {
@@ -970,6 +1022,7 @@ bool Input::Read(const std::string& fn)
         }
         else if (strcmp("nupdown", word) == 0)
         {
+            two_fermi = true;
             read_value(ifs, nupdown);
         }
         else if (strcmp("lmaxmax", word) == 0)
@@ -1202,6 +1255,10 @@ bool Input::Read(const std::string& fn)
         {
             read_value(ifs, pw_diag_ndim);
         }
+        else if (strcmp("diago_full_acc", word) == 0)
+        {
+            read_value(ifs, diago_full_acc);
+        }
         else if (strcmp("pw_diag_thr", word) == 0)
         {
             read_value(ifs, pw_diag_thr);
@@ -1386,15 +1443,7 @@ bool Input::Read(const std::string& fn)
         }
         else if (strcmp("out_chg", word) == 0)
         {
-            read_bool(ifs, out_chg);
-        }
-        else if (strcmp("band_print_num", word) == 0)
-        {
-            read_value(ifs, band_print_num);
-        }
-        else if (strcmp("bands_to_print", word) == 0)
-        {
-            ifs.ignore(150, '\n');
+            read_value(ifs, out_chg);
         }
         else if (strcmp("out_dm", word) == 0)
         {
@@ -1415,6 +1464,10 @@ bool Input::Read(const std::string& fn)
         else if (strcmp("deepks_scf", word) == 0) // caoyu added 2020-11-24, mohan modified 2021-01-03
         {
             read_bool(ifs, deepks_scf);
+        }
+        else if (strcmp("deepks_equiv", word) == 0)
+        {
+            read_bool(ifs, deepks_equiv);
         }
         else if (strcmp("deepks_bandgap", word) == 0) // caoyu added 2020-11-24, mohan modified 2021-01-03
         {
@@ -1448,7 +1501,8 @@ bool Input::Read(const std::string& fn)
         else if (strcmp("out_band", word) == 0)
         {
             read_value2stdvector(ifs, out_band);
-            if(out_band.size() == 1) out_band.push_back(8);
+            if (out_band.size() == 1)
+                out_band.push_back(8);
         }
         else if (strcmp("out_proj_band", word) == 0)
         {
@@ -1457,7 +1511,8 @@ bool Input::Read(const std::string& fn)
         else if (strcmp("out_mat_hs", word) == 0)
         {
             read_value2stdvector(ifs, out_mat_hs);
-            if(out_mat_hs.size() == 1) out_mat_hs.push_back(8);
+            if (out_mat_hs.size() == 1)
+                out_mat_hs.push_back(8);
         }
         // LiuXh add 2019-07-15
         else if (strcmp("out_mat_hs2", word) == 0)
@@ -1475,6 +1530,18 @@ bool Input::Read(const std::string& fn)
         else if (strcmp("out_mat_xc", word) == 0)
         {
             read_bool(ifs, out_mat_xc);
+        }
+        else if (strcmp("out_hr_npz", word) == 0)
+        {
+            read_bool(ifs, out_hr_npz);
+        }
+        else if (strcmp("out_dm_npz", word) == 0)
+        {
+            read_bool(ifs, out_dm_npz);
+        }
+        else if (strcmp("dm_to_rho", word) == 0)
+        {
+            read_bool(ifs, dm_to_rho);
         }
         else if (strcmp("out_interval", word) == 0)
         {
@@ -1554,6 +1621,10 @@ bool Input::Read(const std::string& fn)
         else if (strcmp("onsite_radius", word) == 0)
         {
             read_value(ifs, onsite_radius);
+        }
+        else if (strcmp("num_stream", word) == 0)
+        {
+            read_value(ifs, nstream);
         }
         //----------------------------------------------------------
         // Molecule Dynamics
@@ -1795,6 +1866,14 @@ bool Input::Read(const std::string& fn)
         else if (strcmp("out_efield", word) == 0)
         {
             read_value(ifs, out_efield);
+        }
+        else if (strcmp("out_vecpot", word) == 0)
+        {
+            read_value(ifs, out_vecpot);
+        }
+        else if (strcmp("init_vecpot_file", word) == 0)
+        {
+            read_value(ifs, init_vecpot_file);
         }
         else if (strcmp("td_print_eij", word) == 0)
         {
@@ -2413,7 +2492,7 @@ bool Input::Read(const std::string& fn)
         }
         else if (strcmp("bessel_nao_rcut", word) == 0)
         {
-            //read_value(ifs, bessel_nao_rcut);
+            // read_value(ifs, bessel_nao_rcut);
             read_value2stdvector(ifs, bessel_nao_rcuts);
             bessel_nao_rcut = bessel_nao_rcuts[0]; // also compatible with old input file
         }
@@ -2498,20 +2577,138 @@ bool Input::Read(const std::string& fn)
         {
             read_value(ifs, sc_file);
         }
-        else if (strcmp("qo_switch", word) == 0){
+        //----------------------------------------------------------------------------------
+        //    Quasiatomic orbital
+        //----------------------------------------------------------------------------------
+        else if (strcmp("qo_switch", word) == 0)
+        {
             read_bool(ifs, qo_switch);
         }
-        else if (strcmp("qo_basis", word) == 0){
+        else if (strcmp("qo_basis", word) == 0)
+        {
             read_value(ifs, qo_basis);
         }
-        else if (strcmp("qo_thr", word) == 0){
+        else if (strcmp("qo_thr", word) == 0)
+        {
             read_value(ifs, qo_thr);
         }
-        else if (strcmp("qo_strategy", word) == 0){
+        else if (strcmp("qo_strategy", word) == 0)
+        {
             read_value2stdvector(ifs, qo_strategy);
         }
-        else if (strcmp("qo_screening_coeff", word) == 0){
+        else if (strcmp("qo_screening_coeff", word) == 0)
+        {
             read_value2stdvector(ifs, qo_screening_coeff);
+        }
+        //----------------------------------------------------------------------------------
+        //    PEXSI
+        //----------------------------------------------------------------------------------
+        else if (strcmp("pexsi_npole", word) == 0)
+        {
+            read_value(ifs, pexsi_npole);
+        }
+        else if (strcmp("pexsi_inertia", word) == 0)
+        {
+            read_value(ifs, pexsi_inertia);
+        }
+        else if (strcmp("pexsi_nmax", word) == 0)
+        {
+            read_value(ifs, pexsi_nmax);
+        }
+        // else if (strcmp("pexsi_symbolic", word) == 0)
+        // {
+        //     read_value(ifs, pexsi_symbolic);
+        // }
+        else if (strcmp("pexsi_comm", word) == 0)
+        {
+            read_value(ifs, pexsi_comm);
+        }
+        else if (strcmp("pexsi_storage", word) == 0)
+        {
+            read_value(ifs, pexsi_storage);
+        }
+        else if (strcmp("pexsi_ordering", word) == 0)
+        {
+            read_value(ifs, pexsi_ordering);
+        }
+        else if (strcmp("pexsi_row_ordering", word) == 0)
+        {
+            read_value(ifs, pexsi_row_ordering);
+        }
+        else if (strcmp("pexsi_nproc", word) == 0)
+        {
+            read_value(ifs, pexsi_nproc);
+        }
+        else if (strcmp("pexsi_symm", word) == 0)
+        {
+            read_value(ifs, pexsi_symm);
+        }
+        else if (strcmp("pexsi_trans", word) == 0)
+        {
+            read_value(ifs, pexsi_trans);
+        }
+        else if (strcmp("pexsi_method", word) == 0)
+        {
+            read_value(ifs, pexsi_method);
+        }
+        else if (strcmp("pexsi_nproc_pole", word) == 0)
+        {
+            read_value(ifs, pexsi_nproc_pole);
+        }
+        // else if (strcmp("pexsi_spin", word) == 0)
+        // {
+        //     read_value(ifs, pexsi_spin);
+        // }
+        else if (strcmp("pexsi_temp", word) == 0)
+        {
+            read_value(ifs, pexsi_temp);
+        }
+        else if (strcmp("pexsi_gap", word) == 0)
+        {
+            read_value(ifs, pexsi_gap);
+        }
+        else if (strcmp("pexsi_delta_e", word) == 0)
+        {
+            read_value(ifs, pexsi_delta_e);
+        }
+        else if (strcmp("pexsi_mu_lower", word) == 0)
+        {
+            read_value(ifs, pexsi_mu_lower);
+        }
+        else if (strcmp("pexsi_mu_upper", word) == 0)
+        {
+            read_value(ifs, pexsi_mu_upper);
+        }
+        else if (strcmp("pexsi_mu", word) == 0)
+        {
+            read_value(ifs, pexsi_mu);
+        }
+        else if (strcmp("pexsi_mu_thr", word) == 0)
+        {
+            read_value(ifs, pexsi_mu_thr);
+        }
+        else if (strcmp("pexsi_mu_expand", word) == 0)
+        {
+            read_value(ifs, pexsi_mu_expand);
+        }
+        else if (strcmp("pexsi_mu_guard", word) == 0)
+        {
+            read_value(ifs, pexsi_mu_guard);
+        }
+        else if (strcmp("pexsi_elec_thr", word) == 0)
+        {
+            read_value(ifs, pexsi_elec_thr);
+        }
+        else if (strcmp("pexsi_zero_thr", word) == 0)
+        {
+            read_value(ifs, pexsi_zero_thr);
+        }
+        //==========================================================
+        // variables for elpa
+        //==========================================================
+        else if (strcmp("elpa_num_thread", word) == 0)
+        {
+            read_value(ifs, elpa_num_thread);
         }
         else
         {
@@ -2575,29 +2772,6 @@ bool Input::Read(const std::string& fn)
     else if (this->ntype != ntype_stru)
     {
         ModuleBase::WARNING_QUIT("Input", "The ntype in INPUT is not equal to the ntype counted in STRU, check it.");
-    }
-
-    if(band_print_num > 0)
-    {
-        bands_to_print.resize(band_print_num);
-        ifs.clear();
-        ifs.seekg(0); // move to the beginning of the file
-        ifs.rdstate();
-        while (ifs.good())
-        {
-            ifs >> word1;
-            if (ifs.eof() != 0)
-                break;
-            strtolower(word1, word); // convert uppercase std::string to lower case; word1 --> word
-
-            if (strcmp("bands_to_print", word) == 0)
-            {
-                for(int i = 0; i < band_print_num; i ++)
-                {
-                    ifs >> bands_to_print[i];
-                }
-            }
-        }
     }
 
     //----------------------------------------------------------
@@ -2693,7 +2867,7 @@ bool Input::Read(const std::string& fn)
             if (orbital_corr[i] != -1)
                 close_plus_u = 0;
         }
-        if(close_plus_u)
+        if (close_plus_u)
         {
             dft_plus_u = 0;
             GlobalV::ofs_running << "No atoms are correlated, DFT+U is closed!!!" << std::endl;
@@ -2825,10 +2999,21 @@ bool Input::Read(const std::string& fn)
             gamma_only_local = 0;
         }
     }
-    if ((out_mat_r || out_mat_hs2 || out_mat_t || out_mat_dh) && gamma_only_local)
+    if ((out_mat_r || out_mat_hs2 || out_mat_t || out_mat_dh || out_hr_npz || out_dm_npz || dm_to_rho)
+        && gamma_only_local)
     {
         ModuleBase::WARNING_QUIT("Input",
-                                 "printing of H(R)/S(R)/dH(R)/T(R) is not available for gamma only calculations");
+                                 "printing of H(R)/S(R)/dH(R)/T(R)/DM(R) is not available for gamma only calculations");
+    }
+    if (dm_to_rho && GlobalV::NPROC > 1)
+    {
+        ModuleBase::WARNING_QUIT("Input", "dm_to_rho is not available for parallel calculations");
+    }
+    if (out_hr_npz || out_dm_npz || dm_to_rho)
+    {
+#ifndef __USECNPY
+        ModuleBase::WARNING_QUIT("Input", "to write in npz format, please recompile with -DENABLE_CNPY=1");
+#endif
     }
     if (out_mat_dh && nspin == 4)
     {
@@ -2967,10 +3152,12 @@ void Input::Default_2(void) // jiyy add 2019-08-04
     {
         std::string dft_functional_lower = dft_functional;
         std::transform(dft_functional.begin(), dft_functional.end(), dft_functional_lower.begin(), tolower);
-        if (dft_functional_lower == "hf" || rpa)
+        if (dft_functional_lower == "hf")
             exx_hybrid_alpha = "1";
         else if (dft_functional_lower == "pbe0" || dft_functional_lower == "hse" || dft_functional_lower == "scan0")
             exx_hybrid_alpha = "0.25";
+        else // no exx in scf, but will change to non-zero in postprocess like rpa
+            exx_hybrid_alpha = "0";
     }
     if (exx_real_number == "default")
     {
@@ -2987,6 +3174,8 @@ void Input::Default_2(void) // jiyy add 2019-08-04
             exx_ccp_rmesh_times = "5";
         else if (dft_functional_lower == "hse")
             exx_ccp_rmesh_times = "1.5";
+        else // no exx in scf
+            exx_ccp_rmesh_times = "1";
     }
     if (symmetry == "default")
     { // deal with no-forced default value
@@ -3211,13 +3400,21 @@ void Input::Default_2(void) // jiyy add 2019-08-04
     {
         if (ks_solver == "default")
         {
+            if (device == "gpu")
+            {
+                ks_solver = "cusolver";
+                ModuleBase::GlobalFunc::AUTO_SET("ks_solver", "cusolver");
+            }
+            else
+            {
 #ifdef __ELPA
-            ks_solver = "genelpa";
-            ModuleBase::GlobalFunc::AUTO_SET("ks_solver", "genelpa");
+                ks_solver = "genelpa";
+                ModuleBase::GlobalFunc::AUTO_SET("ks_solver", "genelpa");
 #else
-            ks_solver = "scalapack_gvx";
-            ModuleBase::GlobalFunc::AUTO_SET("ks_solver", "scalapack_gvx");
+                ks_solver = "scalapack_gvx";
+                ModuleBase::GlobalFunc::AUTO_SET("ks_solver", "scalapack_gvx");
 #endif
+            }
         }
         if (lcao_ecut == 0)
         {
@@ -3236,9 +3433,9 @@ void Input::Default_2(void) // jiyy add 2019-08-04
             if (!bz)
                 bz = 1;
         }
-        if(dft_plus_u == 1 && onsite_radius == 0.0)
+        if (dft_plus_u == 1 && onsite_radius == 0.0)
         {
-            //autoset onsite_radius to 5.0 as default
+            // autoset onsite_radius to 5.0 as default
             onsite_radius = 5.0;
         }
     }
@@ -3312,18 +3509,18 @@ void Input::Default_2(void) // jiyy add 2019-08-04
         }
     }
 
-    if(qo_switch)
+    if (qo_switch)
     {
         /* parameter logic of QO */
         out_mat_hs[0] = 1; // print H(k) and S(k)
-        out_wfc_lcao = 1; // print wave function in lcao basis in kspace
-        symmetry = "-1"; // disable kpoint reduce
+        out_wfc_lcao = 1;  // print wave function in lcao basis in kspace
+        symmetry = "-1";   // disable kpoint reduce
     }
-    if(qo_screening_coeff.size() != ntype)
+    if (qo_screening_coeff.size() != ntype)
     {
-        if(qo_basis == "pswfc")
+        if (qo_basis == "pswfc")
         {
-            double default_screening_coeff = (qo_screening_coeff.size() == 1)? qo_screening_coeff[0]: 0.1;
+            double default_screening_coeff = (qo_screening_coeff.size() == 1) ? qo_screening_coeff[0] : 0.1;
             qo_screening_coeff.resize(ntype, default_screening_coeff);
         }
         else
@@ -3331,26 +3528,29 @@ void Input::Default_2(void) // jiyy add 2019-08-04
             // if length of qo_screening_coeff is not 0, turn on Slater screening
         }
     }
-    if(qo_strategy.size() != ntype)
+    if (qo_strategy.size() != ntype)
     {
-        if(qo_strategy.size() == 1)
+        if (qo_strategy.size() == 1)
         {
             qo_strategy.resize(ntype, qo_strategy[0]);
         }
         else
         {
             std::string default_strategy;
-            if(qo_basis == "hydrogen") default_strategy = "energy-valence";
-            else if((qo_basis == "pswfc")||(qo_basis == "szv")) default_strategy = "all";
+            if (qo_basis == "hydrogen")
+                default_strategy = "energy-valence";
+            else if ((qo_basis == "pswfc") || (qo_basis == "szv"))
+                default_strategy = "all";
             else
             {
-                ModuleBase::WARNING_QUIT("Input", "When setting default values for qo_strategy, unexpected/unknown qo_basis is found. Please check it.");
+                ModuleBase::WARNING_QUIT("Input",
+                                         "When setting default values for qo_strategy, unexpected/unknown qo_basis is "
+                                         "found. Please check it.");
             }
             qo_strategy.resize(ntype, default_strategy);
         }
     }
 
-  
     // set nspin with noncolin
     if (noncolin || lspinorb)
     {
@@ -3391,6 +3591,11 @@ void Input::Default_2(void) // jiyy add 2019-08-04
             }
         }
     }
+
+    if (efield_flag)
+    {
+        symmetry = "0";
+    }
 }
 #ifdef __MPI
 void Input::Bcast()
@@ -3417,6 +3622,7 @@ void Input::Bcast()
     Parallel_Common::bcast_int(nbands);
     Parallel_Common::bcast_int(nbands_sto);
     Parallel_Common::bcast_int(nbands_istate);
+    Parallel_Common::bcast_string(bands_to_print_);
     for (int i = 0; i < 3; i++)
     {
         Parallel_Common::bcast_double(kspacing[i]);
@@ -3459,11 +3665,13 @@ void Input::Bcast()
     Parallel_Common::bcast_int(nspin);
     Parallel_Common::bcast_double(nelec);
     Parallel_Common::bcast_double(nelec_delta);
+    Parallel_Common::bcast_bool(two_fermi);
     Parallel_Common::bcast_double(nupdown);
     Parallel_Common::bcast_int(lmaxmax);
 
     Parallel_Common::bcast_string(basis_type); // xiaohui add 2013-09-01
     Parallel_Common::bcast_string(ks_solver);  // xiaohui add 2013-09-01
+    Parallel_Common::bcast_int(nstream);
     Parallel_Common::bcast_double(search_radius);
     Parallel_Common::bcast_bool(search_pbc);
     Parallel_Common::bcast_double(search_radius);
@@ -3523,6 +3731,7 @@ void Input::Bcast()
     Parallel_Common::bcast_int(pw_diag_nmax);
     Parallel_Common::bcast_int(diago_cg_prec);
     Parallel_Common::bcast_int(pw_diag_ndim);
+    Parallel_Common::bcast_bool(diago_full_acc);
     Parallel_Common::bcast_double(pw_diag_thr);
     Parallel_Common::bcast_int(nb2d);
     Parallel_Common::bcast_int(nurse);
@@ -3570,7 +3779,7 @@ void Input::Bcast()
     Parallel_Common::bcast_string(chg_extrap); // xiaohui modify 2015-02-01
     Parallel_Common::bcast_int(out_freq_elec);
     Parallel_Common::bcast_int(out_freq_ion);
-    Parallel_Common::bcast_bool(out_chg);
+    Parallel_Common::bcast_int(out_chg);
     Parallel_Common::bcast_bool(out_dm);
     Parallel_Common::bcast_bool(out_dm1);
     Parallel_Common::bcast_bool(out_bandgap); // for bandgap printing
@@ -3580,20 +3789,26 @@ void Input::Bcast()
     Parallel_Common::bcast_bool(deepks_bandgap);
     Parallel_Common::bcast_bool(deepks_out_unittest);
     Parallel_Common::bcast_string(deepks_model);
+    Parallel_Common::bcast_bool(deepks_equiv);
 
     Parallel_Common::bcast_int(out_pot);
     Parallel_Common::bcast_int(out_wfc_pw);
     Parallel_Common::bcast_bool(out_wfc_r);
     Parallel_Common::bcast_int(out_dos);
-    if(GlobalV::MY_RANK != 0) out_band.resize(2); /* If this line is absent, will cause segmentation fault in io_input_test_para */
+    if (GlobalV::MY_RANK != 0)
+        out_band.resize(2); /* If this line is absent, will cause segmentation fault in io_input_test_para */
     Parallel_Common::bcast_int(out_band.data(), 2);
     Parallel_Common::bcast_bool(out_proj_band);
-    if(GlobalV::MY_RANK != 0) out_mat_hs.resize(2); /* If this line is absent, will cause segmentation fault in io_input_test_para */
+    if (GlobalV::MY_RANK != 0)
+        out_mat_hs.resize(2); /* If this line is absent, will cause segmentation fault in io_input_test_para */
     Parallel_Common::bcast_int(out_mat_hs.data(), 2);
     Parallel_Common::bcast_bool(out_mat_hs2); // LiuXh add 2019-07-15
     Parallel_Common::bcast_bool(out_mat_t);
     Parallel_Common::bcast_bool(out_mat_dh);
     Parallel_Common::bcast_bool(out_mat_xc);
+    Parallel_Common::bcast_bool(out_hr_npz);
+    Parallel_Common::bcast_bool(out_dm_npz);
+    Parallel_Common::bcast_bool(dm_to_rho);
     Parallel_Common::bcast_bool(out_mat_r); // jingan add 2019-8-14
     Parallel_Common::bcast_int(out_wfc_lcao);
     Parallel_Common::bcast_bool(out_alllog);
@@ -3745,6 +3960,8 @@ void Input::Bcast()
     Parallel_Common::bcast_bool(out_dipole);
     Parallel_Common::bcast_bool(out_efield);
     Parallel_Common::bcast_bool(out_current);
+    Parallel_Common::bcast_bool(out_vecpot);
+    Parallel_Common::bcast_bool(init_vecpot_file);
     Parallel_Common::bcast_double(td_print_eij);
     Parallel_Common::bcast_int(td_edm);
     Parallel_Common::bcast_bool(test_skip_ewald);
@@ -3785,17 +4002,6 @@ void Input::Bcast()
     Parallel_Common::bcast_double(cell_factor); // LiuXh add 20180619
     Parallel_Common::bcast_bool(restart_save);  // Peize Lin add 2020.04.04
     Parallel_Common::bcast_bool(restart_load);  // Peize Lin add 2020.04.04
-
-    Parallel_Common::bcast_int(band_print_num);
-    if(GlobalV::MY_RANK != 0)
-    {
-        bands_to_print.resize(band_print_num);
-    }
-
-    for(int i = 0; i < band_print_num; i++)
-    {
-        Parallel_Common::bcast_int(bands_to_print[i]);
-    }
 
     //-----------------------------------------------------------------------------------
     // DFT+U (added by Quxin 2020-10-29)
@@ -3937,10 +4143,42 @@ void Input::Bcast()
     Parallel_Common::bcast_bool(qo_switch);
     Parallel_Common::bcast_string(qo_basis);
     Parallel_Common::bcast_double(qo_thr);
+    //==========================================================
+    // PEXSI
+    //==========================================================
+    Parallel_Common::bcast_int(pexsi_npole);
+    Parallel_Common::bcast_bool(pexsi_inertia);
+    Parallel_Common::bcast_int(pexsi_nmax);
+    // Parallel_Common::bcast_int(pexsi_symbolic);
+    Parallel_Common::bcast_bool(pexsi_comm);
+    Parallel_Common::bcast_bool(pexsi_storage);
+    Parallel_Common::bcast_int(pexsi_ordering);
+    Parallel_Common::bcast_int(pexsi_row_ordering);
+    Parallel_Common::bcast_int(pexsi_nproc);
+    Parallel_Common::bcast_bool(pexsi_symm);
+    Parallel_Common::bcast_bool(pexsi_trans);
+    Parallel_Common::bcast_int(pexsi_method);
+    Parallel_Common::bcast_int(pexsi_nproc_pole);
+    // Parallel_Common::bcast_double(pexsi_spin);
+    Parallel_Common::bcast_double(pexsi_temp);
+    Parallel_Common::bcast_double(pexsi_gap);
+    Parallel_Common::bcast_double(pexsi_delta_e);
+    Parallel_Common::bcast_double(pexsi_mu_lower);
+    Parallel_Common::bcast_double(pexsi_mu_upper);
+    Parallel_Common::bcast_double(pexsi_mu);
+    Parallel_Common::bcast_double(pexsi_mu_thr);
+    Parallel_Common::bcast_double(pexsi_mu_expand);
+    Parallel_Common::bcast_double(pexsi_mu_guard);
+    Parallel_Common::bcast_double(pexsi_elec_thr);
+    Parallel_Common::bcast_double(pexsi_zero_thr);
     /* broadcasting std::vector is sometime a annorying task... */
+    //==========================================================
+    // variables for elpa
+    //==========================================================
+    Parallel_Common::bcast_int(elpa_num_thread);
     if (ntype != 0) /* ntype has been broadcasted before */
     {
-        qo_strategy.resize(ntype); 
+        qo_strategy.resize(ntype);
         Parallel_Common::bcast_string(qo_strategy.data(), ntype);
         qo_screening_coeff.resize(ntype);
         Parallel_Common::bcast_double(qo_screening_coeff.data(), ntype);
@@ -4109,13 +4347,6 @@ void Input::Check(void)
         }
     }
 
-    if (chg_extrap == "dm" && basis_type == "pw") // xiaohui add 2013-09-01, xiaohui modify 2015-02-01
-    {
-        ModuleBase::WARNING_QUIT(
-            "Input",
-            "wrong 'chg_extrap=dm' is only available for local orbitals."); // xiaohui modify 2015-02-01
-    }
-
     if ((init_wfc != "atomic") && (init_wfc != "random") && (init_wfc != "atomic+random") && (init_wfc != "nao")
         && (init_wfc != "nao+random") && (init_wfc != "file"))
     {
@@ -4157,11 +4388,12 @@ void Input::Check(void)
         {
             ModuleBase::WARNING_QUIT("Input", "lapack can not be used with plane wave basis.");
         }
-        else if (ks_solver != "default" && 
-                 ks_solver != "cg" && 
-                 ks_solver != "dav" && 
-                 ks_solver != "dav_subspace" && 
-                 ks_solver != "bpcg")
+        else if (ks_solver == "pexsi")
+        {
+            ModuleBase::WARNING_QUIT("Input", "pexsi can not be used with plane wave basis.");
+        }
+        else if (ks_solver != "default" && ks_solver != "cg" && ks_solver != "dav" && ks_solver != "dav_subspace"
+                 && ks_solver != "bpcg")
         {
             ModuleBase::WARNING_QUIT("Input", "please check the ks_solver parameter!");
         }
@@ -4228,6 +4460,16 @@ void Input::Check(void)
         {
 #ifndef __MPI
             ModuleBase::WARNING_QUIT("Input", "Cusolver can not be used for series version.");
+#endif
+        }
+        else if (ks_solver == "pexsi")
+        {
+#ifdef __PEXSI
+            GlobalV::ofs_warning << " It's ok to use pexsi." << std::endl;
+#else
+            ModuleBase::WARNING_QUIT(
+                "Input",
+                "Can not use PEXSI if abacus is not compiled with PEXSI. Please change ks_solver to scalapack_gvx.");
 #endif
         }
         else if (ks_solver != "default")
@@ -4359,6 +4601,13 @@ void Input::Check(void)
             ModuleBase::WARNING_QUIT("INPUT", "exx_opt_orb_tolerence must >=0");
         }
     }
+    if (rpa)
+    {
+        if (rpa_ccp_rmesh_times < 1)
+        {
+            ModuleBase::WARNING_QUIT("INPUT", "must rpa_ccp_rmesh_times >= 1");
+        }
+    }
 
     if (berry_phase)
     {
@@ -4451,6 +4700,13 @@ void Input::Check(void)
         }
     }
 
+    if (sc_mag_switch)
+    {
+        std::stringstream ss;
+        ss << "This feature is not stable yet and might lead to erroneous results.\n"
+           << " Please wait for the official release version.";
+        ModuleBase::WARNING_QUIT("Input", ss.str());
+    }
     // Deltaspin variables checking
     if (sc_mag_switch)
     {
@@ -4503,33 +4759,36 @@ void Input::Check(void)
             ModuleBase::WARNING_QUIT("INPUT", "nupdown should not be set when sc_mag_switch > 0");
         }
     }
-    if(qo_switch)
+    if (qo_switch)
     {
         /* first about rationality of parameters */
-        if(qo_basis == "pswfc")
+        if (qo_basis == "pswfc")
         {
-            for(auto screen_coeff: qo_screening_coeff)
+            for (auto screen_coeff: qo_screening_coeff)
             {
-                if(screen_coeff < 0)
+                if (screen_coeff < 0)
                 {
                     ModuleBase::WARNING_QUIT("INPUT", "screening coefficient must >= 0 to tune the pswfc decay");
                 }
-                if(std::fabs(screen_coeff) < 1e-6)
+                if (std::fabs(screen_coeff) < 1e-6)
                 {
-                    ModuleBase::WARNING("INPUT", "every low screening coefficient might yield very high computational cost");
+                    ModuleBase::WARNING("INPUT",
+                                        "every low screening coefficient might yield very high computational cost");
                 }
             }
         }
-        else if(qo_basis == "hydrogen")
+        else if (qo_basis == "hydrogen")
         {
-            if(qo_thr > 1e-6)
+            if (qo_thr > 1e-6)
             {
                 ModuleBase::WARNING("INPUT", "too high the convergence threshold might yield unacceptable result");
             }
         }
         /* then size of std::vector<> parameters */
-        if(qo_screening_coeff.size() != ntype) ModuleBase::WARNING_QUIT("INPUT", "qo_screening_coeff.size() != ntype");
-        if(qo_strategy.size() != ntype) ModuleBase::WARNING_QUIT("INPUT", "qo_strategy.size() != ntype");
+        if (qo_screening_coeff.size() != ntype)
+            ModuleBase::WARNING_QUIT("INPUT", "qo_screening_coeff.size() != ntype");
+        if (qo_strategy.size() != ntype)
+            ModuleBase::WARNING_QUIT("INPUT", "qo_strategy.size() != ntype");
     }
 
     return;
@@ -4600,15 +4859,17 @@ template <typename T>
 void Input::read_value2stdvector(std::ifstream& ifs, std::vector<T>& var)
 {
     // reset var
-    var.clear(); var.shrink_to_fit();
+    var.clear();
+    var.shrink_to_fit();
     std::string line;
-    std::getline(ifs, line); // read the whole rest of line
+    std::getline(ifs, line);                                                              // read the whole rest of line
     line = (line.find('#') == std::string::npos) ? line : line.substr(0, line.find('#')); // remove comments
     std::vector<std::string> tmp;
     std::string::size_type start = 0, end = 0;
-    while ((start = line.find_first_not_of(" \t\n", end)) != std::string::npos) // find the first not of delimiters but not reaches the end
+    while ((start = line.find_first_not_of(" \t\n", end))
+           != std::string::npos) // find the first not of delimiters but not reaches the end
     {
-        end = line.find_first_of(" \t\n", start); // find the first of delimiters starting from start pos
+        end = line.find_first_of(" \t\n", start);       // find the first of delimiters starting from start pos
         tmp.push_back(line.substr(start, end - start)); // push back the substring
     }
     var.resize(tmp.size());

@@ -7,6 +7,8 @@ if(ENABLE_LCAO)
         norm_psi.cpp
         propagator.cpp
         upsi.cpp
+        td_velocity.cpp
+        snap_psibeta_half_tddft.cpp
     )
 
     add_library(

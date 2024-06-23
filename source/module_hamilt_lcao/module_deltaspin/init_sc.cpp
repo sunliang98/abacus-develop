@@ -22,9 +22,9 @@ void SpinConstrain<FPTYPE, Device>::init_sc(double sc_thr_in,
                                             elecstate::ElecState* pelec_in)
 {
     this->set_input_parameters(sc_thr_in, nsc_in, nsc_min_in, alpha_trial_in, sccut_in, decay_grad_switch_in);
-    this->set_atomCounts(ucell.get_atomCounts());
-    this->set_orbitalCounts(ucell.get_orbitalCounts());
-    this->set_lnchiCounts(ucell.get_lnchiCounts());
+    this->set_atomCounts(ucell.get_atom_Counts());
+    this->set_orbitalCounts(ucell.get_orbital_Counts());
+    this->set_lnchiCounts(ucell.get_lnchi_Counts());
     this->set_nspin(nspin_in);
     this->bcast_ScData(sc_file, this->get_nat(), this->get_ntype());
     this->set_npol(NPOL);
@@ -32,5 +32,5 @@ void SpinConstrain<FPTYPE, Device>::init_sc(double sc_thr_in,
     this->set_solver_parameters(kv_in, phsol_in, p_hamilt_in, psi_in, pelec_in, KS_SOLVER_in, LM_in);
 }
 
-template class SpinConstrain<std::complex<double>, psi::DEVICE_CPU>;
-template class SpinConstrain<double, psi::DEVICE_CPU>;
+template class SpinConstrain<std::complex<double>, base_device::DEVICE_CPU>;
+template class SpinConstrain<double, base_device::DEVICE_CPU>;
