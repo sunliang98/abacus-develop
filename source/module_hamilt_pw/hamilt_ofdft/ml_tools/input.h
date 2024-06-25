@@ -101,6 +101,8 @@ class Input
     double* chi_xi = nullptr;
     double* chi_pnl = nullptr;
     double* chi_qnl = nullptr;
+    // r descriptor
+    bool ml_r_min = false;
 
     int feg_limit = 0; // Free Electron Gas
     int change_step = 0; // when feg_limit=3, change the output of net after change_step

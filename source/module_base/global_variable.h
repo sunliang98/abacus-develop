@@ -303,6 +303,8 @@ extern std::string of_ml_tanhq_nl; // If the input variables contain tanhq_nl
 extern std::string of_ml_chi_xi; // tanhpxi = tanh(chi * xi)
 extern std::string of_ml_chi_pnl; // tanh_pnl = tanh(chi*pnl)
 extern std::string of_ml_chi_qnl; // tanh_pnl = tanh(chi*qnl)
+// r desciptors
+extern bool of_ml_r_min; // If the input variables contain r_min
 // size of nn 2023-04-19
 extern int of_ml_nnode;     // number of node
 extern int of_ml_nlayer;    // number of layer

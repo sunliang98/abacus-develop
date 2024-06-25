@@ -46,6 +46,7 @@ public:
         const bool &of_ml_q,
         const bool &of_ml_tanhp,
         const bool &of_ml_tanhq,
+        const bool &of_ml_r_min,
         const std::string &of_ml_gammanl_,
         const std::string &of_ml_pnl_,
         const std::string &of_ml_qnl_,
@@ -159,6 +160,8 @@ public:
     // plan 2
     std::vector<std::vector<double>> tanhp_nl = {};
     std::vector<std::vector<double>> tanhq_nl = {};
+    // r min
+    std::vector<double> r_min = {};
     // GPU
     torch::DeviceType device_type = torch::kCPU;
     torch::Device device = torch::Device(torch::kCPU);
@@ -178,6 +181,7 @@ public:
         const bool &of_ml_q,
         const bool &of_ml_tanhp,
         const bool &of_ml_tanhq,
+        const bool &of_ml_r_min,
         const std::string &of_ml_gammanl_,
         const std::string &of_ml_pnl_,
         const std::string &of_ml_qnl_,
@@ -205,6 +209,7 @@ public:
     bool ml_tanh_qnl = false;
     bool ml_tanhp_nl = false;
     bool ml_tanhq_nl = false;
+    bool ml_r_min = false;
 
     std::vector<std::string> descriptor_type = {};
     std::vector<int> kernel_index = {};    

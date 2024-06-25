@@ -1721,6 +1721,10 @@ void input_parameters_set(std::map<std::string, InputParameter> input_parameters
     {
         INPUT.of_ml_chi_qnl = *static_cast<SimpleString*>(input_parameters["of_ml_chi_qnl"].get())->c_str();
     }
+    else if (input_parameters.count("of_ml_r_min") != 0)
+    {
+        INPUT.of_ml_r_min = *static_cast<bool*>(input_parameters["of_ml_r_min"].get());
+    }
     else if (input_parameters.count("of_ml_nnode") != 0)
     {
         INPUT.of_ml_nnode = *static_cast<int*>(input_parameters["of_ml_nnode"].get());

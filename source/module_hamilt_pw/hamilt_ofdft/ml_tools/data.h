@@ -35,6 +35,8 @@ class Data
     std::vector<torch::Tensor> tanh_qnl = {};
     std::vector<torch::Tensor> tanhp_nl = {};
     std::vector<torch::Tensor> tanhq_nl = {};
+    // r descriptor
+    torch::Tensor r_min;
     // target
     torch::Tensor enhancement;
     torch::Tensor pauli;
@@ -58,6 +60,7 @@ class Data
     bool* load_tanh_qnl = nullptr;
     bool* load_tanhp_nl = nullptr;
     bool* load_tanhq_nl = nullptr;
+    bool load_r_min = false;
 
     void load_data(Input &input, const int ndata, std::string *dir, const torch::Device device);
     torch::Tensor get_data(std::string parameter, const int ikernel);

@@ -2,6 +2,7 @@
 
 #include "module_base/parallel_reduce.h"
 #include "module_base/global_function.h"
+#include "module_hamilt_pw/hamilt_pwdft/global.h"
 
 void KEDF_ML::set_para(
     const int nx, 
@@ -26,6 +27,7 @@ void KEDF_ML::set_para(
     const bool &of_ml_q,
     const bool &of_ml_tanhp,
     const bool &of_ml_tanhq,
+    const bool &of_ml_r_min,
     const std::string &of_ml_gammanl_,
     const std::string &of_ml_pnl_,
     const std::string &of_ml_qnl_,
@@ -58,6 +60,7 @@ void KEDF_ML::set_para(
         of_ml_q,
         of_ml_tanhp,
         of_ml_tanhq,
+        of_ml_r_min,
         of_ml_gammanl_,
         of_ml_pnl_,
         of_ml_qnl_,
@@ -68,6 +71,7 @@ void KEDF_ML::set_para(
         of_ml_tanh_qnl_,
         of_ml_tanhp_nl_,
         of_ml_tanhq_nl_);
+    if (this->gene_data_label["r_min"][0]) this->ml_data->get_r_matrix(GlobalC::ucell, pw_rho, this->r_min);
 
     std::cout << "ninput = " << ninput << std::endl;
 
@@ -396,5 +400,6 @@ torch::Tensor KEDF_ML::get_data(std::string parameter, const int ikernel){
     if (parameter == "tanh_qnl")    return torch::tensor(this->tanh_qnl[ikernel], this->device_type);
     if (parameter == "tanhp_nl")    return torch::tensor(this->tanhp_nl[ikernel], this->device_type);
     if (parameter == "tanhq_nl")    return torch::tensor(this->tanhq_nl[ikernel], this->device_type);
+    if (parameter == "r_min")       return torch::tensor(this->r_min, this->device_type);
     return torch::zeros({});
 }

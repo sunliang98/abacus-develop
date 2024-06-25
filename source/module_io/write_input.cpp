@@ -490,6 +490,8 @@ ModuleBase::GlobalFunc::OUTP(ofs, "out_bandgap", out_bandgap, "if true, print ou
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_pnl", of_ml_chi_pnl, "tanh_pnl = tanh(chi*pnl)");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_chi_qnl", of_ml_chi_qnl, "tanh_pnl = tanh(chi*qnl)");
 
+    ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_r_min", of_ml_r_min, "If the input variables contain r_min");
+
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_nnode", of_ml_nnode, "number of node");
     ModuleBase::GlobalFunc::OUTP(ofs, "of_ml_nlayer", of_ml_nlayer, "number of layer");
     

@@ -875,6 +875,8 @@ void Input_Conv::Convert(void)
     GlobalV::of_ml_chi_xi = INPUT.of_ml_chi_xi;
     GlobalV::of_ml_chi_pnl = INPUT.of_ml_chi_pnl;
     GlobalV::of_ml_chi_qnl = INPUT.of_ml_chi_qnl;
+    // r descritors
+    GlobalV::of_ml_r_min = INPUT.of_ml_r_min;
     // size of nn
     GlobalV::of_ml_nnode = INPUT.of_ml_nnode;
     GlobalV::of_ml_nlayer = INPUT.of_ml_nlayer;

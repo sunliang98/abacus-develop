@@ -267,6 +267,8 @@ std::string of_ml_chi_xi = "1.0";
 std::string of_ml_chi_pnl = "1.0";
 std::string of_ml_chi_qnl = "1.0";
 
+bool of_ml_r_min = false;
+
 int of_ml_nnode = 10;
 int of_ml_nlayer = 3;
 

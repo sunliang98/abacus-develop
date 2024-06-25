@@ -641,6 +641,8 @@ void Input::Default(void)
     of_ml_chi_xi = "1.0";
     of_ml_chi_pnl = "1.0";
     of_ml_chi_qnl = "1.0";
+    // r descritors
+    of_ml_r_min = false;
     // size of nn 2023-04-19
     of_ml_nnode = 10;
     of_ml_nlayer = 3;
@@ -2446,6 +2448,10 @@ bool Input::Read(const std::string& fn)
         {
             read_value(ifs, of_ml_tanhq_nl);
         }
+        else if (strcmp("of_ml_r_min", word) == 0)
+        {
+            read_value(ifs, of_ml_r_min);
+        }
         else if (strcmp("of_ml_nnode", word) == 0)
         {
             read_value(ifs, of_ml_nnode);
@@ -4089,6 +4095,8 @@ void Input::Bcast()
     Parallel_Common::bcast_string(of_ml_chi_xi);
     Parallel_Common::bcast_string(of_ml_chi_pnl);
     Parallel_Common::bcast_string(of_ml_chi_qnl);
+    // r descriptor
+    Parallel_Common::bcast_bool(of_ml_r_min);
 
     Parallel_Common::bcast_int(of_ml_nnode);
     Parallel_Common::bcast_int(of_ml_nlayer);
