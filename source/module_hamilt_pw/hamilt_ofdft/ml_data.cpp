@@ -69,7 +69,8 @@ void ML_data::set_para(
                 eta = sqrt(pw_rho->gg[ip]) * pw_rho->tpiba / this->tkF * this->kernel_scaling[ik];
                 if (this->kernel_type[ik] == 1)
                 {
-                    this->kernel[ik][ip] = std::pow(1. / this->kernel_scaling[ik], 3) * this->MLkernel(eta, tf_weight, vw_weight);
+                    this->kernel[ik][ip] = this->MLkernel(eta, tf_weight, vw_weight);
+                    // this->kernel[ik][ip] = std::pow(1. / this->kernel_scaling[ik], 3) * this->MLkernel(eta, tf_weight, vw_weight);
                 }
                 else if (this->kernel_type[ik] == 2)
                 {
@@ -183,6 +184,13 @@ void ML_data::generate_descriptor(
     std::vector<std::vector<double>> &nablaRho
 )
 {
+    // std::vector<double> temp_prho(this->nx);
+    // this->loadVector("/home/xianyuer/data/1_sunliang/1_work/0_ml_kedf/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1-back/10_cdSi_27dim-eq-2023-03-20/rho.npy", temp_prho);
+    // double ** temp_rho = new double *[1];
+    // temp_rho[0] = new double[this->nx];
+    // for (int ir = 0; ir < this->nx; ++ir) temp_rho[0][ir] = temp_prho[ir];
+    // std::cout << "rho is loaded" << std::endl;
+
     // container which will contain gamma, p, q in turn
     std::vector<double> container(this->nx);
     std::vector<double> new_container(this->nx);
@@ -851,7 +859,7 @@ void ML_data::read_kernel(const std::string &fileName, const double& scaling, Mo
             fac1 = (eta_in[ind2] - eta)/(eta_in[ind2] - eta_in[ind1]);
             fac2 = (eta - eta_in[ind1])/(eta_in[ind2] - eta_in[ind1]);
             kernel_[ig] = fac1 * w0_in[ind1] + fac2 * w0_in[ind2];
-            kernel_[ig] *= std::pow(1. / scaling, 3);
+            // kernel_[ig] *= std::pow(1. / scaling, 3);
         }
     }
 

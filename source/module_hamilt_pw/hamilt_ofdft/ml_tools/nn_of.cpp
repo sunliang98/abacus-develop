@@ -70,6 +70,7 @@ torch::Tensor NN_OFImpl::forward(torch::Tensor inpt) // will inpt be changed? no
     inpt = torch::tanh(fc1->forward(inpt)); // covert data into (-1,1)
     inpt = torch::tanh(fc2->forward(inpt));
     inpt = torch::tanh(fc3->forward(inpt));
+    // std::cout << "is_contiguous()  " << inpt.is_contiguous() << std::endl;
     // inpt = torch::softplus(fc4->forward(inpt));
     inpt = fc4->forward(inpt); // for feg = 3
 

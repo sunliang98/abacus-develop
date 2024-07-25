@@ -36,7 +36,8 @@ void Kernel::fill_kernel(const int fftdim,
                         eta = eta * this->scaling;
                         if (this->kernel_type == 1)
                         {
-                            this->kernel[id][ix][iy][iz] = std::pow(1. / this->scaling, 3) * this->wt_kernel(eta);
+                            this->kernel[id][ix][iy][iz] = this->wt_kernel(eta);
+                            // this->kernel[id][ix][iy][iz] = std::pow(1. / this->scaling, 3) * this->wt_kernel(eta);
                             // if (ix == 26 && iy == 0 && iz == 26)
                             // {
                             //     std::cout << "kernel1    " << this->kernel[id][ix][iy][iz] << std::endl;
@@ -199,7 +200,7 @@ void Kernel::read_kernel(const int fftdim,
                         fac1 = (eta_in[ind2] - eta)/(eta_in[ind2] - eta_in[ind1]);
                         fac2 = (eta - eta_in[ind1])/(eta_in[ind2] - eta_in[ind1]);
                         this->kernel[id][ix][iy][iz] = fac1 * w0_in[ind1] + fac2 * w0_in[ind2];
-                        this->kernel[id][ix][iy][iz] *= std::pow(1. / this->scaling, 3);
+                        // this->kernel[id][ix][iy][iz] *= std::pow(1. / this->scaling, 3);
                     }
                 }
             }
