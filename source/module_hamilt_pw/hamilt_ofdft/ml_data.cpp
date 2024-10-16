@@ -728,7 +728,7 @@ void ML_data::getNablaRho(const double * const *prho, ModulePW::PW_Basis *pw_rho
     std::complex<double> *recipNablaRho = new std::complex<double>[pw_rho->npw];
     pw_rho->real2recip(prho[0], recipRho);
     
-    std::complex<double> img = 1.0j;
+    std::complex<double> img(0.0, 1.0);
     for (int j = 0; j < 3; ++j)
     {
         for (int ip = 0; ip < pw_rho->npw; ++ip)
@@ -901,7 +901,7 @@ void ML_data::Laplacian(double * pinput, ModulePW::PW_Basis *pw_rho, double * ro
 void ML_data::divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * routput)
 {
     std::complex<double> *recipContainer = new std::complex<double>[pw_rho->npw];
-    std::complex<double> img = 1.0j;
+    std::complex<double> img(0.0, 1.0);
     ModuleBase::GlobalFunc::ZEROS(routput, this->nx);
     for (int i = 0; i < 3; ++i)
     {
