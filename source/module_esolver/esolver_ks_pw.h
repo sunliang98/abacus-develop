@@ -21,9 +21,9 @@ class ESolver_KS_PW : public ESolver_KS<T, Device>
 
     ~ESolver_KS_PW();
 
-    void before_all_runners(Input& inp, UnitCell& cell) override;
+    void before_all_runners(const Input_para& inp, UnitCell& cell) override;
 
-    void init_after_vc(Input& inp, UnitCell& cell) override;
+    void init_after_vc(const Input_para& inp, UnitCell& cell) override;
 
     double cal_energy() override;
 
@@ -46,7 +46,7 @@ class ESolver_KS_PW : public ESolver_KS<T, Device>
 
     virtual void update_pot(const int istep, const int iter) override;
 
-    virtual void iter_finish(const int iter) override;
+    virtual void iter_finish(int& iter) override;
 
     virtual void after_scf(const int istep) override;
 
@@ -54,16 +54,17 @@ class ESolver_KS_PW : public ESolver_KS<T, Device>
 
     // temporary, this will be removed in the future;
     // Init Global class
-    void Init_GlobalC(Input& inp, UnitCell& ucell, pseudopot_cell_vnl& ppcell);
+    void Init_GlobalC(const Input_para& inp, UnitCell& ucell, pseudopot_cell_vnl& ppcell);
 
-  protected:
+    virtual void allocate_hamilt();
+    virtual void deallocate_hamilt();
+
     //! hide the psi in ESolver_KS for tmp use
     psi::Psi<std::complex<double>, base_device::DEVICE_CPU>* psi = nullptr;
 
     // psi_initializer controller
     psi::WFInit<T, Device>* p_wf_init = nullptr;
 
-  private:
     Device* ctx = {};
 
     base_device::AbacusDevice_t device = {};
@@ -72,8 +73,11 @@ class ESolver_KS_PW : public ESolver_KS<T, Device>
 
     psi::Psi<std::complex<double>, Device>* __kspw_psi = nullptr;
 
+    bool init_psi = false;
+
     using castmem_2d_d2h_op
         = base_device::memory::cast_memory_op<std::complex<double>, T, base_device::DEVICE_CPU, Device>;
+
 };
 } // namespace ModuleESolver
 #endif

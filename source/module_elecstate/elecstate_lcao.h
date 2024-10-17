@@ -3,8 +3,6 @@
 
 #include "elecstate.h"
 #include "module_elecstate/module_dm/density_matrix.h"
-#include "module_hamilt_lcao/hamilt_lcaodft/local_orbital_charge.h"
-#include "module_hamilt_lcao/hamilt_lcaodft/local_orbital_wfc.h"
 #include "module_hamilt_lcao/module_gint/gint_gamma.h"
 #include "module_hamilt_lcao/module_gint/gint_k.h"
 
@@ -19,31 +17,17 @@ class ElecStateLCAO : public ElecState
     ElecStateLCAO()
     {
     } // will be called by ElecStateLCAO_TDDFT
-    /*
-    Note: on the removal of LOWF
-    The entire instance of Local_Orbital_wfc is not really necessary, because
-    this class only need it to do 2dbcd wavefunction gathering. Therefore,
-    what is critical is the 2dbcd handle which stores information about the
-    wavefunction, and another free function to do the 2dbcd gathering.
-
-    A future work would be replace the Local_Orbital_wfc with a 2dbcd handle.
-    A free gathering function will also be needed.
-    */
     ElecStateLCAO(Charge* chg_in,
                   const K_Vectors* klist_in,
                   int nks_in,
-                  Local_Orbital_Charge* loc_in,
                   Gint_Gamma* gint_gamma_in, // mohan add 2024-04-01
                   Gint_k* gint_k_in,         // mohan add 2024-04-01
-                  Local_Orbital_wfc* lowf_in,
                   ModulePW::PW_Basis* rhopw_in,
                   ModulePW::PW_Basis_Big* bigpw_in)
     {
         init_ks(chg_in, klist_in, nks_in, rhopw_in, bigpw_in);
-        this->loc = loc_in;
         this->gint_gamma = gint_gamma_in; // mohan add 2024-04-01
         this->gint_k = gint_k_in;         // mohan add 2024-04-01
-        this->lowf = lowf_in;
         this->classname = "ElecStateLCAO";
     }
 
@@ -62,6 +46,7 @@ class ElecStateLCAO : public ElecState
     // virtual void psiToRho(const psi::Psi<double>& psi) override;
     //  return current electronic density rho, as a input for constructing Hamiltonian
     //  const double* getRho(int spin) const override;
+    virtual void cal_tau(const psi::Psi<TK>& psi) override;
 
     // update charge density for next scf step
     // void getNewRho() override;
@@ -98,10 +83,8 @@ class ElecStateLCAO : public ElecState
     // calcualte rho for each k
     // void rhoBandK(const psi::Psi<std::complex<double>>& psi);
 
-    Local_Orbital_Charge* loc = nullptr;
     Gint_Gamma* gint_gamma = nullptr; // mohan add 2024-04-01
     Gint_k* gint_k = nullptr;         // mohan add 2024-04-01
-    Local_Orbital_wfc* lowf = nullptr;
     DensityMatrix<TK, double>* DM = nullptr;
 };
 

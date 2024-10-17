@@ -1,5 +1,6 @@
 #include "cal_dm_psi.h"
 
+#include "module_parameter/parameter.h"
 #include "module_base/blas_connector.h"
 #include "module_base/scalapack_connector.h"
 #include "module_base/timer.h"
@@ -123,7 +124,7 @@ void cal_dm_psi(const Parallel_Orbitals* ParaV,
         // C++: dm(iw1,iw2) = wfc(ib,iw1).T * wg_wfc(ib,iw2)
 #ifdef __MPI
 
-        if (GlobalV::KS_SOLVER == "cg_in_lcao")
+        if (PARAM.inp.ks_solver == "cg_in_lcao")
         {
             psiMulPsi(wg_wfc, wfc, dmk_pointer);
         } else 
@@ -139,7 +140,7 @@ void cal_dm_psi(const Parallel_Orbitals* ParaV,
     return;
 }
 
-// #ifdef __MPI
+#ifdef __MPI
 void psiMulPsiMpi(const psi::Psi<double>& psi1,
                          const psi::Psi<double>& psi2,
                          double* dm_out,
@@ -209,7 +210,8 @@ void psiMulPsiMpi(const psi::Psi<std::complex<double>>& psi1,
     ModuleBase::timer::tick("psiMulPsiMpi", "pdgemm");
 }
 
-// #else
+#endif
+
 void psiMulPsi(const psi::Psi<double>& psi1, const psi::Psi<double>& psi2, double* dm_out)
 {
     const double one_float = 1.0, zero_float = 0.0;
@@ -256,6 +258,5 @@ void psiMulPsi(const psi::Psi<std::complex<double>>& psi1,
            dm_out,
            &nlocal);
 }
-// #endif
 
 } // namespace elecstate

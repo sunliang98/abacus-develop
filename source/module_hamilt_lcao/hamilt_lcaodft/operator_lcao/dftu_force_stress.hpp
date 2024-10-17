@@ -1,6 +1,7 @@
 #pragma once
 #include "dftu_lcao.h"
 #include "module_base/parallel_reduce.h"
+#include "module_base/timer.h"
 
 namespace hamilt
 {
@@ -19,8 +20,9 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_stress(const bool cal_force,
     // try to get the density matrix, if the density matrix is empty, skip the calculation and return
     const hamilt::HContainer<double>* dmR_tmp[this->nspin];
     dmR_tmp[0] = this->dftu->get_dmr(0);
-    if (this->nspin == 2)
+    if (this->nspin == 2) {
         dmR_tmp[1] = this->dftu->get_dmr(1);
+    }
     if (dmR_tmp[0]->size_atom_pairs() == 0)
     {
         return;
@@ -28,7 +30,7 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_stress(const bool cal_force,
     // begin the calculation of force and stress
     ModuleBase::timer::tick("DFTU", "cal_force_stress");
 
-    const Parallel_Orbitals* paraV = dmR_tmp[0]->get_atom_pair(0).get_paraV();
+    const Parallel_Orbitals* paraV = dmR_tmp[0]->get_paraV();
     const int npol = this->ucell->get_npol();
     std::vector<double> stress_tmp(6, 0);
     if (cal_force)
@@ -45,8 +47,9 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_stress(const bool cal_force,
         int T0, I0;
         ucell->iat2iait(iat0, &I0, &T0);
         const int target_L = this->dftu->orbital_corr[T0];
-        if (target_L == -1)
+        if (target_L == -1) {
             continue;
+        }
         const int tlp1 = 2 * target_L + 1;
         AdjacentAtomInfo& adjs = this->adjs_all[atom_index++];
 
@@ -61,7 +64,6 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_stress(const bool cal_force,
             const ModuleBase::Vector3<double>& tau1 = adjs.adjacent_tau[ad];
             const Atom* atom1 = &ucell->atoms[T1];
 
-            const LCAO_Orbitals& orb = LCAO_Orbitals::get_const_instance();
             auto all_indexes = paraV->get_indexes_row(iat1);
             auto col_indexes = paraV->get_indexes_col(iat1);
             // insert col_indexes into all_indexes to get universal set with no repeat elements
@@ -110,11 +112,21 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_stress(const bool cal_force,
         }
         // first iteration to calculate occupation matrix
         std::vector<double> occ(tlp1 * tlp1 * this->nspin, 0);
-        for (int i = 0; i < occ.size(); i++)
+        if(this->nspin ==2)
         {
-            const int is = i / (tlp1 * tlp1);
-            const int ii = i % (tlp1 * tlp1);
-            occ[i] = this->dftu->locale[iat0][target_L][0][is].c[ii];
+            for (int i = 0; i < occ.size(); i++)
+            {
+                const int is = i / (tlp1 * tlp1);
+                const int ii = i % (tlp1 * tlp1);
+                occ[i] = this->dftu->locale[iat0][target_L][0][is].c[ii];
+            }
+        }
+        else
+        {
+            for (int i = 0; i < occ.size(); i++)
+            {
+                occ[i] = this->dftu->locale[iat0][target_L][0][0].c[i];
+            }
         }
 
         // calculate VU
@@ -122,6 +134,13 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_stress(const bool cal_force,
         std::vector<double> VU(occ.size());
         double eu_tmp = 0;
         this->cal_v_of_u(occ, tlp1, u_value, &VU[0], eu_tmp);
+        if(this->nspin == 4) 
+        {
+            for (int i = 0; i < VU.size(); i++)
+            {
+                VU[i] /= 2.0;
+            }
+        }
 
         // second iteration to calculate force and stress
         // calculate Force for atom J
@@ -161,7 +180,7 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_stress(const bool cal_force,
                 if (tmp[0] != nullptr)
                 {
                     // calculate force
-                    if (cal_force)
+                    if (cal_force) {
                         this->cal_force_IJR(iat1,
                                             iat2,
                                             paraV,
@@ -172,9 +191,10 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_stress(const bool cal_force,
                                             this->nspin,
                                             force_tmp1,
                                             force_tmp2);
+                    }
 
                     // calculate stress
-                    if (cal_stress)
+                    if (cal_stress) {
                         this->cal_stress_IJR(iat1,
                                              iat2,
                                              paraV,
@@ -186,6 +206,7 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_stress(const bool cal_force,
                                              dis1,
                                              dis2,
                                              stress_tmp.data());
+                    }
                 }
             }
         }
@@ -250,14 +271,19 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_IJR(const int& iat1,
     const int m_size = int(sqrt(vu_in.size() / nspin));
     const int m_size2 = m_size * m_size;
     // step_trace = 0 for NSPIN=1,2; ={0, 1, local_col, local_col+1} for NSPIN=4
-    std::vector<int> step_trace(npol, 0);
-    if (npol == 2)
-        step_trace[1] = col_indexes.size() + 1;
+    std::vector<int> step_trace(npol * npol, 0);
+    if (npol == 2) {
+        step_trace[1] = 1;
+        step_trace[2] = col_indexes.size();
+        step_trace[3] = col_indexes.size() + 1;
+    }
     double tmp[3];
     // calculate the local matrix
     for (int is = 0; is < nspin; is++)
     {
-        double* dm_pointer = dmR_pointer[is]->get_pointer();
+        const int is0 = nspin==2 ? is : 0;
+        const int step_is = nspin==4 ? is : 0;
+        const double* dm_pointer = dmR_pointer[is0]->get_pointer();
         for (int iw1l = 0; iw1l < row_indexes.size(); iw1l += npol)
         {
             const std::vector<double>& nlm1 = nlm1_all.find(row_indexes[iw1l])->second;
@@ -271,11 +297,11 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_IJR(const int& iat1,
                 {
                     for (int m2 = 0; m2 < m_size; m2++)
                     {
-                        tmp[0] = vu_in[m1 * m_size + m2 + is * m_size2] * nlm1[m1 + m_size] * nlm2[m2] * dm_pointer[0];
+                        tmp[0] = vu_in[m1 * m_size + m2 + is * m_size2] * nlm1[m1 + m_size] * nlm2[m2] * dm_pointer[step_trace[step_is]];
                         tmp[1]
-                            = vu_in[m1 * m_size + m2 + is * m_size2] * nlm1[m1 + m_size * 2] * nlm2[m2] * dm_pointer[0];
+                            = vu_in[m1 * m_size + m2 + is * m_size2] * nlm1[m1 + m_size * 2] * nlm2[m2] * dm_pointer[step_trace[step_is]];
                         tmp[2]
-                            = vu_in[m1 * m_size + m2 + is * m_size2] * nlm1[m1 + m_size * 3] * nlm2[m2] * dm_pointer[0];
+                            = vu_in[m1 * m_size + m2 + is * m_size2] * nlm1[m1 + m_size * 3] * nlm2[m2] * dm_pointer[step_trace[step_is]];
                         // force1 = - VU * <d phi_{I,R1}/d R1|chi_m> * <chi_m'|phi_{J,R2}>
                         // force2 = - VU * <phi_{I,R1}|d chi_m/d R0> * <chi_m'|phi_{J,R2>}
                         force1[0] += tmp[0];
@@ -286,7 +312,7 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_force_IJR(const int& iat1,
                         force2[2] -= tmp[2];
                     }
                 }
-                dm_pointer++;
+                dm_pointer += npol;
             }
             dm_pointer += (npol - 1) * col_indexes.size();
         }
@@ -318,13 +344,18 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_stress_IJR(const int& iat1,
     const int m_size = int(sqrt(vu_in.size() / nspin));
     const int m_size2 = m_size * m_size;
     // step_trace = 0 for NSPIN=1,2; ={0, 1, local_col, local_col+1} for NSPIN=4
-    std::vector<int> step_trace(npol, 0);
-    if (npol == 2)
-        step_trace[1] = col_indexes.size() + 1;
+    std::vector<int> step_trace(npol * npol, 0);
+    if (npol == 2) {
+        step_trace[1] = 1;
+        step_trace[2] = col_indexes.size();
+        step_trace[3] = col_indexes.size() + 1;
+    }
     // calculate the local matrix
     for (int is = 0; is < nspin; is++)
     {
-        double* dm_pointer = dmR_pointer[is]->get_pointer();
+        const int is0 = nspin==2 ? is : 0;
+        const int step_is = nspin==4 ? is : 0;
+        const double* dm_pointer = dmR_pointer[is0]->get_pointer();
         for (int iw1l = 0; iw1l < row_indexes.size(); iw1l += npol)
         {
             const std::vector<double>& nlm1 = nlm1_all.find(row_indexes[iw1l])->second;
@@ -338,7 +369,7 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_stress_IJR(const int& iat1,
                 {
                     for (int m2 = 0; m2 < m_size; m2++)
                     {
-                        double tmp = vu_in[m1 * m_size + m2 + is * m_size2] * dm_pointer[0];
+                        double tmp = vu_in[m1 * m_size + m2 + is * m_size2] * dm_pointer[step_trace[step_is]];
                         // std::cout<<__FILE__<<__LINE__<<" "<<tmp<<" "<<m1<<" "<<m2<<" "<<nlm1[m1 + m_size * 2]<<"
                         // "<<nlm2[m2 + m_size * 2]<<" "<<dis1.y<<" "<<dis2.y<<std::endl;
                         stress[0]
@@ -358,7 +389,7 @@ void DFTU<OperatorLCAO<TK, TR>>::cal_stress_IJR(const int& iat1,
                                         + nlm1[m1] * nlm2[m2 + m_size * 3] * dis2.z);
                     }
                 }
-                dm_pointer++;
+                dm_pointer += npol;
             }
             dm_pointer += (npol - 1) * col_indexes.size();
         }

@@ -1,5 +1,6 @@
 #include "write_wfc_nao.h"
 
+#include "module_parameter/parameter.h"
 #include "module_base/memory.h"
 #include "module_base/timer.h"
 #include "module_base/tool_title.h"
@@ -18,7 +19,7 @@ std::string wfc_nao_gen_fname(const int out_type,
                                const int ik,
                                const int istep)
 {
-    // fn_out = "{GlobalV::global_out_dir}/WFC_NAO_{K|GAMMA}{K index}{_ION} + {".txt"/".dat"}""
+    // fn_out = "{PARAM.globalv.global_out_dir}/WFC_NAO_{K|GAMMA}{K index}{_ION} + {".txt"/".dat"}""
     std::string kgamma_block = (gamma_only) ? "_GAMMA" : "_K";
     std::string istep_block
         = (istep >= 0 && (!out_app_flag))
@@ -81,7 +82,7 @@ void wfc_nao_write2file(const std::string &name, const double* ctot, const int n
         else
         {
             std::ofstream ofs;
-            // if (GlobalV::out_app_flag)
+            // if (PARAM.inp.out_app_flag)
             // {
             //     ofs.open(name.c_str(), std::ofstream::app);
             // }
@@ -160,7 +161,7 @@ void wfc_nao_write2file_complex(const std::string &name, const std::complex<doub
         else
         {
             std::ofstream ofs;
-            // if (GlobalV::out_app_flag)
+            // if (PARAM.inp.out_app_flag)
             // {
             //     ofs.open(name.c_str(), std::ofstream::app);
             // }
@@ -222,7 +223,7 @@ void write_wfc_nao(const int out_type,
     // If using MPI, the nbasis and nbands in psi is the value on local rank, 
     // so get nlocal and nbands from pv->desc_wfc[2] and pv->desc_wfc[3]
 #ifdef __MPI
-    MPI_Comm_rank(pv.comm_2D, &myid);
+    MPI_Comm_rank(pv.comm(), &myid);
     nlocal = pv.desc_wfc[2];
     nbands = pv.desc_wfc[3];
 #else
@@ -241,7 +242,7 @@ void write_wfc_nao(const int out_type,
     {
         psi.fix_k(ik);
 #ifdef __MPI        
-        pv_glb.set(nlocal, nbands, blk_glb, pv.comm_2D, pv.blacs_ctxt);   
+        pv_glb.set(nlocal, nbands, blk_glb, pv.blacs_ctxt);   
         Cpxgemr2d(nlocal,
                   nbands,
                   psi.get_pointer(),
@@ -265,7 +266,7 @@ void write_wfc_nao(const int out_type,
 
         if (myid == 0)
         {
-            std::string fn = GlobalV::global_out_dir + wfc_nao_gen_fname(out_type, gamma_only, GlobalV::out_app_flag, ik, istep);
+            std::string fn = PARAM.globalv.global_out_dir + wfc_nao_gen_fname(out_type, gamma_only, PARAM.inp.out_app_flag, ik, istep);
             if (std::is_same<double, T>::value)
             {
                 wfc_nao_write2file(fn, reinterpret_cast<double*>(ctot.data()), nlocal, ik, ekb, wg, writeBinary);

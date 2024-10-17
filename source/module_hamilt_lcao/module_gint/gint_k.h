@@ -5,18 +5,23 @@
 #include "grid_technique.h"
 #include "module_basis/module_ao/ORB_atomic_lm.h"
 #include "module_elecstate/module_charge/charge.h"
-#include "module_hamilt_lcao/hamilt_lcaodft/LCAO_matrix.h"
+#include "module_hamilt_lcao/hamilt_lcaodft/LCAO_HS_arrays.hpp"
 
 // add by jingan for map<> in 2021-12-2, will be deleted in the future
 #include "module_base/abfs-vector3_order.h"
 
-class Gint_k : public Gint
-{
+class Gint_k : public Gint {
   public:
     ~Gint_k()
     {
         destroy_pvpR();
     }
+
+    /// @brief move operator for the next ESolver to directly use its infomation
+    /// @param rhs 
+    /// @return *this
+    Gint_k& operator=(Gint_k&& rhs);
+
     //------------------------------------------------------
     // in gint_k_pvpr.cpp
     //------------------------------------------------------
@@ -24,25 +29,17 @@ class Gint_k : public Gint
     // for calculating hamiltonian
 
     // reset the spin.
-    void reset_spin(const int& spin_now_in)
-    {
-        this->spin_now = spin_now_in;
-    };
+    void reset_spin(const int& spin_now_in) { this->spin_now = spin_now_in; };
     // get the spin.
-    int get_spin() const
-    {
-        return spin_now;
-    }
+    int get_spin() const { return spin_now; }
 
     // renew gint index for new iteration
-    void renew(const bool& soft = false)
-    {
-        if (soft && this->spin_now == 0)
-        { // in this case, gint will not be recalculated
+    void renew(const bool& soft = false) {
+        if (soft
+            && this->spin_now
+                   == 0) { // in this case, gint will not be recalculated
             return;
-        }
-        else if (this->spin_now != -1)
-        {
+        } else if (this->spin_now != -1) {
             int start_spin = -1;
             this->reset_spin(start_spin);
             this->destroy_pvpR();
@@ -61,23 +58,16 @@ class Gint_k : public Gint
     // destroy the temporary <phi_0 | V | dphi_R> matrix element.
     void destroy_pvdpR();
 
-    // folding the < phi_0 | V | phi_R> matrix to
-    // <phi_0i | V | phi_0j>
-    // V is (Vl + Vh + Vxc) if no Vna is used,
-    // and is (Vna + delta_Vh + Vxc) if Vna is used.
-    void folding_vl_k(const int& ik,
-                      LCAO_Matrix* LM,
-                      Parallel_Orbitals* pv,
-                      const std::vector<ModuleBase::Vector3<double>>& kvec_d,
-                      const UnitCell& ucell,
-                      Grid_Driver& gd);
-
     /**
      * @brief transfer pvpR to this->hRGint
      * then pass this->hRGint to Veff<OperatorLCAO>::hR
      */
-    void transfer_pvpR(hamilt::HContainer<double>* hR, const UnitCell* ucell_in, Grid_Driver* gd);
-    void transfer_pvpR(hamilt::HContainer<std::complex<double>>* hR, const UnitCell* ucell_in, Grid_Driver* gd);
+    void transfer_pvpR(hamilt::HContainer<double>* hR,
+                       const UnitCell* ucell_in,
+                       Grid_Driver* gd);
+    void transfer_pvpR(hamilt::HContainer<std::complex<double>>* hR,
+                       const UnitCell* ucell_in,
+                       Grid_Driver* gd);
 
     //------------------------------------------------------
     // in gint_k_env.cpp
@@ -91,32 +81,6 @@ class Gint_k : public Gint
                    UnitCell& ucell);
 
     //------------------------------------------------------
-    // in gint_k_sparse.cpp
-    //------------------------------------------------------
-    // related to sparse matrix
-    // jingan add 2021-6-4, modify 2021-12-2
-    void distribute_pvpR_sparseMatrix(
-        const int current_spin,
-        const double& sparse_threshold,
-        const std::map<Abfs::Vector3_Order<int>, std::map<size_t, std::map<size_t, double>>>& pvpR_sparseMatrix,
-        LCAO_Matrix* LM,
-        Parallel_Orbitals* pv);
-
-    void distribute_pvpR_soc_sparseMatrix(
-        const double& sparse_threshold,
-        const std::map<Abfs::Vector3_Order<int>, std::map<size_t, std::map<size_t, std::complex<double>>>>&
-            pvpR_soc_sparseMatrix,
-        LCAO_Matrix* LM,
-        Parallel_Orbitals* pv);
-
-    void cal_vlocal_R_sparseMatrix(const int& current_spin,
-                                   const double& sparse_threshold,
-                                   LCAO_Matrix* LM,
-                                   Parallel_Orbitals* pv,
-                                   UnitCell& ucell,
-                                   Grid_Driver& gdriver);
-
-    //------------------------------------------------------
     // in gint_k_sparse1.cpp
     //------------------------------------------------------
     // similar to the above 3, just for the derivative
@@ -124,22 +88,26 @@ class Gint_k : public Gint
         const int current_spin,
         const int dim,
         const double& sparse_threshold,
-        const std::map<Abfs::Vector3_Order<int>, std::map<size_t, std::map<size_t, double>>>& pvdpR_sparseMatrix,
-        LCAO_Matrix* LM,
-        Parallel_Orbitals* pv);
+        const std::map<Abfs::Vector3_Order<int>,
+                       std::map<size_t, std::map<size_t, double>>>&
+            pvdpR_sparseMatrix,
+        LCAO_HS_Arrays& HS_Arrays,
+        const Parallel_Orbitals* pv);
 
     void distribute_pvdpR_soc_sparseMatrix(
         const int dim,
         const double& sparse_threshold,
-        const std::map<Abfs::Vector3_Order<int>, std::map<size_t, std::map<size_t, std::complex<double>>>>&
+        const std::map<
+            Abfs::Vector3_Order<int>,
+            std::map<size_t, std::map<size_t, std::complex<double>>>>&
             pvdpR_soc_sparseMatrix,
-        LCAO_Matrix* LM,
-        Parallel_Orbitals* pv);
+        LCAO_HS_Arrays& HS_Arrays,
+        const Parallel_Orbitals* pv);
 
     void cal_dvlocal_R_sparseMatrix(const int& current_spin,
                                     const double& sparse_threshold,
-                                    LCAO_Matrix* LM,
-                                    Parallel_Orbitals* pv,
+                                    LCAO_HS_Arrays& HS_Arrays,
+                                    const Parallel_Orbitals* pv,
                                     UnitCell& ucell,
                                     Grid_Driver& gdriver);
 

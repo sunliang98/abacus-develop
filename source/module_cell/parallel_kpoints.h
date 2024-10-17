@@ -57,11 +57,19 @@ class Parallel_Kpoints
 
     // get the first processor in the pool
     int get_startpro_pool(const int& pool) const
+
     {
         return startpro_pool[pool];
     }
 
+    // get the maximum number of k-points in all pools
+    int get_max_nks_pool() const
+    {
+        return *std::max_element(nks_pool.begin(), nks_pool.end());
+    }
+
   private:
+
     int kpar = 0;         // number of pools
     int my_pool = 0;      // the pool index of the present processor
     int rank_in_pool = 0; // the rank in the present pool
@@ -74,7 +82,7 @@ class Parallel_Kpoints
     void get_startk_pool(const int& nkstot);
     void get_whichpool(const int& nkstot);
 
-    void set_startpro_pool(void);
+    void set_startpro_pool();
 #endif
 };
 

@@ -2,7 +2,7 @@
 
 #include "cal_dos.h"
 #include "module_base/parallel_reduce.h"
-#include "module_io/input.h"
+#include "module_parameter/parameter.h"
 
 void ModuleIO::write_dos_pw(const ModuleBase::matrix& ekb,
                             const ModuleBase::matrix& wg,
@@ -14,7 +14,7 @@ void ModuleIO::write_dos_pw(const ModuleBase::matrix& ekb,
     ModuleBase::TITLE("ModuleIO", "write_dos_pw");
 
     int nspin0 = 1;
-    if (GlobalV::NSPIN == 2)
+    if (PARAM.inp.nspin == 2)
         nspin0 = 2;
 
     // find energy range
@@ -22,7 +22,7 @@ void ModuleIO::write_dos_pw(const ModuleBase::matrix& ekb,
     double emin = ekb(0, 0);
     for (int ik = 0; ik < kv.get_nks(); ++ik)
     {
-        for (int ib = 0; ib < GlobalV::NBANDS; ++ib)
+        for (int ib = 0; ib < PARAM.inp.nbands; ++ib)
         {
             emax = std::max(emax, ekb(ik, ib));
             emin = std::min(emin, ekb(ik, ib));
@@ -37,11 +37,11 @@ void ModuleIO::write_dos_pw(const ModuleBase::matrix& ekb,
     emax *= ModuleBase::Ry_to_eV;
     emin *= ModuleBase::Ry_to_eV;
 
-    if (INPUT.dos_setemax)
-        emax = INPUT.dos_emax_ev;
-    if (INPUT.dos_setemin)
-        emin = INPUT.dos_emin_ev;
-    if (!INPUT.dos_setemax && !INPUT.dos_setemin)
+    if (PARAM.globalv.dos_setemax)
+        emax = PARAM.inp.dos_emax_ev;
+    if (PARAM.globalv.dos_setemin)
+        emin = PARAM.inp.dos_emin_ev;
+    if (!PARAM.globalv.dos_setemax && !PARAM.globalv.dos_setemin)
     {
         // scale up a little bit so the end peaks are displaced better
         double delta = (emax - emin) * dos_scale;
@@ -64,9 +64,9 @@ void ModuleIO::write_dos_pw(const ModuleBase::matrix& ekb,
     {
         // DOS_ispin contains not smoothed dos
         std::stringstream ss;
-        ss << GlobalV::global_out_dir << "DOS" << is + 1;
+        ss << PARAM.globalv.global_out_dir << "DOS" << is + 1;
         std::stringstream ss1;
-        ss1 << GlobalV::global_out_dir << "DOS" << is + 1 << "_smearing.dat";
+        ss1 << PARAM.globalv.global_out_dir << "DOS" << is + 1 << "_smearing.dat";
         ModuleIO::calculate_dos(is,
                                 ss.str(),
                                 ss1.str(),
@@ -78,7 +78,7 @@ void ModuleIO::write_dos_pw(const ModuleBase::matrix& ekb,
                                 kv.get_nkstot(),
                                 kv.wk,
                                 kv.isk,
-                                GlobalV::NBANDS,
+                                PARAM.inp.nbands,
                                 ekb,
                                 wg);
     }

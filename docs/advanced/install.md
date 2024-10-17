@@ -44,7 +44,7 @@ If the Deep Potential model is employed in Molecule Dynamics calculations, the f
 cmake -B build -DDeePMD_DIR=~/deepmd-kit -DTensorFlow_DIR=~/tensorflow
 ```
 
-> `deepmd_c`/`deepmd_cc` and `tensorflow_cc` libraries would be called according to `DeePMD_DIR` and `TensorFlow_DIR`, which is showed in detail in [this page](https://github.com/deepmodeling/deepmd-kit/blob/master/doc/inference/cxx.md).
+> `deepmd_c`/`deepmd_cc` and `tensorflow_cc` libraries would be called according to `DeePMD_DIR` and `TensorFlow_DIR`, which is showed in detail in [this page](https://github.com/deepmodeling/deepmd-kit/blob/master/doc/inference/cxx.md). If `TensorFlow_DIR` is not defined, it will be the same as `DeePMD_DIR`. Note that `tensorflow_cc` is not required if `deepmd_c` is found.
 
 ## Build with LibRI and LibComm
 
@@ -93,9 +93,9 @@ cmake -B build -DUSE_CUDA=1 -DCMAKE_CUDA_COMPILER=${path to cuda toolkit}/bin/nv
 
 ## Build math library from source
 
-> Note: This flag is **enabled by default**. It will get better performance than the standard implementation on `gcc` and `clang`. But it **will be disabled** when using `Intel Compiler` since the math functions will get wrong results and the performance is also unexpectly poor.
+> Note: We recommend using the latest available compiler sets, since they offer faster implementations of math functions.
 
-To build math functions from source code, instead of using c++ standard implementation, define `USE_ABACUS_LIBM` flag.
+This flag is disabled by default. To build math functions from source code, define `USE_ABACUS_LIBM` flag. It is expected to get a better performance on legacy versions of `gcc` and `clang`.
 
 Currently supported math functions:
  `sin`, `cos`, `sincos`, `exp`, `cexp`
@@ -290,7 +290,7 @@ make DeePMD_DIR=~/deepmd-kit TensorFlow_DIR=~/tensorflow
 
 directly.
 
-> `deepmd_c`/`deepmd_cc` and `tensorflow_cc` libraries would be called according to `DeePMD_DIR` and `TensorFlow_DIR`, which is showed in detail in [this page](https://github.com/deepmodeling/deepmd-kit/blob/master/doc/inference/cxx.md).
+> `deepmd_c`/`deepmd_cc` and `tensorflow_cc` libraries would be called according to `DeePMD_DIR` and `TensorFlow_DIR`, which is showed in detail in [this page](https://github.com/deepmodeling/deepmd-kit/blob/master/doc/inference/cxx.md). If `TensorFlow_DIR` is not defined, it will be the same as `DeePMD_DIR`. Note that `tensorflow_cc` is not required if `deepmd_c` is found.
 
 ### Add LibRI Support
 To use new EXX, you need two libraries: [LibRI](https://github.com/abacusmodeling/LibRI) and [LibComm](https://github.com/abacusmodeling/LibComm) and need to define `LIBRI_DIR` and `LIBCOMM_DIR` in the file `Makefile.vars` or use

@@ -2,20 +2,21 @@
 
 #include "module_base/global_file.h"
 #include "module_hamilt_pw/hamilt_pwdft/global.h" // use chr.
-#include "module_io/print_info.h"
-#include "module_io/write_wfc_r.h"
-
+#include "module_io/cif_io.h"
 #include "module_io/json_output/output_info.h"
-
-
-void Relax_Driver::relax_driver(ModuleESolver::ESolver *p_esolver)
+#include "module_io/output_log.h"
+#include "module_io/print_info.h"
+#include "module_io/read_exit_file.h"
+#include "module_io/write_wfc_r.h"
+#include "module_parameter/parameter.h"
+void Relax_Driver::relax_driver(ModuleESolver::ESolver* p_esolver)
 {
     ModuleBase::TITLE("Ions", "opt_ions");
     ModuleBase::timer::tick("Ions", "opt_ions");
 
-    if (GlobalV::CALCULATION == "relax" || GlobalV::CALCULATION == "cell-relax")
+    if (PARAM.inp.calculation == "relax" || PARAM.inp.calculation == "cell-relax")
     {
-        if (!GlobalV::relax_new)
+        if (!PARAM.inp.relax_new)
         {
             rl_old.init_relax(GlobalC::ucell.nat);
         }
@@ -30,29 +31,30 @@ void Relax_Driver::relax_driver(ModuleESolver::ESolver *p_esolver)
     int stress_step = 1;
     bool stop = false;
 
-    while (istep <= GlobalV::RELAX_NMAX && !stop)
+    while (istep <= PARAM.inp.relax_nmax && !stop)
     {
-        time_t estart = time(NULL);
+        time_t estart = time(nullptr);
 
-        if (GlobalV::OUT_LEVEL == "ie"
-            && (GlobalV::CALCULATION == "relax" || GlobalV::CALCULATION == "cell-relax" || GlobalV::CALCULATION == "scf"
-                || GlobalV::CALCULATION == "nscf"))
+        if (PARAM.inp.out_level == "ie"
+            && (PARAM.inp.calculation == "relax" || PARAM.inp.calculation == "cell-relax" || PARAM.inp.calculation == "scf"
+                || PARAM.inp.calculation == "nscf")
+            && (PARAM.inp.esolver_type != "lr"))
         {
-            Print_Info::print_screen(stress_step, force_step, istep);
+            ModuleIO::print_screen(stress_step, force_step, istep);
         }
 
 #ifdef __RAPIDJSON
         Json::init_output_array_obj();
-#endif //__RAPIDJSON 
+#endif //__RAPIDJSON
 
         // mohan added eiter to count for the electron iteration number, 2021-01-28
         p_esolver->runner(istep - 1, GlobalC::ucell);
 
-        time_t eend = time(NULL);
-        time_t fstart = time(NULL);
+        time_t eend = time(nullptr);
+        time_t fstart = time(nullptr);
         ModuleBase::matrix force;
         ModuleBase::matrix stress;
-        if (GlobalV::CALCULATION == "scf" || GlobalV::CALCULATION == "relax" || GlobalV::CALCULATION == "cell-relax")
+        if (PARAM.inp.calculation == "scf" || PARAM.inp.calculation == "relax" || PARAM.inp.calculation == "cell-relax")
         {
             // I'm considering putting force and stress
             // as part of ucell and use ucell to pass information
@@ -63,19 +65,19 @@ void Relax_Driver::relax_driver(ModuleESolver::ESolver *p_esolver)
             this->etot = p_esolver->cal_energy();
 
             // calculate and gather all parts of total ionic forces
-            if (GlobalV::CAL_FORCE)
+            if (PARAM.inp.cal_force)
             {
                 p_esolver->cal_force(force);
             }
             // calculate and gather all parts of stress
-            if (GlobalV::CAL_STRESS)
+            if (PARAM.inp.cal_stress)
             {
                 p_esolver->cal_stress(stress);
             }
 
-            if (GlobalV::CALCULATION == "relax" || GlobalV::CALCULATION == "cell-relax")
+            if (PARAM.inp.calculation == "relax" || PARAM.inp.calculation == "cell-relax")
             {
-                if (GlobalV::relax_new)
+                if (PARAM.inp.relax_new)
                 {
                     stop = rl.relax_step(force, stress, this->etot);
                 }
@@ -93,74 +95,68 @@ void Relax_Driver::relax_driver(ModuleESolver::ESolver *p_esolver)
                 // changelog 20240509
                 // because I move out the dependence on GlobalV from UnitCell::print_stru_file
                 // so its parameter is calculated here
-                bool need_orb = GlobalV::BASIS_TYPE=="pw";
-                need_orb = need_orb && GlobalV::psi_initializer;
-                need_orb = need_orb && GlobalV::init_wfc.substr(0, 3)=="nao";
-                need_orb = need_orb || GlobalV::BASIS_TYPE=="lcao";
-                need_orb = need_orb || GlobalV::BASIS_TYPE=="lcao_in_pw";
+                bool need_orb = PARAM.inp.basis_type == "pw";
+                need_orb = need_orb && PARAM.inp.psi_initializer;
+                need_orb = need_orb && PARAM.inp.init_wfc.substr(0, 3) == "nao";
+                need_orb = need_orb || PARAM.inp.basis_type == "lcao";
+                need_orb = need_orb || PARAM.inp.basis_type == "lcao_in_pw";
                 std::stringstream ss, ss1;
-                ss << GlobalV::global_out_dir << "STRU_ION_D";
-                GlobalC::ucell.print_stru_file(ss.str(), GlobalV::NSPIN, true, GlobalV::CALCULATION == "md",
-                    GlobalV::out_mul, need_orb, GlobalV::deepks_setorb, GlobalV::MY_RANK);
+                ss << PARAM.globalv.global_out_dir << "STRU_ION_D";
+                GlobalC::ucell.print_stru_file(ss.str(),
+                                               PARAM.inp.nspin,
+                                               true,
+                                               PARAM.inp.calculation == "md",
+                                               PARAM.inp.out_mul,
+                                               need_orb,
+                                               PARAM.globalv.deepks_setorb,
+                                               GlobalV::MY_RANK);
 
                 if (Ions_Move_Basic::out_stru)
                 {
-                    ss1 << GlobalV::global_out_dir << "STRU_ION";
+                    ss1 << PARAM.globalv.global_out_dir << "STRU_ION";
                     ss1 << istep << "_D";
-                    GlobalC::ucell.print_stru_file(ss.str(), GlobalV::NSPIN, true, GlobalV::CALCULATION == "md",
-                        GlobalV::out_mul, need_orb, GlobalV::deepks_setorb, GlobalV::MY_RANK);
-
-                    GlobalC::ucell.print_cell_cif("STRU_NOW.cif");
+                    GlobalC::ucell.print_stru_file(ss1.str(),
+                                                   PARAM.inp.nspin,
+                                                   true,
+                                                   PARAM.inp.calculation == "md",
+                                                   PARAM.inp.out_mul,
+                                                   need_orb,
+                                                   PARAM.globalv.deepks_setorb,
+                                                   GlobalV::MY_RANK);
+                    ModuleIO::CifParser::write(PARAM.globalv.global_out_dir + "STRU_NOW.cif",
+                                               GlobalC::ucell,
+                                               "# Generated by ABACUS ModuleIO::CifParser",
+                                               "data_?");
                 }
 
-                if (p_esolver
-                    && stop 
-                    && p_esolver->get_maxniter() == p_esolver->get_niter()
-                    && !(p_esolver->get_conv_elec()))
-                {
-                    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-                    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-                    std::cout << " Relaxation is converged, but the SCF is unconverged! The results are unreliable. " << std::endl;
-                    std::cout << " It is suggested to increase the maximum SCF step and/or perform the relaxation again." << std::endl;
-                    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-                    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-                    GlobalV::ofs_running << "\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-                    GlobalV::ofs_running << "\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-                    GlobalV::ofs_running << "\n Relaxation is converged, but the SCF is unconverged! The results are unreliable.. " << std::endl;
-                    GlobalV::ofs_running << "\n It is suggested to increase the maximum SCF step and/or perform the relaxation again. " << std::endl;
-                    GlobalV::ofs_running << "\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-                    GlobalV::ofs_running << "\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
-                }
+                ModuleIO::output_after_relax(stop, p_esolver->conv_esolver, GlobalV::ofs_running);
             }
 
 #ifdef __RAPIDJSON
             // add the energy to outout
-            Json::add_output_energy(p_esolver->cal_energy() * ModuleBase::Ry_to_eV);    
-#endif                     
+            Json::add_output_energy(p_esolver->cal_energy() * ModuleBase::Ry_to_eV);
+#endif
         }
 #ifdef __RAPIDJSON
-        //add Json of cell coo stress force
+        // add Json of cell coo stress force
         double unit_transform = ModuleBase::RYDBERG_SI / pow(ModuleBase::BOHR_RADIUS_SI, 3) * 1.0e-8;
         double fac = ModuleBase::Ry_to_eV / 0.529177;
-        Json::add_output_cell_coo_stress_force(
-            &GlobalC::ucell,
-            force,fac,
-            stress,unit_transform);
-#endif //__RAPIDJSON 
-    
-        time_t fend = time(NULL);
+        Json::add_output_cell_coo_stress_force(&GlobalC::ucell, force, fac, stress, unit_transform);
+#endif //__RAPIDJSON
+
+        if (stop == false)
+        {
+            stop = ModuleIO::read_exit_file(GlobalV::MY_RANK, "EXIT", GlobalV::ofs_running);
+        }
+
+        time_t fend = time(nullptr);
 
         ++istep;
     }
 
-    if (GlobalV::OUT_LEVEL == "i")
+    if (PARAM.inp.out_level == "i")
     {
         std::cout << " ION DYNAMICS FINISHED :)" << std::endl;
-    }
-
-    if (GlobalV::CALCULATION == "relax" || GlobalV::CALCULATION == "cell-relax")
-    {
-        ModuleBase::Global_File::delete_tmp_files();
     }
 
     ModuleBase::timer::tick("Ions", "opt_ions");

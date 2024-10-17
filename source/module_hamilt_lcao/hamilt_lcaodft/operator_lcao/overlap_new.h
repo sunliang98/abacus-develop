@@ -6,6 +6,7 @@
 #include "module_cell/unitcell.h"
 #include "module_hamilt_lcao/hamilt_lcaodft/operator_lcao/operator_lcao.h"
 #include "module_hamilt_lcao/module_hcontainer/hcontainer.h"
+#include <vector>
 
 namespace hamilt
 {
@@ -36,16 +37,14 @@ template <typename TK, typename TR>
 class OverlapNew<OperatorLCAO<TK, TR>> : public OperatorLCAO<TK, TR>
 {
   public:
-    OverlapNew<OperatorLCAO<TK, TR>>(LCAO_Matrix* LM_in,
+    OverlapNew<OperatorLCAO<TK, TR>>(HS_Matrix_K<TK>* hsk_in,
                                      const std::vector<ModuleBase::Vector3<double>>& kvec_d_in,
                                      hamilt::HContainer<TR>* hR_in,
-                                     std::vector<TK>* hK_in,
                                      hamilt::HContainer<TR>* SR_in,
-                                     std::vector<TK>* SK_pointer_in,
                                      const UnitCell* ucell_in,
+                                     const std::vector<double>& orb_cutoff,
                                      Grid_Driver* GridD_in,
-                                     const TwoCenterIntegrator* intor,
-                                     const Parallel_Orbitals* paraV);
+                                     const TwoCenterIntegrator* intor);
 
     virtual void contributeHR() override;
 
@@ -56,9 +55,9 @@ class OverlapNew<OperatorLCAO<TK, TR>> : public OperatorLCAO<TK, TR>
   private:
     const UnitCell* ucell = nullptr;
 
-    hamilt::HContainer<TR>* SR = nullptr;
+    std::vector<double> orb_cutoff_;
 
-    std::vector<TK>* SK_pointer = nullptr;
+    hamilt::HContainer<TR>* SR = nullptr;
 
     const TwoCenterIntegrator* intor_ = nullptr;
 
@@ -69,7 +68,7 @@ class OverlapNew<OperatorLCAO<TK, TR>> : public OperatorLCAO<TK, TR>
      * HContainer is used to store the overlap matrix with specific <I,J,R> atom-pairs
      * the size of SR will be fixed after initialization
      */
-    void initialize_SR(Grid_Driver* GridD_in, const Parallel_Orbitals* paraV);
+    void initialize_SR(Grid_Driver* GridD_in);
 
     /**
      * @brief calculate the overlap matrix with specific <I,J,R> atom-pairs

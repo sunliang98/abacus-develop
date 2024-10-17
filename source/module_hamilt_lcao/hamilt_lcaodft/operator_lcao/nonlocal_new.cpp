@@ -11,15 +11,14 @@
 
 template <typename TK, typename TR>
 hamilt::NonlocalNew<hamilt::OperatorLCAO<TK, TR>>::NonlocalNew(
-    LCAO_Matrix* LM_in,
+    HS_Matrix_K<TK>* hsk_in,
     const std::vector<ModuleBase::Vector3<double>>& kvec_d_in,
     hamilt::HContainer<TR>* hR_in,
-    std::vector<TK>* hK_in,
     const UnitCell* ucell_in,
+    const std::vector<double>& orb_cutoff,
     Grid_Driver* GridD_in,
-    const TwoCenterIntegrator* intor,
-    const Parallel_Orbitals* paraV)
-    : hamilt::OperatorLCAO<TK, TR>(LM_in, kvec_d_in, hR_in, hK_in), intor_(intor)
+    const TwoCenterIntegrator* intor)
+    : hamilt::OperatorLCAO<TK, TR>(hsk_in, kvec_d_in, hR_in), orb_cutoff_(orb_cutoff), intor_(intor)
 {
     this->cal_type = calculation_type::lcao_fixed;
     this->ucell = ucell_in;
@@ -27,7 +26,7 @@ hamilt::NonlocalNew<hamilt::OperatorLCAO<TK, TR>>::NonlocalNew(
     assert(this->ucell != nullptr);
 #endif
     // initialize HR to allocate sparse Nonlocal matrix memory
-    this->initialize_HR(GridD_in, paraV);
+    this->initialize_HR(GridD_in);
 }
 
 // destructor
@@ -42,11 +41,13 @@ hamilt::NonlocalNew<hamilt::OperatorLCAO<TK, TR>>::~NonlocalNew()
 
 // initialize_HR()
 template <typename TK, typename TR>
-void hamilt::NonlocalNew<hamilt::OperatorLCAO<TK, TR>>::initialize_HR(Grid_Driver* GridD,
-                                                                      const Parallel_Orbitals* paraV)
+void hamilt::NonlocalNew<hamilt::OperatorLCAO<TK, TR>>::initialize_HR(Grid_Driver* GridD)
 {
     ModuleBase::TITLE("NonlocalNew", "initialize_HR");
     ModuleBase::timer::tick("NonlocalNew", "initialize_HR");
+
+    auto* paraV = this->hR->get_paraV();// get parallel orbitals from HR
+    // TODO: if paraV is nullptr, AtomPair can not use paraV for constructor, I will repair it in the future.
 
     this->adjs_all.clear();
     this->adjs_all.reserve(this->ucell->nat);
@@ -66,12 +67,11 @@ void hamilt::NonlocalNew<hamilt::OperatorLCAO<TK, TR>>::initialize_HR(Grid_Drive
             const ModuleBase::Vector3<double>& tau1 = adjs.adjacent_tau[ad1];
             const ModuleBase::Vector3<int>& R_index1 = adjs.box[ad1];
             // choose the real adjacent atoms
-            const LCAO_Orbitals& orb = LCAO_Orbitals::get_const_instance();
             // Note: the distance of atoms should less than the cutoff radius,
             // When equal, the theoretical value of matrix element is zero,
             // but the calculated value is not zero due to the numerical error, which would lead to result changes.
             if (this->ucell->cal_dtau(iat0, iat1, R_index1).norm() * this->ucell->lat0
-                < orb.Phi[T1].getRcut() + this->ucell->infoNL.Beta[T0].get_rcut_max())
+                < orb_cutoff_[T1] + this->ucell->infoNL.Beta[T0].get_rcut_max())
             {
                 is_adj[ad1] = true;
             }

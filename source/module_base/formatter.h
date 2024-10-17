@@ -41,9 +41,9 @@ public:
     static inline std::string format(const char* fmt, const Ts&... args)
     {
         const int size = snprintf(nullptr, 0, fmt, FmtCore::filter(args)...) + 1;
-        std::string dst(size, '\0');
-        snprintf(&dst[0], size, fmt, FmtCore::filter(args)...);
-        dst.pop_back();
+        std::string dst(size, ' ');
+        const int size_filled = snprintf(&dst[0], size, fmt, FmtCore::filter(args)...);
+        dst.resize(size_filled);
         return dst;
     }
     /**
@@ -120,7 +120,9 @@ public:
     }
     static std::string center(const std::string& in, const size_t& width, const char& fillchar = ' ')
     {
-        if(in.size() >= width) return in;
+        if (in.size() >= width) {
+            return in;
+        }
         const size_t nwhitespaces = width - in.size();
         const size_t nleft = nwhitespaces / 2;
         const size_t nright = nwhitespaces - nleft;
@@ -157,6 +159,10 @@ public:
     enum class Align{LEFT, RIGHT, CENTER};
 private:
     typedef FmtCore core;
+    struct Alignments{
+        Alignments(const Align& val = Align::RIGHT, const Align& title = Align::CENTER): val_(val), title_(title) {};
+        Align val_, title_; // value and title alignments
+    } aligns_;
     struct Frames{
         Frames(char up = '-', char mid = '-', char dw = '-', char l = ' ', char r = ' '): up_(up), mid_(mid), dw_(dw), l_(l), r_(r) {};
         char up_, mid_ , dw_, l_, r_; // up, middle, down, left, right frames. up: the frame above title, middle: the one between title and data
@@ -165,10 +171,6 @@ private:
         Delimiters(char h = '-', char v = ' '): h_(h), v_(v) {};
         char h_, v_; // horizontal and vertical delimiters
     } delimiters_;
-    struct Alignments{
-        Alignments(const Align& val = Align::RIGHT, const Align& title = Align::CENTER): val_(val), title_(title) {};
-        Align val_, title_; // value and title alignments
-    } aligns_;
 public:
     /**
      * @brief Construct a new Fmt Table object
@@ -184,7 +186,7 @@ public:
              const std::vector<std::string>& fmts,
              const Alignments& aligns = {},
              const Frames& frames = {},
-             const Delimiters& delimiters = {}): titles_(titles), fmts_(fmts), data_(nrows, titles.size()), aligns_(aligns), frames_(frames), delimiters_(delimiters)
+             const Delimiters& delimiters = {}): titles_(titles), data_(nrows, titles.size()), fmts_(fmts), aligns_(aligns), frames_(frames), delimiters_(delimiters)
     { assert(titles.size() == fmts.size()); };
     ~FmtTable() {};
     /**
@@ -264,7 +266,9 @@ public:
         for(size_t i = 0; i < titles.size(); i++)
         {
             dst += titles[i];
-            if(i != titles.size() - 1) dst += delimiters_.v_;
+            if (i != titles.size() - 1) {
+                dst += delimiters_.v_;
+            }
         }
         dst += std::string(1, frames_.r_) + "\n" + std::string(width, frames_.mid_) + "\n";
         return dst;
@@ -285,15 +289,21 @@ public:
         width += row.size() - 1;
         // for the left and right frame
         width += 2;
-        if(pos == 't') dst += std::string(width, frames_.up_) + "\n";
+        if (pos == 't') {
+            dst += std::string(width, frames_.up_) + "\n";
+        }
         dst += std::string(1, frames_.l_);
         for(size_t i = 0; i < row.size(); i++)
         {
             dst += row[i];
-            if(i != row.size() - 1) dst += delimiters_.v_;
+            if (i != row.size() - 1) {
+                dst += delimiters_.v_;
+            }
         }
         dst += std::string(1, frames_.r_) + "\n";
-        if(pos == 'b') dst += std::string(width, frames_.dw_) + "\n";
+        if (pos == 'b') {
+            dst += std::string(width, frames_.dw_) + "\n";
+        }
         return dst;
     }
     /**
@@ -308,24 +318,35 @@ public:
         const size_t ncols = data_.shape()[1];
         // if not all titles are empty, then with_title boolean will be true
         bool with_title = false;
-        for(auto& title : titles_) if(!title.empty()) { with_title = true; break; }
+        for (auto& title: titles_) {
+            if (!title.empty()) {
+                with_title = true;
+                break;
+            }
+        }
         // first to relax each column
         for(size_t j = 0UL; j < ncols; j++)
         {
             std::vector<std::string> col(nrows);
-            for(size_t i = 0UL; i < nrows; i++) col[i] = data_(i, j);
+            for (size_t i = 0UL; i < nrows; i++) {
+                col[i] = data_(i, j);
+            }
             col = relax_col_width(col, titles_[j], aligns_.val_, aligns_.title_);
             titles_[j] = col[0UL];
             std::vector<std::string> col_new(col.begin() + 1, col.end());
             set_value(0UL, j, 'v', col_new);
         }
         // then print titles
-        if(with_title) dst += concat_title(titles_);
+        if (with_title) {
+            dst += concat_title(titles_);
+        }
         // then print contents
         for(size_t i = 0UL; i < nrows; i++)
         {
             std::vector<std::string> row(ncols);
-            for(size_t j = 0; j < ncols; j++) row[j] = data_(i, j);
+            for (size_t j = 0; j < ncols; j++) {
+                row[j] = data_(i, j);
+            }
             dst += concat_row(row, ((i == 0UL)&&!with_title)? 't': (i == nrows - 1)? 'b': 'n');
         }
         return dst;
@@ -346,15 +367,22 @@ private:
     template<typename T>
     void set_value(const size_t& i, const size_t& j, const char& dir, const std::vector<T>& src)
     {
-        if(dir == 'v') for(size_t k = 0UL; k < src.size(); k++) data_(i + k, j) = src[k];
-        else if(dir == 'h') for(size_t k = 0UL; k < src.size(); k++) data_(j, i + k) = src[k];
+        if (dir == 'v') {
+            for (size_t k = 0UL; k < src.size(); k++) {
+                data_(i + k, j) = src[k];
+            }
+        } else if (dir == 'h') {
+            for (size_t k = 0UL; k < src.size(); k++) {
+                data_(j, i + k) = src[k];
+            }
+        }
     }
     // iterator support indices
     size_t j_ = 0;
 
     std::vector<std::string> titles_;
-    std::vector<std::string> fmts_; // format strings for each column
     NDArray<std::string> data_; // data
+    std::vector<std::string> fmts_; // format strings for each column
 };
 
 #endif

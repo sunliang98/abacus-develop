@@ -4,6 +4,7 @@
 #include "module_base/parallel_common.h"
 #include "module_base/timer.h"
 #include "module_base/tool_check.h"
+#include "module_parameter/parameter.h"
 
 #include <algorithm>
 #include <cassert>
@@ -14,10 +15,6 @@
 //==============================
 /// PLEASE avoid using 'ORB' as global variable
 // mohan note 2021-03-23
-namespace GlobalC
-{
-LCAO_Orbitals ORB;
-}
 
 LCAO_Orbitals::LCAO_Orbitals()
 {
@@ -40,10 +37,59 @@ LCAO_Orbitals::~LCAO_Orbitals()
     delete[] Alpha;
 }
 
-const LCAO_Orbitals& LCAO_Orbitals::get_const_instance()
-{
-    return GlobalC::ORB;
+std::vector<double> LCAO_Orbitals::cutoffs() const {
+    std::vector<double> cutoffs(ntype);
+    for (int it = 0; it < ntype; ++it) {
+        cutoffs[it] = Phi[it].getRcut();
+    }
+    return cutoffs;
 }
+
+void LCAO_Orbitals::init(
+    std::ofstream& ofs_in,
+    const int& ntype,
+    const std::string& orbital_dir,
+    const std::string* orbital_file,
+    const std::string& descriptor_file,
+    const int& lmax,
+    const double& lcao_ecut_in,
+    const double& lcao_dk_in,
+    const double& lcao_dr_in,
+    const double& lcao_rmax_in,
+    const bool& deepks_setorb,
+    const int& out_mat_r,
+    const bool& force_flag,
+    const int& my_rank
+)
+{
+    assert(ntype > 0);
+    assert(lmax >= 0);
+    assert(lcao_ecut_in > 0.0);
+    assert(lcao_dk_in > 0.0);
+    assert(lcao_dr_in > 0.0);
+    assert(lcao_rmax_in > 0.0);
+
+    this->ecutwfc = lcao_ecut_in;
+    this->dk = lcao_dk_in;
+    this->dR = lcao_dr_in;
+    this->Rmax = lcao_rmax_in;
+
+    if (my_rank == 0 && !read_in_flag)
+    {
+        read_in_flag = true;
+        for (int it = 0; it < ntype; ++it)
+        {
+            this->orbital_file.push_back(orbital_dir + orbital_file[it]);
+        }
+    }
+
+#ifdef __MPI
+    bcast_files(ntype, my_rank);
+#endif
+    Read_Orbitals(ofs_in, ntype, lmax, deepks_setorb, out_mat_r, force_flag, my_rank);
+    return;
+}
+
 
 #ifdef __MPI
 // be called in UnitCell.
@@ -186,8 +232,9 @@ void LCAO_Orbitals::Read_Orbitals(std::ofstream& ofs_in,
     // }
 
     //	this->kmesh = static_cast<int> (PI / 0.01 / 4 / this->dk);
-    if (kmesh % 2 == 0)
+    if (kmesh % 2 == 0) {
         kmesh++;
+}
     ModuleBase::GlobalFunc::OUT(ofs_in, "kmesh", kmesh);
     //-----------------------------------------------------------------
 
@@ -543,7 +590,7 @@ void LCAO_Orbitals::read_orb_file(std::ofstream& ofs_in, // GlobalV::ofs_running
                                                  this->kmesh,
                                                  this->dk,
                                                  this->dr_uniform,
-                                                 GlobalV::out_element_info,
+                                                 PARAM.inp.out_element_info,
                                                  true,
                                                  force_flag); // delta k mesh in reciprocal space
 

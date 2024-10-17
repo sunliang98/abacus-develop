@@ -6,6 +6,7 @@
 #include "module_hamilt_pw/hamilt_pwdft/global.h"
 #include "module_elecstate/module_charge/symmetry_rho.h"
 #include "module_base/module_device/types.h"
+#include "module_parameter/parameter.h"
 
 void ML_data::set_para(
     const int &nx,
@@ -40,9 +41,9 @@ void ML_data::set_para(
     this->split_string(kernel_file_, nkernel, temp, this->kernel_file);
     std::cout << "nkernel    " << nkernel << std::endl;
 
-    if (GlobalV::of_wt_rho0 != 0)
+    if (PARAM.inp.of_wt_rho0 != 0)
     {
-        this->rho0 = GlobalV::of_wt_rho0;
+        this->rho0 = PARAM.inp.of_wt_rho0;
     }
     else
     {
@@ -97,7 +98,7 @@ void ML_data::generateTrainData_WT(
     const long unsigned cshape[] = {(long unsigned) this->nx}; // shape of container and containernl
     
     // enhancement factor of Pauli potential
-    if (GlobalV::of_kinetic == "wt")
+    if (PARAM.inp.of_kinetic == "wt")
     {
         this->getF_WT(wt, tf, prho, pw_rho, container);
         npy::SaveArrayAsNumpy("enhancement.npy", false, 1, cshape, container);
@@ -136,7 +137,7 @@ void ML_data::generateTrainData_KS(
     Symmetry_rho srho;
 
     Charge* ptempRho = new Charge();
-    ptempRho->nspin = GlobalV::NSPIN;
+    ptempRho->nspin = PARAM.inp.nspin;
     ptempRho->nrxx = this->nx;
     ptempRho->rho_core = pelec->charge->rho_core;
     ptempRho->rho = new double*[1];
@@ -145,11 +146,11 @@ void ML_data::generateTrainData_KS(
     ptempRho->rhog[0] = new std::complex<double>[pw_rho->npw];
 
     for (int ir = 0; ir < this->nx; ++ir) ptempRho->rho[0][ir] = container[ir];
-    srho.begin(0, *ptempRho, pw_rho, GlobalC::Pgrid, GlobalC::ucell.symm);
+    srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
     for (int ir = 0; ir < this->nx; ++ir) container[ir] = ptempRho->rho[0][ir];
 
     for (int ir = 0; ir < this->nx; ++ir) ptempRho->rho[0][ir] = containernl[ir];
-    srho.begin(0, *ptempRho, pw_rho, GlobalC::Pgrid, GlobalC::ucell.symm);
+    srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
     for (int ir = 0; ir < this->nx; ++ir) containernl[ir] = ptempRho->rho[0][ir];
 
     npy::SaveArrayAsNumpy("enhancement.npy", false, 1, cshape, container);
@@ -159,11 +160,11 @@ void ML_data::generateTrainData_KS(
     this->getF_KS2(psi, pelec, pw_psi, pw_rho, container, containernl);
 
     for (int ir = 0; ir < this->nx; ++ir) ptempRho->rho[0][ir] = container[ir];
-    srho.begin(0, *ptempRho, pw_rho, GlobalC::Pgrid, GlobalC::ucell.symm);
+    srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
     for (int ir = 0; ir < this->nx; ++ir) container[ir] = ptempRho->rho[0][ir];
 
     for (int ir = 0; ir < this->nx; ++ir) ptempRho->rho[0][ir] = containernl[ir];
-    srho.begin(0, *ptempRho, pw_rho, GlobalC::Pgrid, GlobalC::ucell.symm);
+    srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
     for (int ir = 0; ir < this->nx; ++ir) containernl[ir] = ptempRho->rho[0][ir];
 
     npy::SaveArrayAsNumpy("enhancement2.npy", false, 1, cshape, container);
@@ -507,7 +508,7 @@ void ML_data::getF_KS1(
     ModuleBase::GlobalFunc::ZEROS(wfcr, this->nx);
 
     double epsilonM = pelec->ekb(0,0);
-    assert(GlobalV::NSPIN == 1);
+    assert(PARAM.inp.nspin == 1);
 
     base_device::DEVICE_CPU* ctx;
 
@@ -645,7 +646,7 @@ void ML_data::getF_KS2(
     ModuleBase::GlobalFunc::ZEROS(LapWfcr, this->nx);
 
     double epsilonM = pelec->ekb(0,0);
-    assert(GlobalV::NSPIN == 1);
+    assert(PARAM.inp.nspin == 1);
 
     base_device::DEVICE_CPU* ctx;
 

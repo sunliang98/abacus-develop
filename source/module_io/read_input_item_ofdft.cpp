@@ -1,0 +1,327 @@
+
+#include "module_base/global_function.h"
+#include "module_base/tool_quit.h"
+#include "read_input.h"
+#include "read_input_tool.h"
+namespace ModuleIO
+{
+void ReadInput::item_ofdft()
+{
+    {
+        Input_Item item("of_kinetic");
+        item.annotation = "kinetic energy functional, such as tf, vw, wt";
+        read_sync_string(input.of_kinetic);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_method");
+        item.annotation = "optimization method used in OFDFT, including cg1, "
+                          "cg2, tn (default)";
+        read_sync_string(input.of_method);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_conv");
+        item.annotation = "the convergence criterion, potential, energy (default), or both";
+        read_sync_string(input.of_conv);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_tole");
+        item.annotation = "tolerance of the energy change (in Ry) for "
+                          "determining the convergence, default=2e-6 Ry";
+        read_sync_double(input.of_tole);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_tolp");
+        item.annotation = "tolerance of potential for determining the "
+                          "convergence, default=1e-5 in a.u.";
+        read_sync_double(input.of_tolp);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_tf_weight");
+        item.annotation = "weight of TF KEDF";
+        read_sync_double(input.of_tf_weight);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_vw_weight");
+        item.annotation = "weight of vW KEDF";
+        read_sync_double(input.of_vw_weight);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_wt_alpha");
+        item.annotation = "parameter alpha of WT KEDF";
+        read_sync_double(input.of_wt_alpha);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_wt_beta");
+        item.annotation = "parameter beta of WT KEDF";
+        read_sync_double(input.of_wt_beta);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_wt_rho0");
+        item.annotation = "the average density of system, used in WT KEDF, in Bohr^-3";
+        read_sync_double(input.of_wt_rho0);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_hold_rho0");
+        item.annotation = "If set to 1, the rho0 will be fixed even if the "
+                          "volume of system has changed, it will be "
+                          "set to 1 automaticly if of_wt_rho0 is not zero";
+        read_sync_bool(input.of_hold_rho0);
+        item.reset_value = [](const Input_Item& item, Parameter& para) {
+            if (para.input.of_wt_rho0 != 0)
+            {
+                para.input.of_hold_rho0 = true; // sunliang add 2022-06-17
+            }
+        };
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_lkt_a");
+        item.annotation = "parameter a of LKT KEDF";
+        read_sync_double(input.of_lkt_a);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_full_pw");
+        item.annotation = "If set to 1, ecut will be ignored when collect "
+                          "planewaves, so that all planewaves will be used";
+        read_sync_bool(input.of_full_pw);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_full_pw_dim");
+        item.annotation = "If of_full_pw = true, dimention of FFT is "
+                          "testricted to be (0) either odd or even; (1) odd "
+                          "only; (2) even only";
+        read_sync_int(input.of_full_pw_dim);
+        item.reset_value = [](const Input_Item& item, Parameter& para) {
+            if (!para.input.of_full_pw)
+            {
+                para.input.of_full_pw_dim = 0; // sunliang add 2022-08-31
+            }
+        };
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_read_kernel");
+        item.annotation = "If set to 1, the kernel of WT KEDF will be filled "
+                          "from file of_kernel_file, not from "
+                          "formula. Only usable for WT KEDF";
+        read_sync_bool(input.of_read_kernel);
+        item.reset_value = [](const Input_Item& item, Parameter& para) {
+            if (para.input.of_kinetic != "wt")
+            {
+                para.input.of_read_kernel = false; // sunliang add 2022-09-12
+            }
+        };
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_kernel_file");
+        item.annotation = "The name of WT kernel file.";
+        read_sync_string(input.of_kernel_file);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_gene_data");
+        item.annotation = "Generate training data or not";
+        read_sync_bool(input.of_ml_gene_data);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_local_test");
+        item.annotation = "Read in the density, and output the F and Pauli potential of it";
+        read_sync_bool(input.of_ml_local_test);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_feg");
+        item.annotation = "If we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0";
+        read_sync_int(input.of_ml_feg);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_gamma");
+        item.annotation = "If the input variables contain gamma";
+        read_sync_bool(input.of_ml_gamma);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_p");
+        item.annotation = "If the input variables contain p";
+        read_sync_bool(input.of_ml_p);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_q");
+        item.annotation = "If the input variables contain q";
+        read_sync_bool(input.of_ml_q);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_tanhp");
+        item.annotation = "If the input variables contain tanhp";
+        read_sync_bool(input.of_ml_tanhp);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_tanhq");
+        item.annotation = "If the input variables contain tanhq";
+        read_sync_bool(input.of_ml_tanhq);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_chi_p");
+        item.annotation = "tanhp = tanh(chi_p * p)";
+        read_sync_double(input.of_ml_chi_p);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_chi_q");
+        item.annotation = "tanhq = tanh(chi_q * q)";
+        read_sync_double(input.of_ml_chi_q);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_gammanl");
+        item.annotation = "If the input variables contain gammanl";
+        read_sync_string(input.of_ml_gammanl);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_pnl");
+        item.annotation = "If the input variables contain pnl";
+        read_sync_string(input.of_ml_pnl);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_qnl");
+        item.annotation = "If the input variables contain qnl";
+        read_sync_string(input.of_ml_qnl);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_xi");
+        item.annotation = "If the input variables contain xi";
+        read_sync_string(input.of_ml_xi);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_tanhxi");
+        item.annotation = "If the input variables contain tanhxi";
+        read_sync_string(input.of_ml_tanhxi);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_tanhxi_nl");
+        item.annotation = "If the input variables contain tanhxi_nl";
+        read_sync_string(input.of_ml_tanhxi_nl);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_tanh_pnl");
+        item.annotation = "If the input variables contain tanh_pnl";
+        read_sync_string(input.of_ml_tanh_pnl);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_tanh_qnl");
+        item.annotation = "If the input variables contain tanh_qnl";
+        read_sync_string(input.of_ml_tanh_qnl);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_tanhp_nl");
+        item.annotation = "If the input variables contain tanhp_nl";
+        read_sync_string(input.of_ml_tanhp_nl);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_tanhq_nl");
+        item.annotation = "If the input variables contain tanhq_nl";
+        read_sync_string(input.of_ml_tanhq_nl);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_chi_xi");
+        item.annotation = "tanhpxi = tanh(chi_xi * xi)";
+        read_sync_string(input.of_ml_chi_xi);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_chi_pnl");
+        item.annotation = "tanh_pnl = tanh(chi_pnl * pnl)";
+        read_sync_string(input.of_ml_chi_pnl);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_chi_qnl");
+        item.annotation = "tanh_pnl = tanh(chi_qnl * qnl)";
+        read_sync_string(input.of_ml_chi_qnl);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_r_min");
+        item.annotation = "If the input variables contain r_min";
+        read_sync_bool(input.of_ml_r_min);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_nnode");
+        item.annotation = "Number of node";
+        read_sync_int(input.of_ml_nnode);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_nlayer");
+        item.annotation = "Number of layer";
+        read_sync_int(input.of_ml_nlayer);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_nkernel");
+        item.annotation = "Number of kernels";
+        read_sync_int(input.of_ml_nkernel);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_kernel");
+        item.annotation = "Type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK";
+        read_sync_string(input.of_ml_kernel);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_kernel_scaling");
+        item.annotation = "Scaling parameter of kernel";
+        read_sync_string(input.of_ml_kernel_scaling);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_yukawa_alpha");
+        item.annotation = "Parameter alpha of yukawa kernel";
+        read_sync_string(input.of_ml_yukawa_alpha);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_kernel_file");
+        item.annotation = "The file of TKK";
+        read_sync_string(input.of_ml_kernel_file);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_device");
+        item.annotation = "Run NN on GPU or CPU";
+        read_sync_string(input.of_ml_device);
+        this->add_item(item);
+    }
+}
+} // namespace ModuleIO

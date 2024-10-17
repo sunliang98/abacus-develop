@@ -1,5 +1,6 @@
 //=====================
 // AUTHOR : Peize Lin
+#include "module_parameter/parameter.h"
 // DATE : 2021-11-02
 // REFACTORING AUTHOR : Daye Zheng
 // DATE : 2022-04-14
@@ -27,10 +28,10 @@ namespace hsolver
     matd h_mat, s_mat;
     phm_in->matrix(h_mat, s_mat);
     assert(h_mat.col == s_mat.col && h_mat.row == s_mat.row && h_mat.desc == s_mat.desc);
-    std::vector<double> eigen(GlobalV::NLOCAL, 0.0);
+    std::vector<double> eigen(PARAM.globalv.nlocal, 0.0);
     this->pdsygvx_diag(h_mat.desc, h_mat.col, h_mat.row, h_mat.p, s_mat.p, eigen.data(), psi);
     const int inc = 1;
-    BlasConnector::copy(GlobalV::NBANDS, eigen.data(), inc, eigenvalue_in, inc);
+    BlasConnector::copy(PARAM.inp.nbands, eigen.data(), inc, eigenvalue_in, inc);
 }
     template<>
     void DiagoScalapack<std::complex<double>>::diag(hamilt::Hamilt<std::complex<double>>* phm_in, psi::Psi<std::complex<double>>& psi, Real* eigenvalue_in)
@@ -39,11 +40,42 @@ namespace hsolver
     matcd h_mat, s_mat;
     phm_in->matrix(h_mat, s_mat);
     assert(h_mat.col == s_mat.col && h_mat.row == s_mat.row && h_mat.desc == s_mat.desc);
-    std::vector<double> eigen(GlobalV::NLOCAL, 0.0);
+    std::vector<double> eigen(PARAM.globalv.nlocal, 0.0);
     this->pzhegvx_diag(h_mat.desc, h_mat.col, h_mat.row, h_mat.p, s_mat.p, eigen.data(), psi);
     const int inc = 1;
-    BlasConnector::copy(GlobalV::NBANDS, eigen.data(), inc, eigenvalue_in, inc);
+    BlasConnector::copy(PARAM.inp.nbands, eigen.data(), inc, eigenvalue_in, inc);
 }
+
+#ifdef __MPI
+ template<>
+    void DiagoScalapack<double>::diag_pool(hamilt::MatrixBlock<double>& h_mat,
+    hamilt::MatrixBlock<double>& s_mat,
+    psi::Psi<double>& psi,
+    Real* eigenvalue_in,
+    MPI_Comm& comm)
+{
+    ModuleBase::TITLE("DiagoScalapack", "diag_pool");
+    assert(h_mat.col == s_mat.col && h_mat.row == s_mat.row && h_mat.desc == s_mat.desc);
+    std::vector<double> eigen(PARAM.globalv.nlocal, 0.0);
+    this->pdsygvx_diag(h_mat.desc, h_mat.col, h_mat.row, h_mat.p, s_mat.p, eigen.data(), psi);
+    const int inc = 1;
+    BlasConnector::copy(PARAM.inp.nbands, eigen.data(), inc, eigenvalue_in, inc);
+}
+    template<>
+    void DiagoScalapack<std::complex<double>>::diag_pool(hamilt::MatrixBlock<std::complex<double>>& h_mat,
+    hamilt::MatrixBlock<std::complex<double>>& s_mat,
+    psi::Psi<std::complex<double>>& psi,
+    Real* eigenvalue_in,
+    MPI_Comm& comm)
+{
+    ModuleBase::TITLE("DiagoScalapack", "diag_pool");
+    assert(h_mat.col == s_mat.col && h_mat.row == s_mat.row && h_mat.desc == s_mat.desc);
+    std::vector<double> eigen(PARAM.globalv.nlocal, 0.0);
+    this->pzhegvx_diag(h_mat.desc, h_mat.col, h_mat.row, h_mat.p, s_mat.p, eigen.data(), psi);
+    const int inc = 1;
+    BlasConnector::copy(PARAM.inp.nbands, eigen.data(), inc, eigenvalue_in, inc);
+}
+#endif
 
     template<typename T>
     std::pair<int, std::vector<int>> DiagoScalapack<T>::pdsygvx_once(const int* const desc,
@@ -60,13 +92,13 @@ namespace hsolver
     memcpy(s_tmp.c, s_mat, sizeof(double) * ncol * nrow);
 
     const char jobz = 'V', range = 'I', uplo = 'U';
-    const int itype = 1, il = 1, iu = GlobalV::NBANDS, one = 1;
+    const int itype = 1, il = 1, iu = PARAM.inp.nbands, one = 1;
     int M = 0, NZ = 0, lwork = -1, liwork = -1, info = 0;
     double vl = 0, vu = 0;
     const double abstol = 0, orfac = -1;
     std::vector<double> work(3, 0);
     std::vector<int> iwork(1, 0);
-    std::vector<int> ifail(GlobalV::NLOCAL, 0);
+    std::vector<int> ifail(PARAM.globalv.nlocal, 0);
     std::vector<int> iclustr(2 * GlobalV::DSIZE);
     std::vector<double> gap(GlobalV::DSIZE);
 
@@ -74,7 +106,7 @@ namespace hsolver
              &jobz,
              &range,
              &uplo,
-             &GlobalV::NLOCAL,
+             &PARAM.globalv.nlocal,
              h_tmp.c,
              &one,
              &one,
@@ -104,10 +136,11 @@ namespace hsolver
              iclustr.data(),
              gap.data(),
              &info);
-    if (info)
+    if (info) {
         throw std::runtime_error("info = " + ModuleBase::GlobalFunc::TO_STRING(info) + ".\n"
                                  + ModuleBase::GlobalFunc::TO_STRING(__FILE__) + " line "
                                  + ModuleBase::GlobalFunc::TO_STRING(__LINE__));
+}
 
     //	GlobalV::ofs_running<<"lwork="<<work[0]<<"\t"<<"liwork="<<iwork[0]<<std::endl;
     lwork = work[0];
@@ -119,7 +152,7 @@ namespace hsolver
              &jobz,
              &range,
              &uplo,
-             &GlobalV::NLOCAL,
+             &PARAM.globalv.nlocal,
              h_tmp.c,
              &one,
              &one,
@@ -151,22 +184,23 @@ namespace hsolver
              &info);
     //	GlobalV::ofs_running<<"M="<<M<<"\t"<<"NZ="<<NZ<<std::endl;
 
-    if (info == 0)
+    if (info == 0) {
         return std::make_pair(info, std::vector<int>{});
-    else if (info < 0)
+    } else if (info < 0) {
         return std::make_pair(info, std::vector<int>{});
-    else if (info % 2)
+    } else if (info % 2) {
         return std::make_pair(info, ifail);
-    else if (info / 2 % 2)
+    } else if (info / 2 % 2) {
         return std::make_pair(info, iclustr);
-    else if (info / 4 % 2)
+    } else if (info / 4 % 2) {
         return std::make_pair(info, std::vector<int>{M, NZ});
-    else if (info / 16 % 2)
+    } else if (info / 16 % 2) {
         return std::make_pair(info, ifail);
-    else
+    } else {
         throw std::runtime_error("info = " + ModuleBase::GlobalFunc::TO_STRING(info) + ".\n"
                                  + ModuleBase::GlobalFunc::TO_STRING(__FILE__) + " line "
                                  + ModuleBase::GlobalFunc::TO_STRING(__LINE__));
+}
 }
     template<typename T>
     std::pair<int, std::vector<int>> DiagoScalapack<T>::pzhegvx_once(const int* const desc,
@@ -183,7 +217,7 @@ namespace hsolver
     memcpy(s_tmp.c, s_mat, sizeof(std::complex<double>) * ncol * nrow);
 
     const char jobz = 'V', range = 'I', uplo = 'U';
-    const int itype = 1, il = 1, iu = GlobalV::NBANDS, one = 1;
+    const int itype = 1, il = 1, iu = PARAM.inp.nbands, one = 1;
     int M = 0, NZ = 0, lwork = -1, lrwork = -1, liwork = -1, info = 0;
     const double abstol = 0, orfac = -1;
     //Note: pzhegvx_ has a bug
@@ -193,7 +227,7 @@ namespace hsolver
     std::vector<std::complex<double>> work(1, 0);
     std::vector<double> rwork(3, 0);
     std::vector<int> iwork(1, 0);
-    std::vector<int> ifail(GlobalV::NLOCAL, 0);
+    std::vector<int> ifail(PARAM.globalv.nlocal, 0);
     std::vector<int> iclustr(2 * GlobalV::DSIZE);
     std::vector<double> gap(GlobalV::DSIZE);
 
@@ -201,7 +235,7 @@ namespace hsolver
              &jobz,
              &range,
              &uplo,
-             &GlobalV::NLOCAL,
+             &PARAM.globalv.nlocal,
              h_tmp.c,
              &one,
              &one,
@@ -233,15 +267,16 @@ namespace hsolver
              iclustr.data(),
              gap.data(),
              &info);
-    if (info)
+    if (info) {
         throw std::runtime_error("info=" + ModuleBase::GlobalFunc::TO_STRING(info) + ". "
                                  + ModuleBase::GlobalFunc::TO_STRING(__FILE__) + " line "
                                  + ModuleBase::GlobalFunc::TO_STRING(__LINE__));
+}
 
     //	GlobalV::ofs_running<<"lwork="<<work[0]<<"\t"<<"lrwork="<<rwork[0]<<"\t"<<"liwork="<<iwork[0]<<std::endl;
     lwork = work[0].real();
     work.resize(lwork, 0);
-    lrwork = rwork[0] + this->degeneracy_max * GlobalV::NLOCAL;
+    lrwork = rwork[0] + this->degeneracy_max * PARAM.globalv.nlocal;
     int maxlrwork = std::max(lrwork,3);
     rwork.resize(maxlrwork, 0);
     liwork = iwork[0];
@@ -251,7 +286,7 @@ namespace hsolver
              &jobz,
              &range,
              &uplo,
-             &GlobalV::NLOCAL,
+             &PARAM.globalv.nlocal,
              h_tmp.c,
              &one,
              &one,
@@ -285,22 +320,23 @@ namespace hsolver
              &info);
     //	GlobalV::ofs_running<<"M="<<M<<"\t"<<"NZ="<<NZ<<std::endl;
 
-    if (info == 0)
+    if (info == 0) {
         return std::make_pair(info, std::vector<int>{});
-    else if (info < 0)
+    } else if (info < 0) {
         return std::make_pair(info, std::vector<int>{});
-    else if (info % 2)
+    } else if (info % 2) {
         return std::make_pair(info, ifail);
-    else if (info / 2 % 2)
+    } else if (info / 2 % 2) {
         return std::make_pair(info, iclustr);
-    else if (info / 4 % 2)
+    } else if (info / 4 % 2) {
         return std::make_pair(info, std::vector<int>{M, NZ});
-    else if (info / 16 % 2)
+    } else if (info / 16 % 2) {
         return std::make_pair(info, ifail);
-    else
+    } else {
         throw std::runtime_error("info = " + ModuleBase::GlobalFunc::TO_STRING(info) + ".\n"
                                  + ModuleBase::GlobalFunc::TO_STRING(__FILE__) + " line "
                                  + ModuleBase::GlobalFunc::TO_STRING(__LINE__));
+}
 }
     template<typename T>
     void DiagoScalapack<T>::pdsygvx_diag(const int* const desc,
@@ -315,8 +351,9 @@ namespace hsolver
     {
         const std::pair<int, std::vector<int>> info_vec = pdsygvx_once(desc, ncol, nrow, h_mat, s_mat, ekb, wfc_2d);
         post_processing(info_vec.first, info_vec.second);
-        if (info_vec.first == 0)
+        if (info_vec.first == 0) {
             break;
+}
     }
 }
 
@@ -333,8 +370,9 @@ namespace hsolver
     {
         const std::pair<int, std::vector<int>> info_vec = pzhegvx_once(desc, ncol, nrow, h_mat, s_mat, ekb, wfc_2d);
         post_processing(info_vec.first, info_vec.second);
-        if (info_vec.first == 0)
+        if (info_vec.first == 0) {
             break;
+}
     }
 }
 
@@ -363,15 +401,17 @@ namespace hsolver
     else if (info % 2)
     {
         std::string str_ifail = "ifail = ";
-        for (const int i: vec)
+        for (const int i: vec) {
             str_ifail += ModuleBase::GlobalFunc::TO_STRING(i) + " ";
+}
         throw std::runtime_error(str_info_FILE + str_ifail);
     }
     else if (info / 2 % 2)
     {
         int degeneracy_need = 0;
-        for (int irank = 0; irank < GlobalV::DSIZE; ++irank)
+        for (int irank = 0; irank < GlobalV::DSIZE; ++irank) {
             degeneracy_need = std::max(degeneracy_need, vec[2 * irank + 1] - vec[2 * irank]);
+}
         const std::string str_need = "degeneracy_need = " + ModuleBase::GlobalFunc::TO_STRING(degeneracy_need) + ".\n";
         const std::string str_saved
             = "degeneracy_saved = " + ModuleBase::GlobalFunc::TO_STRING(this->degeneracy_max) + ".\n";
@@ -391,7 +431,7 @@ namespace hsolver
         const std::string str_M = "M = " + ModuleBase::GlobalFunc::TO_STRING(vec[0]) + ".\n";
         const std::string str_NZ = "NZ = " + ModuleBase::GlobalFunc::TO_STRING(vec[1]) + ".\n";
         const std::string str_NBANDS
-            = "GlobalV::NBANDS = " + ModuleBase::GlobalFunc::TO_STRING(GlobalV::NBANDS) + ".\n";
+            = "PARAM.inp.nbands = " + ModuleBase::GlobalFunc::TO_STRING(PARAM.inp.nbands) + ".\n";
         throw std::runtime_error(str_info_FILE + str_M + str_NZ + str_NBANDS);
     }
     else if (info / 16 % 2)

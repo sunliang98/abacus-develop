@@ -2,6 +2,7 @@
 #include "grid_technique.h"
 #include "module_base/timer.h"
 #include "module_base/ylm.h"
+#include "module_base/array_pool.h"
 #include "module_basis/module_ao/ORB_read.h"
 #include "module_hamilt_pw/hamilt_pwdft/global.h"
 
@@ -12,16 +13,24 @@ void Gint_Gamma::cal_env(const double* wfc, double* rho, UnitCell& ucell)
     // it's a uniform grid to save orbital values, so the delta_r is a constant.
     const double delta_r = this->gridt->dr_uniform;
     const int max_size = this->gridt->max_atom;
-    const int LD_pool = max_size * ucell.nwmax;
+    if (max_size <= 0){
+        ModuleBase::WARNING_QUIT("Gint_Gamma::cal_env",
+                                    "the max_size is less than 0!");
+    }
+    const int nbx = this->gridt->nbx;
+    const int nby = this->gridt->nby;
+    const int nbz_start = this->gridt->nbzp_start;
+    const int nbz = this->gridt->nbzp;
+    const int ncyz = this->ny * this->nplane; // mohan add 2012-03-25
+    const int bxyz = this->bxyz;
 
-    if (max_size != 0)
+    #pragma omp parallel 
     {
-        const int nbx = this->gridt->nbx;
-        const int nby = this->gridt->nby;
-        const int nbz_start = this->gridt->nbzp_start;
-        const int nbz = this->gridt->nbzp;
-        const int ncyz = this->ny * this->nplane; // mohan add 2012-03-25
-
+        std::vector<int> block_iw(max_size, 0);
+        std::vector<int> block_index(max_size+1, 0);
+        std::vector<int> block_size(max_size, 0);
+        std::vector<int> vindex(bxyz,0);
+        #pragma omp for
         for (int grid_index = 0; grid_index < this->nbxx; grid_index++)
         {
 
@@ -30,36 +39,38 @@ void Gint_Gamma::cal_env(const double* wfc, double* rho, UnitCell& ucell)
             if (size == 0)
                 continue;
 
-            int *block_iw, *block_index, *block_size;
-            bool** cal_flag;
+            // int *block_iw, *block_index, *block_size;
+            ModuleBase::Array_Pool<bool> cal_flag(bxyz, size);
             Gint_Tools::get_block_info(*this->gridt,
                                        this->bxyz,
                                        size,
                                        grid_index,
-                                       block_iw,
-                                       block_index,
-                                       block_size,
-                                       cal_flag);
+                                       block_iw.data(),
+                                       block_index.data(),
+                                       block_size.data(),
+                                       cal_flag.get_ptr_2D());
+            const int LD_pool = block_index[size]; 
 
             // evaluate psi on grids
-            Gint_Tools::Array_Pool<double> psir_ylm(this->bxyz, LD_pool);
+            ModuleBase::Array_Pool<double> psir_ylm(this->bxyz, LD_pool);
             Gint_Tools::cal_psir_ylm(*this->gridt,
                                      this->bxyz,
                                      size,
                                      grid_index,
                                      delta_r,
-                                     block_index,
-                                     block_size,
-                                     cal_flag,
-                                     psir_ylm.ptr_2D);
+                                     block_index.data(),
+                                     block_size.data(),
+                                     cal_flag.get_ptr_2D(),
+                                     psir_ylm.get_ptr_2D());
 
-            int* vindex = Gint_Tools::get_vindex(this->bxyz,
-                                                 this->bx,
-                                                 this->by,
-                                                 this->bz,
-                                                 this->nplane,
-                                                 this->gridt->start_ind[grid_index],
-                                                 ncyz);
+             Gint_Tools::get_vindex(this->bxyz,
+                                    this->bx,
+                                    this->by,
+                                    this->bz,
+                                    this->nplane,
+                                    this->gridt->start_ind[grid_index],
+                                    ncyz,
+                                    vindex.data());
 
             for (int ia1 = 0; ia1 < size; ia1++)
             {
@@ -75,7 +86,7 @@ void Gint_Gamma::cal_env(const double* wfc, double* rho, UnitCell& ucell)
                     if (cal_flag[ib][ia1])
                     {
                         int iw1_lo = this->gridt->trace_lo[start1];
-                        double* psi1 = &psir_ylm.ptr_2D[ib][block_index[ia1]];
+                        double* psi1 = &psir_ylm[ib][block_index[ia1]];
                         double tmp = 0.0;
                         for (int iw = 0; iw < atom1->nw; ++iw, ++iw1_lo)
                         {
@@ -85,18 +96,7 @@ void Gint_Gamma::cal_env(const double* wfc, double* rho, UnitCell& ucell)
                     } // cal_flag
                 }     // ib
             }         // ia1
-
-            delete[] vindex;
-            delete[] block_iw;
-            delete[] block_index;
-            delete[] block_size;
-            for (int ib = 0; ib < this->bxyz; ++ib)
-            {
-                delete[] cal_flag[ib];
-            }
-            delete[] cal_flag;
         }
     }
-
     return;
 }

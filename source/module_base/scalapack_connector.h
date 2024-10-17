@@ -17,12 +17,12 @@ extern "C"
 //	void pzpotrf_(char *uplo, int *n, double _Complex *a, int *ia, int *ja, int *desca, int *info);
 	void pzpotrf_(char *uplo, int *n, std::complex<double> *a, int *ia, int *ja, int *desca, int *info);
 
-	void pdtran_(int *m , int *n ,
-		double *alpha , double *a , int *ia , int *ja , int *desca ,
-		double *beta ,  double *c , int *ic , int *jc , int *descc );
+    void pdtran_(const int* m, const int* n,
+        const double* alpha, const double* a, const int* ia, const int* ja, const  int* desca,
+        const double* beta, double* c, const int* ic, const int* jc, const int* descc);
 
 	void pztranu_(const int *m,const int*n,
-		const std::complex<double> *alpha , std::complex<double> *a , const int *ia , const int *ja ,const int *desca ,
+        const std::complex<double>* alpha, const std::complex<double>* a, const int* ia, const int* ja, const int* desca,
 		const std::complex<double> *beta ,  std::complex<double> *c , const int *ic ,const int *jc ,const int *descc);
 
 	void pzgemv_(
@@ -180,7 +180,21 @@ public:
 		pzgeadd_(&transa, &m, &n, &alpha, a, &ia, &ja, desca, &beta, c, &ic, &jc, descc);
 	}
 
-	static inline
+    static inline
+        void gemm(
+            const char transa, const char transb,
+            const int M, const int N, const int K,
+            const double alpha,
+            const double* A, const int IA, const int JA, const int* DESCA,
+            const double* B, const int IB, const int JB, const int* DESCB,
+            const double beta,
+            double* C, const int IC, const int JC, const int* DESCC)
+    {
+        pdgemm_(&transa, &transb, &M, &N, &K, &alpha, A, &IA, &JA, DESCA,
+            B, &IB, &JB, DESCB, &beta, C, &IC, &JC, DESCC);
+    }
+
+    static inline
 	void gemm(
 		const char transa, const char transb,
 		const int M, const int N, const int K,
@@ -194,7 +208,7 @@ public:
 			B, &IB, &JB, DESCB, &beta, C, &IC, &JC, DESCC);
 	}
 
-	static inline
+    static inline
 	void getrf(
 		const int M, const int N, 
 		std::complex<double> *A, const int IA, const int JA, const int *DESCA,

@@ -1,5 +1,6 @@
 //==========================================================
 // Author:Xin Qu
+#include "module_parameter/parameter.h"
 // DATE : 2019-12-10
 //==========================================================
 #include "dftu.h"
@@ -11,7 +12,6 @@
 #include "module_elecstate/elecstate_lcao.h"
 #include "module_elecstate/magnetism.h"
 #include "module_elecstate/module_charge/charge.h"
-#include "module_hamilt_lcao/hamilt_lcaodft/LCAO_matrix.h"
 #include "module_hamilt_pw/hamilt_pwdft/global.h"
 
 #include <cmath>
@@ -72,7 +72,6 @@ namespace ModuleDFTU
 {
 
 void DFTU::force_stress(const elecstate::ElecState* pelec,
-                        LCAO_Matrix& lm,
                         const Parallel_Orbitals& pv,
                         ForceStressArrays& fsr, // mohan add 2024-06-16
                         ModuleBase::matrix& force_dftu,
@@ -82,20 +81,18 @@ void DFTU::force_stress(const elecstate::ElecState* pelec,
     ModuleBase::TITLE("DFTU", "force_stress");
     ModuleBase::timer::tick("DFTU", "force_stress");
 
-    const int nlocal = GlobalV::NLOCAL;
+    const int nlocal = PARAM.globalv.nlocal;
 
-    this->LM = &lm;
-
-    if (GlobalV::CAL_FORCE)
+    if (PARAM.inp.cal_force)
     {
         force_dftu.zero_out();
     }
-    if (GlobalV::CAL_STRESS)
+    if (PARAM.inp.cal_stress)
     {
         stress_dftu.zero_out();
     }
 
-    if (GlobalV::GAMMA_ONLY_LOCAL)
+    if (PARAM.globalv.gamma_only_local)
     {
         const char transN = 'N';
         const char transT = 'T';
@@ -141,12 +138,12 @@ void DFTU::force_stress(const elecstate::ElecState* pelec,
 
             delete[] VU;
 
-            if (GlobalV::CAL_FORCE)
+            if (PARAM.inp.cal_force)
             {
                 this->cal_force_gamma(&rho_VU[0], pv, fsr.DSloc_x, fsr.DSloc_y, fsr.DSloc_z, force_dftu);
             }
 
-            if (GlobalV::CAL_STRESS)
+            if (PARAM.inp.cal_stress)
             {
                 this->cal_stress_gamma(GlobalC::ucell,
                                        pv,
@@ -207,23 +204,23 @@ void DFTU::force_stress(const elecstate::ElecState* pelec,
 
             delete[] VU;
 
-            if (GlobalV::CAL_FORCE)
+            if (PARAM.inp.cal_force)
             {
                 cal_force_k(fsr, pv, ik, &rho_VU[0], force_dftu, kv.kvec_d);
             }
-            if (GlobalV::CAL_STRESS)
+            if (PARAM.inp.cal_stress)
             {
                 cal_stress_k(fsr, pv, ik, &rho_VU[0], stress_dftu, kv.kvec_d);
             }
         } // ik
     }
 
-    if (GlobalV::CAL_FORCE)
+    if (PARAM.inp.cal_force)
     {
         Parallel_Reduce::reduce_pool(force_dftu.c, force_dftu.nr * force_dftu.nc);
     }
 
-    if (GlobalV::CAL_STRESS)
+    if (PARAM.inp.cal_stress)
     {
         Parallel_Reduce::reduce_pool(stress_dftu.c, stress_dftu.nr * stress_dftu.nc);
 
@@ -275,9 +272,9 @@ void DFTU::cal_force_k(ForceStressArrays& fsr,
 #ifdef __MPI
         pzgemm_(&transN,
                 &transC,
-                &GlobalV::NLOCAL,
-                &GlobalV::NLOCAL,
-                &GlobalV::NLOCAL,
+                &PARAM.globalv.nlocal,
+                &PARAM.globalv.nlocal,
+                &PARAM.globalv.nlocal,
                 &one,
                 &dSm_k[0],
                 &one_int,
@@ -313,9 +310,9 @@ void DFTU::cal_force_k(ForceStressArrays& fsr,
 #ifdef __MPI
         pzgemm_(&transN,
                 &transN,
-                &GlobalV::NLOCAL,
-                &GlobalV::NLOCAL,
-                &GlobalV::NLOCAL,
+                &PARAM.globalv.nlocal,
+                &PARAM.globalv.nlocal,
+                &PARAM.globalv.nlocal,
                 &one,
                 &dSm_k[0],
                 &one_int,
@@ -356,7 +353,7 @@ void DFTU::cal_force_k(ForceStressArrays& fsr,
 
                         for (int m = 0; m < 2 * l + 1; m++)
                         {
-                            for (int ipol = 0; ipol < GlobalV::NPOL; ipol++)
+                            for (int ipol = 0; ipol < PARAM.globalv.npol; ipol++)
                             {
                                 const int iwt = this->iatlnmipol2iwt[iat][l][n][m][ipol];
                                 const int mu = pv.global2local_row(iwt);
@@ -387,7 +384,7 @@ void DFTU::cal_stress_k(ForceStressArrays& fsr,
     ModuleBase::TITLE("DFTU", "cal_stress_k");
     ModuleBase::timer::tick("DFTU", "cal_stress_k");
 
-    const int nlocal = GlobalV::NLOCAL;
+    const int nlocal = PARAM.globalv.nlocal;
 
     const char transN = 'N';
     const int one_int = 1;
@@ -486,9 +483,9 @@ void DFTU::cal_force_gamma(const double* rho_VU,
 #ifdef __MPI
         pdgemm_(&transN,
                 &transT,
-                &GlobalV::NLOCAL,
-                &GlobalV::NLOCAL,
-                &GlobalV::NLOCAL,
+                &PARAM.globalv.nlocal,
+                &PARAM.globalv.nlocal,
+                &PARAM.globalv.nlocal,
                 &one,
                 tmp_ptr,
                 &one_int,
@@ -524,9 +521,9 @@ void DFTU::cal_force_gamma(const double* rho_VU,
 #ifdef __MPI
         pdgemm_(&transN,
                 &transT,
-                &GlobalV::NLOCAL,
-                &GlobalV::NLOCAL,
-                &GlobalV::NLOCAL,
+                &PARAM.globalv.nlocal,
+                &PARAM.globalv.nlocal,
+                &PARAM.globalv.nlocal,
                 &one,
                 tmp_ptr,
                 &one_int,
@@ -569,7 +566,7 @@ void DFTU::cal_force_gamma(const double* rho_VU,
                         // Calculate the local occupation number matrix
                         for (int m = 0; m < 2 * l + 1; m++)
                         {
-                            for (int ipol = 0; ipol < GlobalV::NPOL; ipol++)
+                            for (int ipol = 0; ipol < PARAM.globalv.npol; ipol++)
                             {
                                 const int iwt = this->iatlnmipol2iwt[iat][l][n][m][ipol];
                                 const int mu = pv.global2local_row(iwt);
@@ -613,7 +610,7 @@ void DFTU::cal_stress_gamma(const UnitCell& ucell,
     std::vector<double> dSR_gamma(pv.nloc);
     std::vector<double> dm_VU_sover(pv.nloc);
 
-    const int nlocal = GlobalV::NLOCAL;
+    const int nlocal = PARAM.globalv.nlocal;
 
     for (int dim1 = 0; dim1 < 3; dim1++)
     {
@@ -643,14 +640,14 @@ void DFTU::cal_stress_gamma(const UnitCell& ucell,
                     pv.desc);
 #endif
 
-            for (int ir = 0; ir < this->LM->ParaV->nrow; ir++)
+            for (int ir = 0; ir < this->paraV->nrow; ir++)
             {
-                const int iwt1 = this->LM->ParaV->local2global_row(ir);
+                const int iwt1 = this->paraV->local2global_row(ir);
 
-                for (int ic = 0; ic < this->LM->ParaV->ncol; ic++)
+                for (int ic = 0; ic < this->paraV->ncol; ic++)
                 {
-                    const int iwt2 = this->LM->ParaV->local2global_col(ic);
-                    const int irc = ic * this->LM->ParaV->nrow + ir;
+                    const int iwt2 = this->paraV->local2global_col(ic);
+                    const int irc = ic * this->paraV->nrow + ir;
 
                     if (iwt1 == iwt2)
                         stress_dftu(dim1, dim2) += 2.0 * dm_VU_sover[irc];

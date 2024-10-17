@@ -1,5 +1,6 @@
 #include "numerical_descriptor.h"
 #include "module_hamilt_pw/hamilt_pwdft/global.h"
+#include "module_parameter/parameter.h"
 #include "module_cell/module_symmetry/symmetry.h"
 #include "winput.h"
 #include "module_base/math_ylmreal.h"
@@ -46,12 +47,12 @@ void Numerical_Descriptor::output_descriptor(const psi::Psi<std::complex<double>
 	// Peize Lin change 2022.12.15
     // 0 stands for : 'Faln' is not used.
     this->bessel_basis.init(
-		0,
-		std::stod(INPUT.bessel_descriptor_ecut),
+		false,
+		std::stod(PARAM.inp.bessel_descriptor_ecut),
 		GlobalC::ucell.ntype,
 		this->lmax,
-		INPUT.bessel_descriptor_smooth,
-		INPUT.bessel_descriptor_sigma,
+		PARAM.inp.bessel_descriptor_smooth,
+		PARAM.inp.bessel_descriptor_sigma,
 		rcut_in,
 		tol_in,
         GlobalC::ucell
@@ -85,8 +86,8 @@ void Numerical_Descriptor::output_descriptor(const psi::Psi<std::complex<double>
 	// 3. Initialize overlap_Q1 and Q2 
 	//-------------------------------------
 	// OVERLAP : < J_mu | Psi >
-    ModuleBase::realArray overlap_Q1(nks, GlobalV::NBANDS, this->nlocal );
-    ModuleBase::realArray overlap_Q2(nks, GlobalV::NBANDS, this->nlocal );
+    ModuleBase::realArray overlap_Q1(nks, PARAM.inp.nbands, this->nlocal );
+    ModuleBase::realArray overlap_Q2(nks, PARAM.inp.nbands, this->nlocal );
 
     ModuleBase::GlobalFunc::ZEROS(overlap_Q1.ptr, overlap_Q1.getSize() );
     ModuleBase::GlobalFunc::ZEROS(overlap_Q2.ptr, overlap_Q2.getSize() );
@@ -310,7 +311,7 @@ normalization 2015-12-29 for (int ie=0; ie < nmax; ie++)
                     for (int m=0; m<2*L+1; m++)
                     {
                         const int lm = L*L+m;
-                        for (int ib=0; ib<GlobalV::NBANDS; ib++)
+                        for (int ib=0; ib<PARAM.inp.nbands; ib++)
                         {
                             std::complex<double> overlap_tmp = ModuleBase::ZERO;
                             for (int ig=0; ig<np; ig++)
@@ -335,7 +336,7 @@ normalization 2015-12-29 for (int ie=0; ie < nmax; ie++)
 }
 */
 
-void Numerical_Descriptor::init_mu_index(void)
+void Numerical_Descriptor::init_mu_index()
 {
 	GlobalV::ofs_running << " Initialize the mu index for deepks" << std::endl;
 	GlobalV::ofs_running << " lmax = " << this->lmax << std::endl;

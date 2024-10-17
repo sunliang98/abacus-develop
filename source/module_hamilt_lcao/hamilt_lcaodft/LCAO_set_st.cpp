@@ -1,6 +1,6 @@
 #include "module_base/timer.h"
 #include "module_hamilt_lcao/hamilt_lcaodft/LCAO_domain.h"
-#include "module_hamilt_pw/hamilt_pwdft/global.h" // only for INPUT
+#include "module_parameter/parameter.h"
 
 namespace LCAO_domain
 {
@@ -37,7 +37,7 @@ void single_derivative(ForceStressArrays& fsr,
 )
 {
 
-    const bool gamma_only_local = GlobalV::GAMMA_ONLY_LOCAL;
+    const bool gamma_only_local = PARAM.globalv.gamma_only_local;
 
     // convert m (0,1,...2l) to M (-l, -l+1, ..., l-1, l)
     const int M1 = (m1 % 2 == 0) ? -m1 / 2 : (m1 + 1) / 2;
@@ -202,8 +202,7 @@ void single_derivative(ForceStressArrays& fsr,
     } // end condition 7, gamma or multiple k
 }
 
-void single_overlap(LCAO_Matrix& lm,
-                    const LCAO_Orbitals& orb,
+void single_overlap(const LCAO_Orbitals& orb,
                     const TwoCenterBundle& two_center_bundle,
                     const Parallel_Orbitals& pv,
                     const UnitCell& ucell,
@@ -234,7 +233,7 @@ void single_overlap(LCAO_Matrix& lm,
                     double* HSloc   // output value
 )
 {
-    const bool gamma_only_local = GlobalV::GAMMA_ONLY_LOCAL;
+    const bool gamma_only_local = PARAM.globalv.gamma_only_local;
 
     // convert m (0,1,...2l) to M (-l, -l+1, ..., l-1, l)
     const int M1 = (m1 % 2 == 0) ? -m1 / 2 : (m1 + 1) / 2;
@@ -272,7 +271,7 @@ void single_overlap(LCAO_Matrix& lm,
         // according to global2local_row and global2local_col
         // the last paramete: 1 for Sloc, 2 for Hloc
         // and 3 for Hloc_fixed.
-        lm.set_HSgamma(iw1_all, iw2_all, olm[0], HSloc);
+        LCAO_domain::set_mat2d(iw1_all, iw2_all, olm[0], pv, HSloc);
     }
     else // condition 7, multiple k-points algorithm
     {
@@ -309,10 +308,10 @@ void single_overlap(LCAO_Matrix& lm,
     } // end condition 7, gamma point or multiple k-points
 }
 
-void build_ST_new(LCAO_Matrix& lm,
-                  ForceStressArrays& fsr,
+void build_ST_new(ForceStressArrays& fsr,
                   const char& dtype,
                   const bool& calc_deri,
+                  const bool& cal_stress,
                   const UnitCell& ucell,
                   const LCAO_Orbitals& orb,
                   const Parallel_Orbitals& pv,
@@ -325,10 +324,9 @@ void build_ST_new(LCAO_Matrix& lm,
     ModuleBase::TITLE("LCAO_domain", "build_ST_new");
     ModuleBase::timer::tick("LCAO_domain", "build_ST_new");
 
-    const int nspin = GlobalV::NSPIN;
-    const int npol = GlobalV::NPOL;
-    const bool cal_stress = GlobalV::CAL_STRESS;
-    const bool gamma_only_local = GlobalV::GAMMA_ONLY_LOCAL;
+    const int nspin = PARAM.inp.nspin;
+    const int npol = PARAM.globalv.npol;
+    const bool gamma_only_local = PARAM.globalv.gamma_only_local;
 
     int total_nnr = 0;
 #ifdef _OPENMP
@@ -364,7 +362,7 @@ void build_ST_new(LCAO_Matrix& lm,
             {
                 for (int k = 0; k < 3; k++)
                 {
-                    tau1[k] = tau1[k] - atom1->vel[I1][k] * INPUT.mdp.md_dt / ucell.lat0;
+                    tau1[k] = tau1[k] - atom1->vel[I1][k] * PARAM.mdp.md_dt / ModuleBase::AU_to_FS / ucell.lat0;
                 }
             }
 
@@ -422,8 +420,7 @@ void build_ST_new(LCAO_Matrix& lm,
                             // condition 6, not calculate the derivative
                             if (!calc_deri)
                             {
-                                single_overlap(lm,
-                                               orb,
+                                single_overlap(orb,
                                                two_center_bundle,
                                                pv,
                                                ucell,
@@ -518,13 +515,15 @@ void build_ST_new(LCAO_Matrix& lm,
                         for (int jj = 0; jj < atom1->nw * npol; ++jj)
                         {
                             const int mu = pv.global2local_row(start1 + jj);
-                            if (mu < 0)
+                            if (mu < 0) {
                                 continue;
+}
                             for (int kk = 0; kk < atom2->nw * npol; ++kk)
                             {
                                 const int nu = pv.global2local_col(start2 + kk);
-                                if (nu < 0)
+                                if (nu < 0) {
                                     continue;
+}
                                 ++total_nnr;
                                 ++nnr;
                             } // kk

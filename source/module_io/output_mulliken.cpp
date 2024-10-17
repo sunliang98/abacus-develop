@@ -1,5 +1,6 @@
 #include "module_io/output_mulliken.h"
 
+#include "module_parameter/parameter.h"
 #include "module_base/formatter.h"
 #include "module_base/name_angular.h"
 #include "module_base/scalapack_connector.h"
@@ -450,18 +451,30 @@ void Output_Mulliken<TK>::print_atom_mag(const std::vector<std::vector<double>>&
     }
     else if (this->nspin_ == 4)
     {
-        const std::vector<std::string> title = {"Total Magnetism (uB)", "", "", ""};
-        const std::vector<std::string> fmts = {"%-26s", "%20.10f", "%20.10f", "%20.10f"};
-        FmtTable table(title, nat, fmts, {FmtTable::Align::RIGHT, FmtTable::Align::LEFT});
+        std::vector<double> magnitude(nat, 0.0);
+        std::vector<double> polar(nat, 0.0);
+        std::vector<double> azimuth(nat, 0.0);
+        const std::vector<std::string> title = {"Total Magnetism (uB)", "x", "y", "z"};
+        const std::vector<std::string> fmts = {"%26s", "%20.10f", "%20.10f", "%20.10f"};
+        FmtTable table(title, nat, fmts, {FmtTable::Align::RIGHT, FmtTable::Align::RIGHT});
         for (int iat = 0; iat < nat; ++iat)
         {
             atom_label.push_back(this->cell_index_->get_atom_label(iat, true));
             mag_x[iat] = atom_chg[iat][1];
             mag_y[iat] = atom_chg[iat][2];
             mag_z[iat] = atom_chg[iat][3];
+            magnitude[iat] = std::sqrt(mag_x[iat] * mag_x[iat] + mag_y[iat] * mag_y[iat] + mag_z[iat] * mag_z[iat]);
+            polar[iat] = std::acos(mag_z[iat] / magnitude[iat]) * 180.0 / ModuleBase::PI;
+            azimuth[iat] = std::atan2(mag_y[iat], mag_x[iat]) * 180.0 / ModuleBase::PI;
         }
         table << atom_label << mag_x << mag_y << mag_z;
         os << table.str() << std::endl;
+        /// output mag in polar coordinates
+        const std::vector<std::string> title_polar = {"Total Magnetism (uB)", "Magnitude (uB)", "Polar (degree)", "Azimuth (degree)"};
+        const std::vector<std::string> fmts_polar = {"%26s", "%20.10f", "%20.10f", "%20.10f"};
+        FmtTable table_polar(title_polar, nat, fmts_polar, {FmtTable::Align::RIGHT, FmtTable::Align::RIGHT});
+        table_polar << atom_label << magnitude << polar << azimuth;
+        os << table_polar.str() << std::endl;
     }
     else if (this->nspin_ == 1)
     {
@@ -556,8 +569,8 @@ void Output_Mulliken<double>::cal_orbMulP()
     int nw = this->cell_index_->get_nw();
     const int nspin = (this->nspin_ == 2) ? 2 : 1;
     const int nlocal = (this->nspin_ == 4) ? nw / 2 : nw;
-    // std::vector<std::vector<double>> MecMulP(GlobalV::NSPIN, std::vector<double>(nlocal, 0));
-    // std::vector<std::vector<double>> orbMulP(GlobalV::NSPIN, std::vector<double>(nlocal, 0));
+    // std::vector<std::vector<double>> MecMulP(PARAM.inp.nspin, std::vector<double>(nlocal, 0));
+    // std::vector<std::vector<double>> orbMulP(PARAM.inp.nspin, std::vector<double>(nlocal, 0));
     ModuleBase::matrix MecMulP(this->nspin_, nlocal, true);
     this->orbMulP_.create(this->nspin_, nlocal, true);
 

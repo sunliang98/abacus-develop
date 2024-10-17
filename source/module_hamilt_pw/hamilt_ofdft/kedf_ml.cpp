@@ -75,12 +75,12 @@ void KEDF_ML::set_para(
 
     std::cout << "ninput = " << ninput << std::endl;
 
-    if (GlobalV::of_kinetic == "ml")
+    if (PARAM.inp.of_kinetic == "ml")
     {
         this->nn = std::make_shared<NN_OFImpl>(this->nx, 0, this->ninput, nnode, nlayer, this->device);
         torch::load(this->nn, "net.pt", this->device_type);
         std::cout << "load net done" << std::endl;
-        if (GlobalV::of_ml_feg != 0)
+        if (PARAM.inp.of_ml_feg != 0)
         {
             torch::Tensor feg_inpt = torch::zeros(this->ninput, this->device_type);
             for (int i = 0; i < this->ninput; ++i)
@@ -90,7 +90,7 @@ void KEDF_ML::set_para(
 
             // feg_inpt.requires_grad_(true);
 
-            if (GlobalV::of_ml_feg == 1) 
+            if (PARAM.inp.of_ml_feg == 1) 
                 // this->feg_net_F = torch::softplus(this->nn->forward(feg_inpt));
                 this->feg_net_F = torch::softplus(this->nn->forward(feg_inpt)).to(this->device_CPU).contiguous().data_ptr<double>()[0];
             else
@@ -103,7 +103,7 @@ void KEDF_ML::set_para(
         }
     } 
     
-    if (GlobalV::of_kinetic == "ml" || GlobalV::of_ml_gene_data == 1)
+    if (PARAM.inp.of_kinetic == "ml" || PARAM.inp.of_ml_gene_data == 1)
     {
         this->ml_data = new ML_data;
 
@@ -176,7 +176,7 @@ void KEDF_ML::ml_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
 void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf,  ModulePW::PW_Basis *pw_rho, const double *veff)
 {
     this->ml_data->generateTrainData_WT(prho, wt, tf, pw_rho, veff);
-    if (GlobalV::of_kinetic == "ml")
+    if (PARAM.inp.of_kinetic == "ml")
     {
         this->updateInput(prho, pw_rho);
 
@@ -294,15 +294,15 @@ void KEDF_ML::NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho
     this->nn->F = this->nn->forward(this->nn->inputs);    
     if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
 
-    if (GlobalV::of_ml_feg != 3)
+    if (PARAM.inp.of_ml_feg != 3)
     {
         this->nn->F = torch::softplus(this->nn->F);
     }
-    if (GlobalV::of_ml_feg == 1)
+    if (PARAM.inp.of_ml_feg == 1)
     {
         this->nn->F = this->nn->F - this->feg_net_F + 1.;
     }
-    else if (GlobalV::of_ml_feg == 3)
+    else if (PARAM.inp.of_ml_feg == 3)
     {
         this->nn->F = torch::softplus(this->nn->F - this->feg_net_F + this->feg3_correct);
     }

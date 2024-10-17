@@ -34,13 +34,12 @@ template <typename TK, typename TR>
 class TDNonlocal<OperatorLCAO<TK, TR>> : public OperatorLCAO<TK, TR>
 {
   public:
-    TDNonlocal<OperatorLCAO<TK, TR>>(LCAO_Matrix* LM_in,
+    TDNonlocal<OperatorLCAO<TK, TR>>(HS_Matrix_K<TK>* hsk_in,
                                      const std::vector<ModuleBase::Vector3<double>>& kvec_d_in,
                                      hamilt::HContainer<TR>* hR_in,
-                                     std::vector<TK>* hK_in,
                                      const UnitCell* ucell_in,
-                                     Grid_Driver* GridD_in,
-                                     const Parallel_Orbitals* paraV);
+                                     const LCAO_Orbitals& orb,
+                                     Grid_Driver* GridD_in);
     ~TDNonlocal<OperatorLCAO<TK, TR>>();
 
     /**
@@ -54,6 +53,7 @@ class TDNonlocal<OperatorLCAO<TK, TR>> : public OperatorLCAO<TK, TR>
 
   private:
     const UnitCell* ucell = nullptr;
+    const LCAO_Orbitals& orb_;
 
     HContainer<TR>* HR = nullptr;
     /// @brief Store real space hamiltonian. TD term should include imaginary part, thus it has to be complex type. Only
@@ -63,8 +63,6 @@ class TDNonlocal<OperatorLCAO<TK, TR>> : public OperatorLCAO<TK, TR>
 
     bool allocated = false;
 
-    TK* HK_pointer = nullptr;
-
     bool hR_tmp_done = false;
 
     /**
@@ -72,7 +70,7 @@ class TDNonlocal<OperatorLCAO<TK, TR>> : public OperatorLCAO<TK, TR>
      * HContainer is used to store the non-local pseudopotential matrix with specific <I,J,R> atom-pairs
      * the size of HR will be fixed after initialization
      */
-    void initialize_HR(Grid_Driver* GridD_in, const Parallel_Orbitals* paraV);
+    void initialize_HR(Grid_Driver* GridD_in);
 
     /**
      * @brief initialize HR_tmp
@@ -80,7 +78,7 @@ class TDNonlocal<OperatorLCAO<TK, TR>> : public OperatorLCAO<TK, TR>
      */
     void initialize_HR_tmp(const Parallel_Orbitals* paraV);
     /// @brief init vector potential for td_nonlocal term
-    void init_td(void);
+    void init_td();
     /**
      * @brief calculate the non-local pseudopotential matrix with specific <I,J,R> atom-pairs
      * nearest neighbor atoms don't need to be calculated again
@@ -95,9 +93,10 @@ class TDNonlocal<OperatorLCAO<TK, TR>> : public OperatorLCAO<TK, TR>
                     const int& iat2,
                     const int& T0,
                     const Parallel_Orbitals* paraV,
-                    const std::unordered_map<int, std::vector<std::complex<double>>>& nlm1_all,
-                    const std::unordered_map<int, std::vector<std::complex<double>>>& nlm2_all,
-                    std::complex<double>* data_pointer);
+                    const std::vector<std::unordered_map<int, std::vector<std::complex<double>>>>& nlm1_all,
+                    const std::vector<std::unordered_map<int, std::vector<std::complex<double>>>>& nlm2_all,
+                    std::complex<double>* data_pointer,
+                    std::complex<double>** data_pointer_c);
 
     /// @brief exact the nearest neighbor atoms from all adjacent atoms
     std::vector<AdjacentAtomInfo> adjs_all;

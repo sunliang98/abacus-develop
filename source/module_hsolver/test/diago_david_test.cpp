@@ -89,7 +89,10 @@ public:
         const hsolver::diag_comm_info comm_info = {mypnum, nprocs};
 #endif
 
-		hsolver::DiagoDavid<std::complex<double>> dav(precondition, order, false, comm_info);
+		const int dim = phi.get_current_nbas();
+		const int nband = phi.get_nbands();
+		const int ld_psi = phi.get_nbasis();
+		hsolver::DiagoDavid<std::complex<double>> dav(precondition, nband, dim, order, false, comm_info);
 
 		hsolver::DiagoIterAssist<std::complex<double>>::PW_DIAG_NMAX = maxiter;
 		hsolver::DiagoIterAssist<std::complex<double>>::PW_DIAG_THR = eps;
@@ -105,7 +108,20 @@ public:
 		start = clock();
 #endif	
 
-		dav.diag(phm,phi,en,eps, maxiter);
+		
+		auto hpsi_func = [phm](std::complex<double>* psi_in,std::complex<double>* hpsi_out,
+					const int ld_psi, const int nvec)
+                    {
+                        auto psi_iter_wrapper = psi::Psi<std::complex<double>>(psi_in, 1, nvec, ld_psi, nullptr);
+                        psi::Range bands_range(1, 0, 0, nvec-1);
+                        using hpsi_info = typename hamilt::Operator<std::complex<double>>::hpsi_info;
+                        hpsi_info info(&psi_iter_wrapper, bands_range, hpsi_out);
+                        phm->ops->hPsi(info);
+                    };
+		auto spsi_func = [phm](const std::complex<double>* psi_in, std::complex<double>* spsi_out,const int ld_psi, const int nbands){
+			phm->sPsi(psi_in, spsi_out, ld_psi, ld_psi, nbands);
+		};
+		dav.diag(hpsi_func,spsi_func, ld_psi, phi.get_pointer(), en, eps, maxiter);
 
 #ifdef __MPI		
 		end = MPI_Wtime();

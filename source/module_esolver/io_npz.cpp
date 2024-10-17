@@ -1,5 +1,6 @@
 //Deals with io of dm(r)/h(r) in npz format
 
+#include "module_parameter/parameter.h"
 #include "module_esolver/esolver_ks_lcao.h"
 
 #include "module_base/parallel_reduce.h"
@@ -33,7 +34,7 @@ void ESolver_KS_LCAO<TK, TR>::read_mat_npz(std::string& zipname, hamilt::HContai
 {
     ModuleBase::TITLE("LCAO_Hamilt","read_mat_npz");
 
-    const Parallel_Orbitals* paraV = &(this->orb_con.ParaV);
+    const Parallel_Orbitals* paraV = &(this->pv);
 
 #ifdef __USECNPY
 
@@ -426,8 +427,8 @@ void ESolver_KS_LCAO<TK, TR>::output_mat_npz(std::string& zipname, const hamilt:
 #ifdef __MPI
     hamilt::HContainer<double>* HR_serial;
     Parallel_Orbitals serialV;
-    serialV.set_serial(GlobalV::NLOCAL, GlobalV::NLOCAL);
-    serialV.set_atomic_trace(GlobalC::ucell.get_iat2iwt(), GlobalC::ucell.nat, GlobalV::NLOCAL);
+    serialV.set_serial(PARAM.globalv.nlocal, PARAM.globalv.nlocal);
+    serialV.set_atomic_trace(GlobalC::ucell.get_iat2iwt(), GlobalC::ucell.nat, PARAM.globalv.nlocal);
     if(GlobalV::MY_RANK == 0)
     {
         HR_serial = new hamilt::HContainer<double>(&serialV);
@@ -458,17 +459,16 @@ void ESolver_KS_LCAO<TK, TR>::output_mat_npz(std::string& zipname, const hamilt:
 
     }
 #else
-    const Parallel_Orbitals* paraV = this->LM->ParaV;
-    auto row_indexes = paraV->get_indexes_row();
-    auto col_indexes = paraV->get_indexes_col();
+    auto row_indexes = paraV.get_indexes_row();
+    auto col_indexes = paraV.get_indexes_col();
     for(int iap=0;iap<hR.size_atom_pairs();++iap)
     {
         int atom_i = hR.get_atom_pair(iap).get_atom_i();
         int atom_j = hR.get_atom_pair(iap).get_atom_j();
-        int start_i = paraV->atom_begin_row[atom_i];
-        int start_j = paraV->atom_begin_col[atom_j];
-        int row_size = paraV->get_row_size(atom_i);
-        int col_size = paraV->get_col_size(atom_j);
+        int start_i = paraV.atom_begin_row[atom_i];
+        int start_j = paraV.atom_begin_col[atom_j];
+        int row_size = paraV.get_row_size(atom_i);
+        int col_size = paraV.get_col_size(atom_j);
         for(int iR=0;iR<hR.get_atom_pair(iap).get_R_size();++iR)
         {
             auto& matrix = hR.get_atom_pair(iap).get_HR_values(iR);

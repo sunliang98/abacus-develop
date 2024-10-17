@@ -2,6 +2,8 @@
 #define DIAGO_NEW_DAV_H
 
 #include "diagh.h"
+#include "module_hsolver/diag_comm_info.h"
+#include "module_hsolver/diag_const_nums.h"
 
 #include <functional>
 
@@ -9,7 +11,7 @@ namespace hsolver
 {
 
 template <typename T = std::complex<double>, typename Device = base_device::DEVICE_CPU>
-class Diago_DavSubspace : public DiagH<T, Device>
+class Diago_DavSubspace
 {
   private:
     // Note GetTypeReal<T>::type will
@@ -27,17 +29,16 @@ class Diago_DavSubspace : public DiagH<T, Device>
                       const bool& need_subspace_in,
                       const diag_comm_info& diag_comm_in);
 
-    virtual ~Diago_DavSubspace() override;
+    ~Diago_DavSubspace();
 
-    using HPsiFunc = std::function<void(T*, T*, const int, const int, const int, const int)>;
-    using SubspaceFunc = std::function<void(T*, T*, Real*, const int, const int)>;
+    // See diago_david.h for information on the HPsiFunc function type
+    using HPsiFunc = std::function<void(T*, T*, const int, const int)>;
 
     int diag(const HPsiFunc& hpsi_func,
-             const SubspaceFunc& subspace_func,
              T* psi_in,
              const int psi_in_dmax,
              Real* eigenvalue_in,
-             const std::vector<bool>& is_occupied,
+             const double* ethr_band,
              const bool& scf_type);
 
   private:
@@ -110,21 +111,27 @@ class Diago_DavSubspace : public DiagH<T, Device>
                  T* scc,
                  T* vcc);
 
+    // void diagH_LAPACK(const int nstart,
+    //                   const int nbands,
+    //                   const T* hcc,
+    //                   const T* sc,
+    //                   const int ldh, // nstart
+    //                   Real* e,
+    //                   T* vcc);
+
     void diag_zhegvx(const int& nbase,
                      const int& nband,
                      T* hcc,
                      T* scc,
                      const int& nbase_x,
                      std::vector<Real>* eigenvalue_iter,
-                     T* vcc,
-                     bool init,
-                     bool is_subspace);
+                     T* vcc);
 
     int diag_once(const HPsiFunc& hpsi_func,
                   T* psi_in,
                   const int psi_in_dmax,
                   Real* eigenvalue_in,
-                  const std::vector<bool>& is_occupied);
+                  const double* ethr_band);
 
     bool test_exit_cond(const int& ntry, const int& notconv, const bool& scf);
 
@@ -147,9 +154,7 @@ class Diago_DavSubspace : public DiagH<T, Device>
     using syncmem_h2d_op = base_device::memory::synchronize_memory_op<T, Device, base_device::DEVICE_CPU>;
     using syncmem_d2h_op = base_device::memory::synchronize_memory_op<T, base_device::DEVICE_CPU, Device>;
 
-    using hpsi_info = typename hamilt::Operator<T, Device>::hpsi_info;
-
-    consts<T> cs;
+    const_nums<T> cs;
     const T *one = nullptr, *zero = nullptr, *neg_one = nullptr;
 };
 

@@ -5,22 +5,22 @@
 #include "module_cell/module_neighbor/sltk_grid_driver.h"
 #include "module_hamilt_lcao/hamilt_lcaodft/operator_lcao/operator_lcao.h"
 #include "module_hamilt_lcao/module_hcontainer/hcontainer_funcs.h"
+#include "module_parameter/parameter.h"
 #ifdef _OPENMP
 #include <unordered_set>
 #endif
 #include "module_base/parallel_reduce.h"
 
 template <typename TK, typename TR>
-hamilt::DFTU<hamilt::OperatorLCAO<TK, TR>>::DFTU(LCAO_Matrix* LM_in,
+hamilt::DFTU<hamilt::OperatorLCAO<TK, TR>>::DFTU(HS_Matrix_K<TK>* hsk_in,
                                                  const std::vector<ModuleBase::Vector3<double>>& kvec_d_in,
                                                  hamilt::HContainer<TR>* hR_in,
-                                                 std::vector<TK>* hK_in,
                                                  const UnitCell& ucell_in,
                                                  Grid_Driver* GridD_in,
                                                  const TwoCenterIntegrator* intor,
-                                                 ModuleDFTU::DFTU* dftu_in,
-                                                 const Parallel_Orbitals& paraV)
-    : hamilt::OperatorLCAO<TK, TR>(LM_in, kvec_d_in, hR_in, hK_in), intor_(intor)
+                                                 const std::vector<double>& orb_cutoff,
+                                                 ModuleDFTU::DFTU* dftu_in)
+    : hamilt::OperatorLCAO<TK, TR>(hsk_in, kvec_d_in, hR_in), intor_(intor), orb_cutoff_(orb_cutoff)
 {
     this->cal_type = calculation_type::lcao_dftu;
     this->ucell = &ucell_in;
@@ -29,9 +29,9 @@ hamilt::DFTU<hamilt::OperatorLCAO<TK, TR>>::DFTU(LCAO_Matrix* LM_in,
     assert(this->ucell != nullptr);
 #endif
     // initialize HR to allocate sparse Nonlocal matrix memory
-    this->initialize_HR(GridD_in, &paraV);
+    this->initialize_HR(GridD_in);
     // set nspin
-    this->nspin = GlobalV::NSPIN;
+    this->nspin = PARAM.inp.nspin;
 }
 
 // destructor
@@ -42,10 +42,13 @@ hamilt::DFTU<hamilt::OperatorLCAO<TK, TR>>::~DFTU()
 
 // initialize_HR()
 template <typename TK, typename TR>
-void hamilt::DFTU<hamilt::OperatorLCAO<TK, TR>>::initialize_HR(Grid_Driver* GridD, const Parallel_Orbitals* paraV)
+void hamilt::DFTU<hamilt::OperatorLCAO<TK, TR>>::initialize_HR(Grid_Driver* GridD)
 {
     ModuleBase::TITLE("DFTU", "initialize_HR");
     ModuleBase::timer::tick("DFTU", "initialize_HR");
+
+    auto* paraV = this->hR->get_paraV();// get parallel orbitals from HR
+    // TODO: if paraV is nullptr, AtomPair can not use paraV for constructor, I will repair it in the future.
 
     this->adjs_all.clear();
     this->adjs_all.reserve(this->ucell->nat);
@@ -69,12 +72,11 @@ void hamilt::DFTU<hamilt::OperatorLCAO<TK, TR>>::initialize_HR(Grid_Driver* Grid
             const ModuleBase::Vector3<double>& tau1 = adjs.adjacent_tau[ad1];
             const ModuleBase::Vector3<int>& R_index1 = adjs.box[ad1];
             // choose the real adjacent atoms
-            const LCAO_Orbitals& orb = LCAO_Orbitals::get_const_instance();
             // Note: the distance of atoms should less than the cutoff radius,
             // When equal, the theoretical value of matrix element is zero,
             // but the calculated value is not zero due to the numerical error, which would lead to result changes.
             if (this->ucell->cal_dtau(iat0, iat1, R_index1).norm() * this->ucell->lat0
-                < orb.Phi[T1].getRcut() + GlobalV::onsite_radius)
+                < orb_cutoff_[T1] + PARAM.inp.onsite_radius)
             {
                 is_adj[ad1] = true;
             }
@@ -118,7 +120,6 @@ void hamilt::DFTU<hamilt::OperatorLCAO<TK, TR>>::cal_nlm_all(const Parallel_Orbi
             const ModuleBase::Vector3<double>& tau1 = adjs.adjacent_tau[ad];
             const Atom* atom1 = &ucell->atoms[T1];
 
-            const LCAO_Orbitals& orb = LCAO_Orbitals::get_const_instance();
             auto all_indexes = paraV->get_indexes_row(iat1);
             auto col_indexes = paraV->get_indexes_col(iat1);
             // insert col_indexes into all_indexes to get universal set with no repeat elements

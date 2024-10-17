@@ -63,11 +63,11 @@ class Potential : public PotBase
     ~Potential();
 
     // initialize potential when SCF begin
-    void init_pot(int istep, const Charge* chg);
+    void init_pot(int istep, const Charge*const chg);
     // initialize potential components before SCF
-    void pot_register(std::vector<std::string>& components_list);
+    void pot_register(const std::vector<std::string>& components_list);
     // update potential from current charge
-    void update_from_charge(const Charge* chg, const UnitCell* ucell);
+    void update_from_charge(const Charge*const chg, const UnitCell*const ucell);
     // interface for SCF-converged, etxc vtxc for Energy, vnew for force_scc
     void get_vnew(const Charge* chg, ModuleBase::matrix& vnew);
 
@@ -169,8 +169,16 @@ class Potential : public PotBase
         return this->v_effective_fixed.data();
     }
 
+
+    /// @brief get the value of vloc at G=0;
+    /// @return vl(0)
+    double get_vl_of_0() const
+    {
+        return this->vl_of_0;
+    }
+
   private:
-    void cal_v_eff(const Charge* chg, const UnitCell* ucell, ModuleBase::matrix& v_eff) override;
+    void cal_v_eff(const Charge*const chg, const UnitCell*const ucell, ModuleBase::matrix& v_eff) override;
     void cal_fixed_v(double* vl_pseudo) override;
     // interpolate potential on the smooth mesh if necessary
     void interpolate_vrs();
@@ -195,6 +203,8 @@ class Potential : public PotBase
     // gather etxc and vtxc in Potential, will be used in ESolver
     double* etxc_ = nullptr;
     double* vtxc_ = nullptr;
+
+    double vl_of_0 = 0.0;
 
     std::vector<PotBase*> components;
 

@@ -6,8 +6,10 @@
 #include "grid_technique.h"
 #include "module_elecstate/module_charge/charge.h"
 #include "module_hamilt_lcao/module_hcontainer/hcontainer.h"
+#include "module_base/array_pool.h"
 
 #include <cstdlib>
+#include <utility> // for std::pair
 
 namespace Gint_Tools
 {
@@ -135,81 +137,92 @@ class Gint_inout
 
 namespace Gint_Tools
 {
-template <typename T>
-class Array_Pool
+// if exponent is an integer between 0 and 5 (the most common cases in gint),
+// pow_int is much faster than std::pow
+inline double pow_int(const double base, const int exp)
 {
-  public:
-    T** ptr_2D;
-    T* ptr_1D;
-    Array_Pool(const int nr, const int nc);
-    Array_Pool(Array_Pool<T>&& array);
-    ~Array_Pool();
-    Array_Pool(const Array_Pool<T>& array) = delete;
-    Array_Pool(Array_Pool<T>& array) = delete;
-};
-
+    switch (exp)
+    {
+    case 0:
+        return 1.0;
+    case 1:
+        return base;
+    case 2:
+        return base * base;
+    case 3:
+        return base * base * base;
+    case 4:
+        return base * base * base * base;
+    case 5:
+        return base * base * base * base * base;
+    default:
+        double result = std::pow(base, exp);
+        return result;
+    }
+}
 // vindex[pw.bxyz]
-int* get_vindex(const int bxyz,
-                const int bx,
-                const int by,
-                const int bz,
-                const int nplane,
-                const int ncyz,
-                const int ibx,
-                const int jby,
-                const int kbz);
 
-int* get_vindex(const int bxyz,
-                const int bx,
-                const int by,
-                const int bz,
-                const int nplane,
-                const int start_ind,
-                const int ncyz);
+/**
+ * @brief Get the vindex form the grid index
+ * @param bxyz number of big grids
+ * @param bx number of big grids in x direction
+ * @param by number of big grids in y direction
+ * @param bz number of big grids in z direction
+ * @param nplane Currently using Z-axis 1D division, 
+ * recording the number of the Z-axis process
+ * (nbz in the current process).
+ * @param start_ind start index of the grid in the 1D FFT grid
+ * @param ncyz number of grids in yz plane
+ * @param vindex the index of the grid 
+*/
+void get_vindex(const int bxyz, const int bx, const int by,
+                    const int bz, const int nplane, 
+                    const int start_ind,const int ncyz,int* vindex);
 
-// extract the local potentials.
-// vldr3[bxyz]
-double* get_vldr3(const double* const vlocal,
-                  const int bxyz,
-                  const int bx,
-                  const int by,
-                  const int bz,
-                  const int nplane,
-                  const int ncyz,
-                  const int ibx,
-                  const int jby,
-                  const int kbz,
-                  const double dv);
-
-double* get_vldr3(const double* const vlocal,
-                  const int bxyz,
-                  const int bx,
-                  const int by,
-                  const int bz,
-                  const int nplane,
-                  const int start_ind,
-                  const int ncyz,
-                  const double dv);
-
-//------------------------------------------------------
-// na_grid : #. atoms for this group of grids
-// block_iw : size na_grid, index of the first orbital on this atom
-// block_size : size na_grid, number of orbitals on this atom
-// block_index : size na_grid+1, start from 0, accumulates block_size
-// cal_flag : whether the atom-grid distance is larger than cutoff
-//------------------------------------------------------
-void get_block_info(const Grid_Technique& gt,
+/**
+ * @brief Get the vldr3 form the grid index
+ * @param vldr3 the local potential multiplied by the grid volume
+ * @param vlocal the local potential
+ * @param bxyz number of grids
+ * @param bx number of grids in x direction
+ * @param by number of grids in y direction
+ * @param bz number of grids in z direction
+ * @param nplane Currently using Z-axis 1D division, 
+ * recording the number of the Z-axis process
+ * (nbz in the current process).
+ * @param start_ind start index of the grid in the 1D FFT grid
+ * @param ncyz number of grids in yz plane
+ * @param dv the volume of the grid
+*/
+void get_gint_vldr3(double* vldr3,
+                    const double* const vlocal,
                     const int bxyz,
-                    const int na_grid,
-                    const int grid_index,
-                    int*& block_iw,
-                    int*& block_index,
-                    int*& block_size,
-                    bool**& cal_flag);
+                    const int bx,
+                    const int by,
+                    const int bz,
+                    const int nplane,
+                    const int start_ind,
+                    const int ncyz,
+                    const double dv);
+
+/**
+ * @brief Get the information of a big grid index
+ * @param gt the grid technique, which contains the tools of the grid intergration
+ * @param bxyz number of grids
+ * @param na_grid number of atoms on this grid
+ * @param grid_index 1d index of FFT index (i,j,k)
+ * @param block_iw track the atom orbitals in all atoms
+ * @param block_index count total number of atomis orbitals
+ * @param block_size count the number of atomis orbitals in each atom
+ * @param cal_flag whether the atom-grid distance is larger than cutoff
+*/                    
+void get_block_info(const Grid_Technique& gt, const int bxyz, const int na_grid, const int grid_index,
+                    int* block_iw, int* block_index, int* block_size, bool** cal_flag);
 
 void init_orb(double& dr_uniform,
               std::vector<double>& rcuts,
               UnitCell& ucell,
+              const LCAO_Orbitals& orb,
               std::vector<std::vector<double>>& psi_u,
               std::vector<std::vector<double>>& dpsi_u,
               std::vector<std::vector<double>>& d2psi_u);
@@ -242,22 +255,14 @@ void cal_dpsir_ylm(
 
 // dpsir_ylm * (r-R), R is the atomic position
 void cal_dpsirr_ylm(
-    const Grid_Technique& gt,
-    const int bxyz,
+    const Grid_Technique& gt, const int bxyz,
     const int na_grid,                 // number of atoms on this grid
     const int grid_index,              // 1d index of FFT index (i,j,k)
     const int* const block_index,      // block_index[na_grid+1], count total number of atomis orbitals
     const int* const block_size,       // block_size[na_grid],	number of columns of a band
     const bool* const* const cal_flag, // cal_flag[bxyz][na_grid],	whether the atom-grid distance is larger than cutoff
-    double* const* const dpsir_ylm_x,
-    double* const* const dpsir_ylm_y,
-    double* const* const dpsir_ylm_z,
-    double* const* const dpsir_ylm_xx,
-    double* const* const dpsir_ylm_xy,
-    double* const* const dpsir_ylm_xz,
-    double* const* const dpsir_ylm_yy,
-    double* const* const dpsir_ylm_yz,
-    double* const* const dpsir_ylm_zz);
+    double* const* const dpsir_ylm_x, double* const* const dpsir_ylm_y, double* const* const dpsir_ylm_z,
+    double* const* const dpsir_ylm);
 
 void cal_ddpsir_ylm(
     const Grid_Technique& gt,
@@ -276,7 +281,7 @@ void cal_ddpsir_ylm(
     double* const* const ddpsir_ylm_zz);
 
 // psir_ylm * vldr3
-Gint_Tools::Array_Pool<double> get_psir_vlbr3(
+ModuleBase::Array_Pool<double> get_psir_vlbr3(
     const int bxyz,
     const int na_grid, // how many atoms on this (i,j,k) grid
     const int LD_pool,
@@ -285,24 +290,10 @@ Gint_Tools::Array_Pool<double> get_psir_vlbr3(
     const double* const vldr3,         // vldr3[bxyz]
     const double* const* const psir_ylm); // psir_ylm[bxyz][LD_pool]
 
-// sum_nu rho_mu,nu psi_nu, for gamma point
-void mult_psi_DM(
-    const Grid_Technique& gt,
-    const int bxyz,
-    const int na_grid, // how many atoms on this (i,j,k) grid
-    const int LD_pool,
-    const int* const block_iw,         // block_iw[na_grid],	index of wave functions for each block
-    const int* const block_size,       // block_size[na_grid],	number of columns of a band
-    const int* const block_index,      // block_index[na_grid+1], count total number of atomis orbitals
-    const bool* const* const cal_flag, // cal_flag[bxyz][na_grid],	whether the atom-grid distance is larger than cutoff
-    const double* const* const psi,    // psir_vlbr3[bxyz][LD_pool]
-    double** psi_DM,
-    const double* const* const DM,
-    const bool if_symm);
-
-// sum_nu,R rho_mu,nu(R) psi_nu, for multi-k
+// sum_nu,R rho_mu,nu(R) psi_nu, for multi-k and gamma point
 void mult_psi_DMR(const Grid_Technique& gt,
                   const int bxyz,
+                  const int LD_pool,
                   const int& grid_index,
                   const int& na_grid,
                   const int* const block_index,
@@ -313,50 +304,14 @@ void mult_psi_DMR(const Grid_Technique& gt,
                   const hamilt::HContainer<double>* DM,
                   const bool if_symm);
 
-// sum_nu rho_mu,nu psi_nu, for gamma point
-void mult_psi_DM_new(
-    const Grid_Technique& gt,
-    const int bxyz,
-    const int& grid_index,
-    const int na_grid, // how many atoms on this (i,j,k) grid
-    const int LD_pool,
-    const int* const block_iw,         // block_iw[na_grid],	index of wave functions for each block
-    const int* const block_size,       // block_size[na_grid],	number of columns of a band
-    const int* const block_index,      // block_index[na_grid+1], count total number of atomis orbitals
-    const bool* const* const cal_flag, // cal_flag[bxyz][na_grid],	whether the atom-grid distance is larger than cutoff
-    const double* const* const psi,    // psir_vlbr3[bxyz][LD_pool]
-    double** psi_DM,
-    const hamilt::HContainer<double>* DM,
-    const bool if_symm);
 
+// pair.first is the first index of the meshcell which is inside atoms ia1 and ia2.
+// pair.second is the number of meshcells which should be calculated in the following gemm.
+// If no meshcell is inside both ia1 and ia2, return [bxyz, 0].
+std::pair<int, int> cal_info(const int bxyz, 
+			                 const int ia1,
+			                 const int ia2,
+			                 const bool* const* const cal_flag);
+            
 } // namespace Gint_Tools
-
-namespace Gint_Tools
-{
-template <typename T>
-Array_Pool<T>::Array_Pool(const int nr, const int nc) // Attention: uninitialized
-{
-    ptr_1D = new T[nr * nc];
-    ptr_2D = new T*[nr];
-    for (int ir = 0; ir < nr; ++ir)
-        ptr_2D[ir] = &ptr_1D[ir * nc];
-}
-
-template <typename T>
-Array_Pool<T>::Array_Pool(Array_Pool<T>&& array)
-{
-    ptr_1D = array.ptr_1D;
-    ptr_2D = array.ptr_2D;
-    delete[] array.ptr_2D;
-    delete[] array.ptr_1D;
-}
-
-template <typename T>
-Array_Pool<T>::~Array_Pool()
-{
-    delete[] ptr_2D;
-    delete[] ptr_1D;
-}
-} // namespace Gint_Tools
-
 #endif

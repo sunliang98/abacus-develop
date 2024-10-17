@@ -1,5 +1,6 @@
 //wenfei 2022-1-5
 //This file contains constructor and destructor of the class LCAO_deepks, 
+#include "module_parameter/parameter.h"
 //as well as subroutines for initializing and releasing relevant data structures 
 
 //Other than the constructor and the destructor, it contains 3 types of subroutines:
@@ -54,7 +55,7 @@ LCAO_Deepks::~LCAO_Deepks()
     }
     delete[] pdm;
     //=======2. "deepks_scf" part==========
-    //if (GlobalV::deepks_scf)
+    //if (PARAM.inp.deepks_scf)
     if (gedm)
     {
         //delete gedm**
@@ -66,6 +67,7 @@ LCAO_Deepks::~LCAO_Deepks()
     }
 
     del_gdmx();
+
 }
 
 void LCAO_Deepks::init(
@@ -89,7 +91,7 @@ void LCAO_Deepks::init(
     
     int tot_inl = tot_inl_per_atom * nat;
 
-    if(GlobalV::deepks_equiv) tot_inl = nat;
+    if(PARAM.inp.deepks_equiv) tot_inl = nat;
 
     this->lmaxd = lm;
     this->nmaxd = nm;
@@ -99,7 +101,7 @@ void LCAO_Deepks::init(
 
     int pdm_size = 0;
     this->inlmax = tot_inl;
-    if(!GlobalV::deepks_equiv)
+    if(!PARAM.inp.deepks_equiv)
     {
         GlobalV::ofs_running << " total basis (all atoms) for descriptor= " << std::endl;
 
@@ -125,7 +127,7 @@ void LCAO_Deepks::init(
     }
 
     // cal n(descriptor) per atom , related to Lmax, nchi(L) and m. (not total_nchi!)
-    if(!GlobalV::deepks_equiv)
+    if(!PARAM.inp.deepks_equiv)
     {
         this->des_per_atom=0; // mohan add 2021-04-21
         for (int l = 0; l <= this->lmaxd; l++)
@@ -139,6 +141,16 @@ void LCAO_Deepks::init(
     this->allocate_nlm(nat);
 
     this->pv = &pv_in;
+
+    if(PARAM.inp.deepks_v_delta)
+    {
+        //allocate and init h_mat
+        if(PARAM.globalv.gamma_only_local)
+        {
+            int nloc=this->pv->nloc;
+            this->h_mat.resize(nloc,0.0);
+        }
+    }
 
     return;
 }
@@ -199,7 +211,7 @@ void LCAO_Deepks::init_index(const int ntype, const int nat, std::vector<int> na
 
 void LCAO_Deepks::allocate_nlm(const int nat)
 {
-    if(GlobalV::GAMMA_ONLY_LOCAL)
+    if(PARAM.globalv.gamma_only_local)
     {
         this->nlm_save.resize(nat);
     }
@@ -215,7 +227,7 @@ void LCAO_Deepks::init_gdmx(const int nat)
     this->gdmy = new double** [nat];
     this->gdmz = new double** [nat];
     int pdm_size = 0;
-    if(!GlobalV::deepks_equiv)
+    if(!PARAM.inp.deepks_equiv)
     {
         pdm_size = (this->lmaxd * 2 + 1) * (this->lmaxd * 2 + 1);
     }
@@ -269,7 +281,7 @@ void LCAO_Deepks::init_gdmepsl()
     this->gdm_epsl = new double** [6];
     
     int pdm_size = 0;
-    if(!GlobalV::deepks_equiv)
+    if(!PARAM.inp.deepks_equiv)
     {
         pdm_size = (this->lmaxd * 2 + 1) * (this->lmaxd * 2 + 1);
     }
@@ -311,7 +323,7 @@ void LCAO_Deepks::allocate_V_delta(const int nat, const int nks)
     nks_V_delta = nks;
 
     //initialize the H matrix H_V_delta
-    if(GlobalV::GAMMA_ONLY_LOCAL)
+    if(PARAM.globalv.gamma_only_local)
     {
         this->H_V_delta.resize(pv->nloc);
         ModuleBase::GlobalFunc::ZEROS(this->H_V_delta.data(), pv->nloc);
@@ -328,7 +340,7 @@ void LCAO_Deepks::allocate_V_delta(const int nat, const int nks)
 
     //init gedm**
     int pdm_size = 0;
-    if(!GlobalV::deepks_equiv)
+    if(!PARAM.inp.deepks_equiv)
     {
         pdm_size = (this->lmaxd * 2 + 1) * (this->lmaxd * 2 + 1);
     }
@@ -343,11 +355,11 @@ void LCAO_Deepks::allocate_V_delta(const int nat, const int nks)
         this->gedm[inl] = new double[pdm_size];
         ModuleBase::GlobalFunc::ZEROS(this->gedm[inl], pdm_size);
     }
-    if (GlobalV::CAL_FORCE)
+    if (PARAM.inp.cal_force)
     {
         //init F_delta
         F_delta.create(nat, 3);
-        if(GlobalV::deepks_out_labels) 
+        if(PARAM.inp.deepks_out_labels) 
         { 
             this->init_gdmx(nat);
             this->init_gdmepsl();
@@ -355,7 +367,7 @@ void LCAO_Deepks::allocate_V_delta(const int nat, const int nks)
         //gdmx is used only in calculating gvx
     }
 
-    if (GlobalV::deepks_bandgap)
+    if (PARAM.inp.deepks_bandgap)
     {
         //init o_delta
         o_delta.create(nks, 1);
@@ -413,6 +425,59 @@ void LCAO_Deepks::del_orbital_pdm_shell(const int nks)
         delete[] this->orbital_pdm_shell[iks];
     }
      delete[] this->orbital_pdm_shell;    
+
+    return;
+}
+
+void LCAO_Deepks::init_v_delta_pdm_shell(const int nks,const int nlocal)
+{
+    
+    this->v_delta_pdm_shell = new double**** [nks];
+
+    const int mn_size=(2 * this->lmaxd + 1) * (2 * this->lmaxd + 1);
+    for (int iks=0; iks<nks; iks++)
+    {
+        this->v_delta_pdm_shell[iks] = new double*** [nlocal];
+
+        for (int mu=0; mu<nlocal; mu++)
+        {
+            this->v_delta_pdm_shell[iks][mu] = new double** [nlocal];
+
+            for (int nu=0; nu<nlocal; nu++)
+            {
+                this->v_delta_pdm_shell[iks][mu][nu] = new double* [this->inlmax];
+
+                for(int inl = 0; inl < this->inlmax; inl++)
+                {
+                    this->v_delta_pdm_shell[iks][mu][nu][inl] = new double [mn_size];
+                    ModuleBase::GlobalFunc::ZEROS(v_delta_pdm_shell[iks][mu][nu][inl], mn_size);
+                }                
+            }
+        }
+    }
+
+    return;
+}
+
+void LCAO_Deepks::del_v_delta_pdm_shell(const int nks,const int nlocal)
+{
+    for (int iks=0; iks<nks; iks++)
+    {
+        for (int mu=0; mu<nlocal; mu++)
+        {
+            for (int nu=0; nu<nlocal; nu++)
+            {
+                for (int inl = 0;inl < this->inlmax; inl++)
+                {
+                    delete[] this->v_delta_pdm_shell[iks][mu][nu][inl];
+                }
+                delete[] this->v_delta_pdm_shell[iks][mu][nu];                
+            }
+            delete[] this->v_delta_pdm_shell[iks][mu]; 
+        }
+        delete[] this->v_delta_pdm_shell[iks]; 
+    }
+    delete[] this->v_delta_pdm_shell;    
 
     return;
 }

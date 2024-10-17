@@ -1,5 +1,5 @@
-#ifndef W_ABACUS_DEVELOP_ABACUS_DEVELOP_SOURCE_MODULE_HAMILT_LCAO_MODULE_DEEPKS_LCAO_DEEPKS_H
-#define W_ABACUS_DEVELOP_ABACUS_DEVELOP_SOURCE_MODULE_HAMILT_LCAO_MODULE_DEEPKS_LCAO_DEEPKS_H
+#ifndef LCAO_DEEPKS_H 
+#define LCAO_DEEPKS_H 
 
 #ifdef __DEEPKS
 
@@ -11,12 +11,14 @@
 #include "module_basis/module_nao/two_center_integrator.h"
 #include "module_cell/module_neighbor/sltk_grid_driver.h"
 #include "module_elecstate/module_dm/density_matrix.h"
-#include "module_hamilt_lcao/hamilt_lcaodft/LCAO_matrix.h"
 #include "module_io/winput.h"
 
 #include <torch/script.h>
 #include <torch/torch.h>
 #include <unordered_map>
+
+#include "deepks_force.h"
+#include "deepks_hmat.h"
 
 ///
 /// The LCAO_Deepks contains subroutines for implementation of the DeePKS method in atomic basis.
@@ -52,6 +54,9 @@ class LCAO_Deepks
     ///\rho_{HL} = c_{L, \mu}c_{L,\nu} - c_{H, \mu}c_{H,\nu} \f$ (for gamma_only)
     ModuleBase::matrix o_delta;
 
+    ///(Unit: Ry) Hamiltonian matrix
+    std::vector<double> h_mat;    
+
     /// Correction term to the Hamiltonian matrix: \f$\langle\psi|V_\delta|\psi\rangle\f$ (for gamma only)
     std::vector<double> H_V_delta;
     /// Correction term to Hamiltonian, for multi-k
@@ -60,6 +65,7 @@ class LCAO_Deepks
     /// In k space:
     std::vector<std::vector<std::complex<double>>> H_V_delta_k;
 
+    // F_delta will be deleted soon, mohan 2024-07-25
     ///(Unit: Ry/Bohr) Total Force due to the DeePKS correction term \f$E_{\delta}\f$
     ModuleBase::matrix F_delta;
 
@@ -96,7 +102,8 @@ class LCAO_Deepks
     //-------------------
     // private variables
     //-------------------
-  private:
+//  private:
+  public: // change to public to reconstuct the code, 2024-07-22 by mohan
     int lmaxd = 0;  // max l of descirptors
     int nmaxd = 0;  //#. descriptors per l
     int inlmax = 0; // tot. number {i,n,l} - atom, n, l
@@ -157,6 +164,14 @@ class LCAO_Deepks
     // orbital_precalc:[1,NAt,NDscrpt]; gvdm*orbital_pdm_shell
     torch::Tensor orbital_precalc_tensor;
 
+    // v_delta_pdm_shell[nks,nlocal,nlocal,Inl,nm*nm] = overlap * overlap
+    double***** v_delta_pdm_shell;
+    // v_delta_precalc[nks,nlocal,nlocal,NAt,NDscrpt] = gvdm * v_delta_pdm_shell;
+    torch::Tensor v_delta_precalc_tensor;
+    //for v_delta==2 , new v_delta_precalc storage method
+    torch::Tensor psialpha_tensor;
+    torch::Tensor gevdm_tensor;
+
     /// size of descriptor(projector) basis set
     int n_descriptor;
 
@@ -210,6 +225,7 @@ class LCAO_Deepks
 
     /// Allocate memory for correction to Hamiltonian
     void allocate_V_delta(const int nat, const int nks = 1);
+
     void allocate_V_deltaR(const int nnr);
 
     // array for storing gdmx, used for calculating gvx
@@ -230,6 +246,10 @@ class LCAO_Deepks
     // for bandgap label calculation; QO added on 2022-1-7
     void init_orbital_pdm_shell(const int nks);
     void del_orbital_pdm_shell(const int nks);
+  
+    //for v_delta label calculation; xinyuan added on 2023-2-22
+    void init_v_delta_pdm_shell(const int nks,const int nlocal);
+    void del_v_delta_pdm_shell(const int nks,const int nlocal);
 
     //-------------------
     // LCAO_deepks_psialpha.cpp
@@ -278,22 +298,31 @@ class LCAO_Deepks
     // 6. check_gdmx, which prints gdmx to a series of .dat files
 
   public:
-    /// calculate projected density matrix:
-    /// pdm = sum_i,occ <phi_i|alpha1><alpha2|phi_k>
+    /** 
+     * @brief calculate projected density matrix:
+     * pdm = sum_i,occ <phi_i|alpha1><alpha2|phi_k>
+     * 3 cases to skip calculation of pdm:
+     *    1. NSCF calculation of DeePKS, init_chg = file and pdm has been read
+     *    2. SCF calculation of DeePKS with init_chg = file and pdm has been read for restarting SCF
+     *    3. Relax/Cell-Relax/MD calculation, non-first step will use the convergence pdm from the last step as initial pdm
+     */
     void cal_projected_DM(const elecstate::DensityMatrix<double, double>* dm,
                           const UnitCell& ucell,
                           const LCAO_Orbitals& orb,
                           Grid_Driver& GridD);
+
     void cal_projected_DM_k(const elecstate::DensityMatrix<std::complex<double>, double>* dm,
                             const UnitCell& ucell,
                             const LCAO_Orbitals& orb,
                             Grid_Driver& GridD);
+
     void check_projected_dm();
 
     void cal_projected_DM_equiv(const elecstate::DensityMatrix<double, double>* dm,
                                 const UnitCell& ucell,
                                 const LCAO_Orbitals& orb,
                                 Grid_Driver& GridD);
+
     void cal_projected_DM_k_equiv(const elecstate::DensityMatrix<std::complex<double>, double>* dm,
                                   const UnitCell& ucell,
                                   const LCAO_Orbitals& orb,
@@ -307,6 +336,7 @@ class LCAO_Deepks
         const LCAO_Orbitals& orb,
         Grid_Driver& GridD,
         const bool isstress);
+
     void cal_gdmx_k( // const std::vector<ModuleBase::ComplexMatrix>& dm,
         const std::vector<std::vector<std::complex<double>>>& dm,
         const UnitCell& ucell,
@@ -316,6 +346,18 @@ class LCAO_Deepks
         const std::vector<ModuleBase::Vector3<double>>& kvec_d,
         const bool isstress);
     void check_gdmx(const int nat);
+
+    /** 
+     * @brief set init_pdm to skip the calculation of pdm in SCF iteration
+     */
+    void set_init_pdm(bool ipdm)
+    {
+        this->init_pdm = ipdm;
+    }
+    /**
+     * @brief read pdm from file, do it only once in whole calculation
+     */
+    void read_projected_DM(bool read_pdm_file, bool is_equiv, const Numerical_Orbital& alpha);
 
     //-------------------
     // LCAO_deepks_vdelta.cpp
@@ -339,41 +381,6 @@ class LCAO_Deepks
     //     const int nks);
     void cal_e_delta_band_k(const std::vector<std::vector<std::complex<double>>>& dm /**<[in] density matrix*/,
                             const int nks);
-
-    //-------------------
-    // LCAO_deepks_fdelta.cpp
-    //-------------------
-
-    // This file contains subroutines for calculating F_delta,
-    // which is defind as sum_mu,nu rho_mu,nu d/dX (<chi_mu|alpha>V(D)<alpha|chi_nu>)
-
-    // There are 3 subroutines in this file:
-    // 1. cal_f_delta_gamma, which is used for gamma point calculation
-    // 2. cal_f_delta_k, which is used for multi-k calculation
-    // 3. check_f_delta, which prints F_delta into F_delta.dat for checking
-
-  public:
-    // for gamma only, pulay and HF terms of force are calculated together
-    void cal_f_delta_gamma( // const std::vector<ModuleBase::matrix>& dm/**< [in] density matrix*/,
-        const std::vector<std::vector<double>>& dm,
-        const UnitCell& ucell,
-        const LCAO_Orbitals& orb,
-        Grid_Driver& GridD,
-        const bool isstress,
-        ModuleBase::matrix& svnl_dalpha);
-
-    // for multi-k, pulay and HF terms of force are calculated together
-    void cal_f_delta_k( // const std::vector<ModuleBase::ComplexMatrix>& dm/**<[in] density matrix*/,
-        const std::vector<std::vector<std::complex<double>>>& dm,
-        const UnitCell& ucell,
-        const LCAO_Orbitals& orb,
-        Grid_Driver& GridD,
-        const int nks,
-        const std::vector<ModuleBase::Vector3<double>>& kvec_d,
-        const bool isstress,
-        ModuleBase::matrix& svnl_dalpha);
-
-    void check_f_delta(const int nat, ModuleBase::matrix& svnl_dalpha);
 
     //-------------------
     // LCAO_deepks_odelta.cpp
@@ -426,13 +433,19 @@ class LCAO_Deepks
     // 11. cal_orbital_precalc_k : orbital_precalc is usted for training with orbital label,
     //                          for multi-k case, which equals gvdm * orbital_pdm_shell,
     //                          orbital_pdm_shell[1,Inl,nm*nm] = dm_hl_k * overlap * overlap
+    //12. cal_v_delta_precalc : v_delta_precalc is used for training with v_delta label,
+    //                         which equals gvdm * v_delta_pdm_shell,
+    //                         v_delta_pdm_shell = overlap * overlap
+    //13. check_v_delta_precalc : check v_delta_precalc
+    //14. prepare_psialpha : prepare psialpha for outputting npy file
+    //15. prepare_gevdm : prepare gevdm for outputting npy file
 
   public:
     /// Calculates descriptors
     /// which are eigenvalues of pdm in blocks of I_n_l
     void cal_descriptor(const int nat);
     /// print descriptors based on LCAO basis
-    void check_descriptor(const UnitCell& ucell);
+    void check_descriptor(const UnitCell& ucell, const std::string &out_dir);
 
     void cal_descriptor_equiv(const int nat);
 
@@ -476,77 +489,32 @@ class LCAO_Deepks
         const LCAO_Orbitals& orb,
         Grid_Driver& GridD);
 
+    //calculates v_delta_precalc
+    void cal_v_delta_precalc(const int nlocal,
+        const int nat,
+        const UnitCell &ucell,
+        const LCAO_Orbitals &orb,
+        Grid_Driver &GridD);
+
+    void check_v_delta_precalc(const int nat, const int nks,const int nlocal);
+
+    // prepare psialpha for outputting npy file
+    void prepare_psialpha(const int nlocal,
+        const int nat,
+        const UnitCell &ucell,
+        const LCAO_Orbitals &orb,
+        Grid_Driver &GridD);
+    void check_vdp_psialpha(const int nat, const int nks, const int nlocal);
+    
+    // prepare gevdm for outputting npy file
+    void prepare_gevdm(
+        const int nat,
+        const LCAO_Orbitals &orb);
+    void check_vdp_gevdm(const int nat);
+
   private:
     const Parallel_Orbitals* pv;
     void cal_gvdm(const int nat);
-
-    //-------------------
-    // LCAO_deepks_io.cpp
-    //-------------------
-
-    // This file contains subroutines that contains interface with libnpy
-    // since many arrays must be saved in numpy format
-    // It also contains subroutines for printing density matrices
-    // which is used in unit tests
-
-    // There are 2 subroutines for printing density matrices:
-    // 1. print_dm : for gamma only
-    // 2. print_dm_k : for multi-k
-
-    // And 6 which prints quantities in .npy format
-    // 3. save_npy_d : descriptor ->dm_eig.npy
-    // 4. save_npy_gvx : gvx ->grad_vx.npy
-    // 5. save_npy_e : energy
-    // 6. save_npy_f : force
-    // 7. save_npy_s : stress
-    // 8. save_npy_o: orbital
-    // 9. save_npy_orbital_precalc: orbital_precalc -> orbital_precalc.npy
-
-  public:
-    /// print density matrices
-    // void print_dm(const ModuleBase::matrix &dm);
-    void print_dm(const std::vector<double>& dm);
-    // void print_dm_k(const int nks, const std::vector<ModuleBase::ComplexMatrix>& dm);
-    void print_dm_k(const int nks, const std::vector<std::vector<std::complex<double>>>& dm);
-
-    ///----------------------------------------------------------------------
-    /// The following 4 functions save the `[dm_eig], [e_base], [f_base], [grad_vx]`
-    /// of current configuration as `.npy` file, when `deepks_scf = 1`.
-    /// After a full group of consfigurations are calculated,
-    /// we need a python script to `load` and `torch.cat` these `.npy` files,
-    /// and get `l_e_delta,npy` and `l_f_delta.npy` corresponding to the exact E, F data.
-    ///
-    /// Unit of energy: Ry
-    ///
-    /// Unit of force: Ry/Bohr
-    ///----------------------------------------------------------------------
-    void save_npy_d(const int nat);
-    void save_npy_e(const double& e /**<[in] \f$E_{base}\f$ or \f$E_{tot}\f$, in Ry*/, const std::string& e_file);
-    void save_npy_f(const ModuleBase::matrix& fbase /**<[in] \f$F_{base}\f$ or \f$F_{tot}\f$, in Ry/Bohr*/,
-                    const std::string& f_file,
-                    const int nat);
-
-    void save_npy_s(const ModuleBase::matrix& sbase /**<[in] \f$S_{base}\f$ or \f$S_{tot}\f$, in Ry/Bohr^3*/,
-                    const std::string& s_file,
-                    const double omega);
-    void save_npy_gvx(const int nat);
-    void save_npy_gvepsl(const int nat);
-
-    // QO added on 2021-12-15
-    void save_npy_o(const ModuleBase::matrix& bandgap /**<[in] \f$E_{base}\f$ or \f$E_{tot}\f$, in Ry*/,
-                    const std::string& o_file,
-                    const int nks);
-    void save_npy_orbital_precalc(const int nat, const int nks);
-
-    void load_npy_gedm(const int nat);
-
-    //-------------------
-    // LCAO_deepks_mpi.cpp
-    //-------------------
-
-    // This file contains only one subroutine, allsum_deepks
-    // which is used to perform allsum on a two-level pointer
-    // It is used in a few places in the deepks code
 
 #ifdef __MPI
 
@@ -556,12 +524,15 @@ class LCAO_Deepks
                        int ndim,      // second dimension
                        double** mat); // the array being reduced
 #endif
+
+  
 };
 
 namespace GlobalC
 {
-extern LCAO_Deepks ld;
+    extern LCAO_Deepks ld;
 }
+
 
 #endif
 #endif

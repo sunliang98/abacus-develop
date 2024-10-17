@@ -49,9 +49,11 @@ public:
         const int& lld);
 #endif
 
-    int nspin = 1;
     int* loc_sizes;
     int loc_size;
+
+    int get_wfc_global_nbands () const;
+    int get_wfc_global_nbasis () const;
 
     /**
      * @brief set row and col begin index for each atom
@@ -75,6 +77,10 @@ public:
     int get_row_size()const;
     int get_col_size(int iat) const;
     int get_row_size(int iat) const;
+
+    int get_nbands() const;
+
+    int nbands = 0;
 
     /**
      * @brief gather global indexes of orbitals in this processor

@@ -15,15 +15,12 @@ if(ENABLE_LCAO)
         operator_lcao/td_nonlocal_lcao.cpp
         operator_lcao/sc_lambda_lcao.cpp
         operator_lcao/dftu_lcao.cpp
+        pulay_force_stress_center2.cpp
         FORCE_STRESS.cpp
         FORCE_gamma.cpp
         FORCE_k.cpp
-        fvl_dphi_gamma.cpp
-        fvl_dphi_k.cpp
-        fedm_gamma.cpp
-        fedm_k.cpp
-        ftvnl_dphi_gamma.cpp
-        ftvnl_dphi_k.cpp
+        stress_tools.cpp
+        edm.cpp
         fvnl_dbeta_gamma.cpp
         fvnl_dbeta_k.cpp
         grid_init.cpp
@@ -32,23 +29,19 @@ if(ENABLE_LCAO)
         spar_hsr.cpp
         spar_st.cpp
         spar_u.cpp
-        LCAO_matrix.cpp
         LCAO_nnr.cpp
 		LCAO_set_fs.cpp
 		LCAO_set_st.cpp
-		LCAO_nl_mu.cpp
-		LCAO_nl_beta.cpp
+		LCAO_nl_mu.cpp	
         LCAO_set_zero.cpp
+        LCAO_allocate.cpp
+        LCAO_set_mat2d.cpp
+        LCAO_init_basis.cpp
 		record_adj.cpp
+        center2_orb.cpp
         center2_orb-orb11.cpp
         center2_orb-orb21.cpp
         center2_orb-orb22.cpp
-        DM_gamma.cpp
-        DM_gamma_2d_to_grid.cpp
-        DM_k.cpp
-        local_orbital_charge.cpp
-        local_orbital_wfc.cpp
-        dm_2d.cpp
         wavefunc_in_pw.cpp
     )
 

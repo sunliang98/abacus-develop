@@ -5,6 +5,7 @@
 #include "module_base/parallel_common.h"
 #include "module_base/ylm.h"
 #include "module_basis/module_nao/real_gaunt_table.h"
+#include "module_parameter/parameter.h"
 
 #include <memory>
 
@@ -14,7 +15,7 @@ void TwoCenterBundle::build_orb(int ntype, const std::string* file_orb0)
     if (GlobalV::MY_RANK == 0)
     {
         std::transform(file_orb0, file_orb0 + ntype, file_orb.begin(), [](const std::string& file) {
-            return GlobalV::global_orbital_dir + file;
+            return PARAM.inp.orbital_dir + file;
         });
     }
 #ifdef __MPI
@@ -33,7 +34,7 @@ void TwoCenterBundle::build_beta(int ntype, Numerical_Nonlocal* nl)
 
 void TwoCenterBundle::build_alpha(int ndesc, std::string* file_desc0)
 {
-    if (GlobalV::deepks_setorb)
+    if (PARAM.globalv.deepks_setorb)
     {
         std::vector<std::string> file_desc(ndesc);
         if (GlobalV::MY_RANK == 0)
@@ -49,12 +50,12 @@ void TwoCenterBundle::build_alpha(int ndesc, std::string* file_desc0)
     }
 }
 
-void TwoCenterBundle::build_orb_onsite(int ntype, double radius)
+void TwoCenterBundle::build_orb_onsite(const double& radius)
 {
-    if (GlobalV::onsite_radius > 0)
+    if (radius > 0)
     {
         orb_onsite_ = std::unique_ptr<RadialCollection>(new RadialCollection);
-        orb_onsite_->build(orb_.get(), GlobalV::onsite_radius);
+        orb_onsite_->build(orb_.get(), radius);
     }
 }
 
@@ -63,28 +64,33 @@ void TwoCenterBundle::tabulate()
     ModuleBase::SphericalBesselTransformer sbt(true);
     orb_->set_transformer(sbt);
     beta_->set_transformer(sbt);
-    if (alpha_)
+    if (alpha_) {
         alpha_->set_transformer(sbt);
-    if (orb_onsite_)
+}
+    if (orb_onsite_) {
         orb_onsite_->set_transformer(sbt);
+}
 
     //================================================================
     //              build two-center integration tables
     //================================================================
     // set up a universal radial grid
     double rmax = std::max(orb_->rcut_max(), beta_->rcut_max());
-    if (alpha_)
+    if (alpha_) {
         rmax = std::max(rmax, alpha_->rcut_max());
+}
     double dr = 0.01;
     double cutoff = 2.0 * rmax;
     int nr = static_cast<int>(rmax / dr) + 1;
 
     orb_->set_uniform_grid(true, nr, cutoff, 'i', true);
     beta_->set_uniform_grid(true, nr, cutoff, 'i', true);
-    if (alpha_)
+    if (alpha_) {
         alpha_->set_uniform_grid(true, nr, cutoff, 'i', true);
-    if (orb_onsite_)
+}
+    if (orb_onsite_) {
         orb_onsite_->set_uniform_grid(true, nr, cutoff, 'i', true);
+}
 
     // build TwoCenterIntegrator objects
     kinetic_orb = std::unique_ptr<TwoCenterIntegrator>(new TwoCenterIntegrator);
@@ -125,10 +131,12 @@ void TwoCenterBundle::tabulate(const double lcao_ecut,
     ModuleBase::SphericalBesselTransformer sbt(true);
     orb_->set_transformer(sbt);
     beta_->set_transformer(sbt);
-    if (alpha_)
+    if (alpha_) {
         alpha_->set_transformer(sbt);
-    if (orb_onsite_)
+}
+    if (orb_onsite_) {
         orb_onsite_->set_transformer(sbt);
+}
 
     //================================================================
     //              build two-center integration tables
@@ -209,7 +217,7 @@ void TwoCenterBundle::to_LCAO_Orbitals(LCAO_Orbitals& ORB,
     ORB.nchimax = orb_->nzeta_max();
     ORB.rcutmax_Phi = orb_->rcut_max();
     ORB.dR = lcao_dr;
-    ORB.Rmax = lcao_rmax; // lcao_rmax, see ORB_control.cpp
+    ORB.Rmax = lcao_rmax;
     ORB.dr_uniform = 0.001;
 
     // Due to algorithmic difference in the spherical Bessel transform
@@ -237,7 +245,7 @@ void TwoCenterBundle::to_LCAO_Orbitals(LCAO_Orbitals& ORB,
         (*orb_)(itype).to_numerical_orbital(ORB.Phi[itype], ORB.kmesh, ORB.dk);
     }
 
-    if (GlobalV::deepks_setorb)
+    if (PARAM.globalv.deepks_setorb)
     {
         ORB.lmax_d = alpha_->lmax();
         ORB.nchimax_d = alpha_->nzeta_max();

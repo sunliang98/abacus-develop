@@ -1,5 +1,8 @@
 #ifdef __MPI
 #include "../../../module_base/parallel_global.h"
+#define private public
+#include "module_parameter/parameter.h"
+#undef private
 #include "mpi.h"
 #endif
 #include "../../module_xc/xc_functional.h"
@@ -54,7 +57,7 @@ TEST_F(cal_vel_test, shape_gradn)
 
     for (int ir = 0; ir < nrxx; ir++)
     {
-        epr_z = log(std::max(PS_TOTN_real[ir], min) / GlobalV::nc_k) / sqrt(2) / GlobalV::sigma_k;
+        epr_z = log(std::max(PS_TOTN_real[ir], min) / PARAM.inp.nc_k) / sqrt(2) / PARAM.inp.sigma_k;
         eprime[ir] = epr_c * exp(-pow(epr_z, 2)) / std::max(PS_TOTN_real[ir], min);
     }
 
@@ -133,7 +136,7 @@ TEST_F(cal_vel_test, eps_pot)
 
     for (int ir = 0; ir < nrxx; ir++)
     {
-        eprime[ir] = eprime[ir] * (GlobalV::eb_k - 1);
+        eprime[ir] = eprime[ir] * (PARAM.input.eb_k - 1);
     }
 
     ModuleBase::Vector3<double>* nabla_phi = new ModuleBase::Vector3<double>[nrxx];

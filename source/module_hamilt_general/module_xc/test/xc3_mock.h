@@ -1,6 +1,7 @@
 // I'm mocking FFT here because it is not possible to write
 // unit tests with FFT
 #include <fstream>
+
 namespace ModulePW
 {
     PW_Basis::PW_Basis(){};
@@ -168,7 +169,6 @@ namespace GlobalV
     int CAL_FORCE = 0;
     int NSPIN;
     int NPOL;
-    double XC_TEMPERATURE;
     bool DOMAG;
     bool DOMAG_Z;
     bool use_paw = false;

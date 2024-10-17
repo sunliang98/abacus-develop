@@ -1,5 +1,6 @@
 #include "FORCE.h"
 #include "module_base/memory.h"
+#include "module_parameter/parameter.h"
 #include "module_base/parallel_reduce.h"
 #include "module_base/timer.h"
 #include "module_base/tool_threading.h"
@@ -9,6 +10,7 @@
 #include "module_elecstate/module_dm/cal_dm_psi.h"
 #include "module_hamilt_pw/hamilt_pwdft/global.h"
 #include "module_io/write_HS.h"
+#include "module_hamilt_lcao/hamilt_lcaodft/stress_tools.h"
 
 #include <map>
 #include <unordered_map>
@@ -39,9 +41,9 @@ void Force_LCAO<std::complex<double>>::cal_fvnl_dbeta(const elecstate::DensityMa
     ModuleBase::TITLE("Force_LCAO", "cal_fvnl_dbeta");
     ModuleBase::timer::tick("Force_LCAO", "cal_fvnl_dbeta");
 
-    const int nspin = GlobalV::NSPIN;
+    const int nspin = PARAM.inp.nspin;
     const int nspin_DMR = (nspin == 2) ? 2 : 1;
-    const int npol = GlobalV::NPOL;
+    const int npol = PARAM.globalv.npol;
 
     // Data structure for storing <psi|beta>, for a detailed description
     // check out the same data structure in build_Nonlocal_mu_new
@@ -81,8 +83,8 @@ void Force_LCAO<std::complex<double>>::cal_fvnl_dbeta(const elecstate::DensityMa
             const int nw1_tot = atom1->nw * npol;
 
             const ModuleBase::Vector3<double> dtau = tau1 - tau;
-            const double dist1 = dtau.norm2() * pow(ucell.lat0, 2);
-            if (dist1 > pow(Rcut_Beta + Rcut_AO1, 2))
+            const double dist1 = dtau.norm2() * ucell.lat0 * ucell.lat0;
+            if (dist1 > (Rcut_Beta + Rcut_AO1) * (Rcut_Beta + Rcut_AO1))
             {
                 continue;
             }
@@ -201,10 +203,10 @@ void Force_LCAO<std::complex<double>>::cal_fvnl_dbeta(const elecstate::DensityMa
                     const int rz2 = adjs.box[ad2].z;
 
                     dtau = tau2 - tau1;
-                    distance = dtau.norm2() * pow(ucell.lat0, 2);
+                    distance = dtau.norm2() * (ucell.lat0 * ucell.lat0);
                     // this rcut is in order to make nnr consistent
                     // with other matrix.
-                    rcut = pow(orb.Phi[T1].getRcut() + orb.Phi[T2].getRcut(), 2);
+                    rcut = (orb.Phi[T1].getRcut() + orb.Phi[T2].getRcut()) * (orb.Phi[T1].getRcut() + orb.Phi[T2].getRcut());
 
                     // check if this a adjacent atoms.
                     bool is_adj = false;
@@ -278,12 +280,12 @@ void Force_LCAO<std::complex<double>>::cal_fvnl_dbeta(const elecstate::DensityMa
 
                             dtau1 = tau0 - tau1;
                             dtau2 = tau0 - tau2;
-                            const double distance1 = dtau1.norm2() * pow(ucell.lat0, 2);
-                            const double distance2 = dtau2.norm2() * pow(ucell.lat0, 2);
+                            const double distance1 = dtau1.norm2() * ucell.lat0 * ucell.lat0;
+                            const double distance2 = dtau2.norm2() * ucell.lat0 * ucell.lat0;
 
                             // seems a bug here!! mohan 2011-06-17
-                            rcut1 = pow(orb.Phi[T1].getRcut() + ucell.infoNL.Beta[T0].get_rcut_max(), 2);
-                            rcut2 = pow(orb.Phi[T2].getRcut() + ucell.infoNL.Beta[T0].get_rcut_max(), 2);
+                            rcut1 = (orb.Phi[T1].getRcut() + ucell.infoNL.Beta[T0].get_rcut_max()) * (orb.Phi[T1].getRcut() + ucell.infoNL.Beta[T0].get_rcut_max());
+                            rcut2 = (orb.Phi[T2].getRcut() + ucell.infoNL.Beta[T0].get_rcut_max()) * (orb.Phi[T2].getRcut() + ucell.infoNL.Beta[T0].get_rcut_max());
 
                             double r0[3];
                             double r1[3];
@@ -331,12 +333,11 @@ void Force_LCAO<std::complex<double>>::cal_fvnl_dbeta(const elecstate::DensityMa
 
                                     if (nspin == 4)
                                     {
-                                        std::vector<double> nlm_1 = nlm_tot[iat][key2][iw2_all][0];
-                                        std::vector<std::vector<double>> nlm_2;
-                                        nlm_2.resize(3);
+                                        const double* nlm_1 = nlm_tot[iat][key2][iw2_all][0].data();
+                                        const double* nlm_2[3];
                                         for (int i = 0; i < 3; i++)
                                         {
-                                            nlm_2[i] = nlm_tot[iat][key1][iw1_all][i + 1];
+                                            nlm_2[i] = nlm_tot[iat][key1][iw1_all][i + 1].data();
                                         }
                                         int is0 = (j - j0 * npol) + (k - k0 * npol) * 2;
                                         for (int no = 0; no < ucell.atoms[T0].ncpp.non_zero_count_soc[is0]; no++)
@@ -381,12 +382,11 @@ void Force_LCAO<std::complex<double>>::cal_fvnl_dbeta(const elecstate::DensityMa
                                         }
                                         if (isstress)
                                         {
-                                            std::vector<double> nlm_1 = nlm_tot[iat][key1][iw1_all][0];
-                                            std::vector<std::vector<double>> nlm_2;
-                                            nlm_2.resize(3);
+                                            const double* nlm_1 = nlm_tot[iat][key1][iw1_all][0].data();
+                                            const double* nlm_2[3];
                                             for (int i = 0; i < 3; i++)
                                             {
-                                                nlm_2[i] = nlm_tot[iat][key2][iw2_all][i + 1];
+                                                nlm_2[i] = nlm_tot[iat][key2][iw2_all][i + 1].data();
                                             }
                                             int is0 = (j - j0 * npol) + (k - k0 * npol) * 2;
                                             for (int no = 0; no < ucell.atoms[T0].ncpp.non_zero_count_soc[is0]; no++)
@@ -435,62 +435,46 @@ void Force_LCAO<std::complex<double>>::cal_fvnl_dbeta(const elecstate::DensityMa
                                     {
                                         // const Atom* atom0 = &ucell.atoms[T0];
                                         double nlm[3] = {0, 0, 0};
-                                        std::vector<double> nlm_1 = nlm_tot[iat][key2][iw2_all][0];
-                                        std::vector<std::vector<double>> nlm_2;
-                                        nlm_2.resize(3);
+                                        const double* nlm_1 = nlm_tot[iat][key2][iw2_all][0].data();
+                                        const double* nlm_2[3];
                                         for (int i = 0; i < 3; i++)
                                         {
-                                            nlm_2[i] = nlm_tot[iat][key1][iw1_all][i + 1];
+                                            nlm_2[i] = nlm_tot[iat][key1][iw1_all][i + 1].data();
                                         }
 
-                                        assert(nlm_1.size() == nlm_2[0].size());
-
-                                        const int nproj = ucell.infoNL.nproj[T0];
-                                        int ib = 0;
-                                        for (int nb = 0; nb < nproj; nb++)
+                                        const double* tmp_d = nullptr;
+                                        for (int no = 0; no < ucell.atoms[T0].ncpp.non_zero_count_soc[0]; no++)
                                         {
-                                            const int L0 = ucell.infoNL.Beta[T0].Proj[nb].getL();
-                                            for (int m = 0; m < 2 * L0 + 1; m++)
+                                            const int p1 = ucell.atoms[T0].ncpp.index1_soc[0][no];
+                                            const int p2 = ucell.atoms[T0].ncpp.index2_soc[0][no];
+                                            ucell.atoms[T0].ncpp.get_d(0, p1, p2, tmp_d);
+                                            for (int ir = 0; ir < 3; ir++)
                                             {
-                                                for (int ir = 0; ir < 3; ir++)
-                                                {
-                                                    nlm[ir] += nlm_2[ir][ib] * nlm_1[ib]
-                                                               * ucell.atoms[T0].ncpp.dion(nb, nb);
-                                                }
-                                                ib += 1;
+                                                nlm[ir] += nlm_2[ir][p2] * nlm_1[p1] * (*tmp_d);
                                             }
                                         }
-                                        assert(ib == nlm_1.size());
 
                                         double nlm1[3] = {0, 0, 0};
                                         if (isstress)
                                         {
-                                            std::vector<double> nlm_1 = nlm_tot[iat][key1][iw1_all][0];
-                                            std::vector<std::vector<double>> nlm_2;
-                                            nlm_2.resize(3);
+                                            const double* nlm_1 = nlm_tot[iat][key1][iw1_all][0].data();
+                                            const double* nlm_2[3];
                                             for (int i = 0; i < 3; i++)
                                             {
-                                                nlm_2[i] = nlm_tot[iat][key2][iw2_all][i + 1];
+                                                nlm_2[i] = nlm_tot[iat][key2][iw2_all][i + 1].data();
                                             }
 
-                                            assert(nlm_1.size() == nlm_2[0].size());
-
-                                            const int nproj = ucell.infoNL.nproj[T0];
-                                            int ib = 0;
-                                            for (int nb = 0; nb < nproj; nb++)
+                                            const double* tmp_d = nullptr;
+                                            for (int no = 0; no < ucell.atoms[T0].ncpp.non_zero_count_soc[0]; no++)
                                             {
-                                                const int L0 = ucell.infoNL.Beta[T0].Proj[nb].getL();
-                                                for (int m = 0; m < 2 * L0 + 1; m++)
+                                                const int p1 = ucell.atoms[T0].ncpp.index1_soc[0][no];
+                                                const int p2 = ucell.atoms[T0].ncpp.index2_soc[0][no];
+                                                ucell.atoms[T0].ncpp.get_d(0, p1, p2, tmp_d);
+                                                for (int ir = 0; ir < 3; ir++)
                                                 {
-                                                    for (int ir = 0; ir < 3; ir++)
-                                                    {
-                                                        nlm1[ir] += nlm_2[ir][ib] * nlm_1[ib]
-                                                                    * ucell.atoms[T0].ncpp.dion(nb, nb);
-                                                    }
-                                                    ib += 1;
+                                                    nlm1[ir] += nlm_2[ir][p1] * nlm_1[p2] * (*tmp_d);
                                                 }
                                             }
-                                            assert(ib == nlm_1.size());
                                         }
 
                                         /// only one projector for each atom force, but another projector for stress

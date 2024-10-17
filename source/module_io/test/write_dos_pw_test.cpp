@@ -1,12 +1,15 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include "module_io/write_dos_pw.h"
-#include "module_io/input.h"
 #ifdef __MPI
 #include "mpi.h"
 #endif
 #include "for_testing_klist.h"
 #include "dos_test.h"
+
+#define private public
+#include "module_parameter/parameter.h"
+#undef private
 
 /************************************************
  *  unit test of write_dos_pw
@@ -19,7 +22,6 @@
  *     - density of states in pw basis calculation
  */
 
-Input INPUT;
 
 class DosPWTest : public ::testing::Test
 {
@@ -46,11 +48,11 @@ TEST_F(DosPWTest,Dos1)
 	dosp.read_istate_info();
 	EXPECT_EQ(dosp.is,0);
 	double dos_scale = 0.01;
-	GlobalV::NSPIN = 1;
-	INPUT.dos_emax_ev = dosp.emax_ev;
-	INPUT.dos_setemax = true;
-	INPUT.dos_emin_ev = dosp.emin_ev;
-	INPUT.dos_setemin = true;
+	PARAM.input.nspin = 1;
+	PARAM.input.dos_emax_ev = dosp.emax_ev;
+	PARAM.sys.dos_setemax = true;
+	PARAM.input.dos_emin_ev = dosp.emin_ev;
+	PARAM.sys.dos_setemin = true;
 	kv->set_nks(dosp.nks);
 	kv->set_nkstot(dosp.nkstot);
 	kv->isk.reserve(kv->get_nks());
@@ -60,7 +62,7 @@ TEST_F(DosPWTest,Dos1)
 		kv->isk[ik] = dosp.isk[ik];
 		kv->wk[ik] = dosp.wk[ik];
 	}
-	GlobalV::NBANDS = dosp.nbands;
+	PARAM.input.nbands = dosp.nbands;
 	ModuleIO::write_dos_pw(dosp.ekb,
 			dosp.wg,
 			*kv,
@@ -96,11 +98,11 @@ TEST_F(DosPWTest,Dos2)
 	dosp.read_istate_info();
 	EXPECT_EQ(dosp.is,0);
 	double dos_scale = 0.01;
-	GlobalV::NSPIN = 1;
-	INPUT.dos_emax_ev = dosp.emax_ev;
-	INPUT.dos_setemax = false;
-	INPUT.dos_emin_ev = dosp.emin_ev;
-	INPUT.dos_setemin = false;
+	PARAM.input.nspin = 1;
+	PARAM.input.dos_emax_ev = dosp.emax_ev;
+	PARAM.sys.dos_setemax = false;
+	PARAM.input.dos_emin_ev = dosp.emin_ev;
+	PARAM.sys.dos_setemin = false;
 	kv->set_nks(dosp.nks);
 	kv->set_nkstot(dosp.nkstot);
 	kv->isk.reserve(kv->get_nks());
@@ -110,7 +112,7 @@ TEST_F(DosPWTest,Dos2)
 		kv->isk[ik] = dosp.isk[ik];
 		kv->wk[ik] = dosp.wk[ik];
 	}
-	GlobalV::NBANDS = dosp.nbands;
+	PARAM.input.nbands = dosp.nbands;
 	ModuleIO::write_dos_pw(dosp.ekb,
 			dosp.wg,
 			*kv,
