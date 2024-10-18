@@ -8,7 +8,6 @@ list(APPEND hamilt_ofdft_srcs
     kedf_ml_pot.cpp
     kedf_ml_label.cpp
     ml_data.cpp
-    ml_data_position.cpp
     ml_tools/nn_of.cpp
 )
 

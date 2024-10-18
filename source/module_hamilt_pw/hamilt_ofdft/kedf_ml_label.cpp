@@ -7,7 +7,6 @@ void KEDF_ML::init_data(
     const bool &of_ml_q,
     const bool &of_ml_tanhp,
     const bool &of_ml_tanhq,
-    const bool &of_ml_r_min,
     const std::string &of_ml_gammanl_,
     const std::string &of_ml_pnl_,
     const std::string &of_ml_qnl_,
@@ -131,12 +130,6 @@ void KEDF_ML::init_data(
             this->ninput++;
         }
     }
-    // --------- r minimum descriptors ---------
-    if (of_ml_r_min){
-        this->descriptor_type.push_back("r_min");
-        this->kernel_index.push_back(-1);
-        ninput++;
-    }
 
     this->descriptor2kernel = {{"gamma", {}},
                                {"p", {}},
@@ -152,8 +145,7 @@ void KEDF_ML::init_data(
                                {"tanh_pnl", {}},
                                {"tanh_qnl", {}},
                                {"tanhp_nl", {}},
-                               {"tanhq_nl", {}},
-                               {"r_min", {}}};
+                               {"tanhq_nl", {}}};
     this->descriptor2index = this->descriptor2kernel;
 
     for (int i = 0; i < ninput; ++i)
@@ -183,7 +175,6 @@ void KEDF_ML::init_data(
     this->ml_tanh_qnl = this->descriptor2index["tanh_qnl"].size() > 0;
     this->ml_tanhp_nl = this->descriptor2index["tanhp_nl"].size() > 0;
     this->ml_tanhq_nl = this->descriptor2index["tanhq_nl"].size() > 0;
-    this->ml_r_min = this->descriptor2index["r_min"].size() > 0;
 
     bool gene_gammanl_tot = false;
     bool gene_pnl_tot = false;
@@ -210,8 +201,7 @@ void KEDF_ML::init_data(
                                {"tanh_pnl", {}},
                                {"tanh_qnl", {}},
                                {"tanhp_nl", {}},
-                               {"tanhq_nl", {}},
-                               {"r_min", {}}};
+                               {"tanhq_nl", {}}};
 
     for (std::string descriptor : {"gamma", "p", "q", "tanhp", "tanhq"})
     {
@@ -225,7 +215,6 @@ void KEDF_ML::init_data(
             this->gene_data_label[descriptor].push_back(0);
         }
     }
-    this->gene_data_label["r_min"].push_back(0);
 
     for (int ik = 0; ik < nkernel; ++ik)
     {
@@ -268,7 +257,6 @@ void KEDF_ML::init_data(
     this->gene_data_label["tanhq"][0] = of_ml_tanhq || gene_tanhq_nl_tot || gene_tanh_qnl_tot;
     this->gene_data_label["p"][0] = of_ml_p || this->gene_data_label["tanhp"][0] || gene_pnl_tot;
     this->gene_data_label["q"][0] = of_ml_q || this->gene_data_label["tanhq"][0] || gene_qnl_tot;
-    this->gene_data_label["r_min"][0] = of_ml_r_min;
 
 
     if (this->gene_data_label["gamma"][0])   this->gamma = std::vector<double>(this->nx, 0.);
@@ -326,8 +314,5 @@ void KEDF_ML::init_data(
         if (this->gene_data_label["tanhq_nl"][ik]){
             this->tanhq_nl[ik] = std::vector<double>(this->nx, 0.);
         }
-    }
-    if (this->gene_data_label["r_min"][0]){
-        this->r_min = std::vector<double>(this->nx, 0.);
     }
 }

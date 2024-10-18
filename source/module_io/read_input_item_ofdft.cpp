@@ -270,12 +270,6 @@ void ReadInput::item_ofdft()
         this->add_item(item);
     }
     {
-        Input_Item item("of_ml_r_min");
-        item.annotation = "If the input variables contain r_min";
-        read_sync_bool(input.of_ml_r_min);
-        this->add_item(item);
-    }
-    {
         Input_Item item("of_ml_nnode");
         item.annotation = "Number of node";
         read_sync_int(input.of_ml_nnode);

@@ -277,10 +277,6 @@ void Input::readInput()
         {
             this->read_value(ifs, this->device_type);
         }
-        else if (strcmp("r_min", word) == 0)
-        {
-            this->read_value(ifs, this->ml_r_min);
-        }
     }
 
     std::cout << "Read nnINPUT done" << std::endl;

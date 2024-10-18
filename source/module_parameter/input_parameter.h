@@ -230,7 +230,6 @@ struct Input_para
     std::string of_ml_chi_pnl; // tanh_pnl = tanh(chi*pnl)
     std::string of_ml_chi_qnl; // tanh_pnl = tanh(chi*qnl)
     // r descriptors
-    bool of_ml_r_min; // If the input variables contain r_min
     // size of nn 2023-04-19
     int of_ml_nnode;    // number of node
     int of_ml_nlayer;   // number of layer

@@ -178,12 +178,6 @@ void Train::init_input_index()
             this->ninput++;
         }
     }
-    // r descriptor
-    if (this->input.ml_r_min){
-        this->descriptor_type.push_back("r_min");
-        this->kernel_index.push_back(-1);
-        ninput++;
-    }
 
     std::cout << "ninput = " << ninput << std::endl;
 

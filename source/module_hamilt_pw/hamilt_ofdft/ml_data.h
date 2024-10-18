@@ -85,8 +85,6 @@ public:
     void getfQ_nl(const int ikernel, std::vector<double> &pfq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfq_nl);
     // 2023-03-20
     void getTanhXi_nl(const int ikernel, std::vector<double> &ptanhxi, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhxi_nl);
-    // 2024-06-23
-    void get_r_matrix(const UnitCell& ucell, ModulePW::PW_Basis* pw_rho, std::vector<double>& r_min_vector);
     // get target
     void getF_WT(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho,std::vector<double> &rF);
     void getPauli_WT(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpauli);

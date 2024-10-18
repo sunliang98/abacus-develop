@@ -305,9 +305,6 @@ void ML_data::generate_descriptor(
         // this->getfQ_nl(ik, new_container, pw_rho, new_containernl);
         // npy::SaveArrayAsNumpy(this->file_name("fq_nl", ktype, kscaling), false, 1, cshape, new_containernl);
     }
-
-    this->get_r_matrix(GlobalC::ucell, pw_rho, container);
-    npy::SaveArrayAsNumpy("r_min.npy", false, 1, cshape, container);
 }
 
 void ML_data::getGamma(const double * const *prho, std::vector<double> &rgamma)
