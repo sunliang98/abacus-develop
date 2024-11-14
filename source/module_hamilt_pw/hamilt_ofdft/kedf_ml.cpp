@@ -1,3 +1,5 @@
+#ifdef __MLKEDF
+
 #include "kedf_ml.h"
 
 #include "module_base/parallel_reduce.h"
@@ -399,3 +401,4 @@ torch::Tensor KEDF_ML::get_data(std::string parameter, const int ikernel){
     if (parameter == "tanhq_nl")    return torch::tensor(this->tanhq_nl[ikernel], this->device_type);
     return torch::zeros({});
 }
+#endif

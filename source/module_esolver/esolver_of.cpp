@@ -220,7 +220,10 @@ void ESolver_OF::runner(int istep, UnitCell& ucell)
     this->before_opt(istep, ucell);
     this->iter_ = 0;
 
+#ifdef __MLKEDF
+    // for ML KEDF test
     if (PARAM.inp.of_ml_local_test) this->ml_->localTest(pelec->charge->rho, this->pw_rho);
+#endif
 
     while (true)
     {
@@ -522,6 +525,8 @@ void ESolver_OF::after_opt(const int istep, UnitCell& ucell)
         this->pelec->charge->rho_save[0][ir] = this->pelec->charge->rho[0][ir];
     }
 
+#ifdef __MLKEDF
+    // Check the positivity of Pauli energy
     if (this->of_kinetic_ == "mpn" || this->of_kinetic_ == "ml")
     {
         this->tf_->get_energy(this->pelec->charge->rho);
@@ -532,6 +537,7 @@ void ESolver_OF::after_opt(const int istep, UnitCell& ucell)
         }
     }
 
+    // Generate data if needed
     if (PARAM.inp.of_ml_gene_data)
     {
         this->pelec->pot->update_from_charge(pelec->charge, &GlobalC::ucell); // Hartree + XC + external
@@ -551,6 +557,7 @@ void ESolver_OF::after_opt(const int istep, UnitCell& ucell)
         std::cout << "mu = " << this->pelec->eferm.get_efval(0) << std::endl;
         this->ml_->generateTrainData(pelec->charge->rho, *(this->wt_), *(this->tf_), this->pw_rho, vr_eff);
     }
+#endif
     // 2) call after_scf() of ESolver_FP
     ESolver_FP::after_scf(istep);
 }

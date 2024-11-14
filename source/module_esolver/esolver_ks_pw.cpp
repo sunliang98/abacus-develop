@@ -40,14 +40,14 @@
 #include "module_io/winput.h"
 #include "module_io/write_elecstat_pot.h"
 #include "module_io/write_wfc_r.h"
-//---------------------------------------------------
-#include "module_hamilt_pw/hamilt_ofdft/ml_data.h"
-//---------------------------------------------------
 #include "module_parameter/parameter.h"
 #ifdef USE_PAW
 #include "module_cell/module_paw/paw_cell.h"
 #endif
 #include "module_base/formatter.h"
+#ifdef __MLKEDF
+#include "module_hamilt_pw/hamilt_ofdft/ml_data.h"
+#endif
 
 #include <ATen/kernels/blas.h>
 #include <ATen/kernels/lapack.h>
@@ -781,6 +781,8 @@ void ESolver_KS_PW<T, Device>::after_all_runners()
                      this->pelec->wg);
     }
 
+#ifdef __MLKEDF
+    // generate training data for ML-KEDF
     if(PARAM.inp.of_ml_gene_data == 1)
     {
         this->pelec->pot->update_from_charge(this->pelec->charge, &GlobalC::ucell);
@@ -790,8 +792,8 @@ void ESolver_KS_PW<T, Device>::after_all_runners()
                             PARAM.inp.of_ml_chi_p, PARAM.inp.of_ml_chi_q, PARAM.inp.of_ml_chi_xi, PARAM.inp.of_ml_chi_pnl, PARAM.inp.of_ml_chi_qnl,
                             PARAM.inp.of_ml_nkernel, PARAM.inp.of_ml_kernel, PARAM.inp.of_ml_kernel_scaling, PARAM.inp.of_ml_yukawa_alpha, PARAM.inp.of_ml_kernel_file, this->pw_rho);
         ml_data.generateTrainData_KS(this->kspw_psi, this->pelec, this->pw_wfc, this->pw_rho, this->pelec->pot->get_effective_v(0));
-
     }
+#endif
 }
 
 template class ESolver_KS_PW<std::complex<float>, base_device::DEVICE_CPU>;

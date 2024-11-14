@@ -1,3 +1,5 @@
+#ifdef __MLKEDF
+
 #include "ml_data.h"
 
 #include "npy.hpp"
@@ -963,3 +965,4 @@ std::string ML_data::file_name(std::string parameter, const int kernel_type, con
     ss << "./" << parameter << "_" << kernel_type << "_" << kernel_scaling << ".npy";
     return ss.str();
 }
+#endif

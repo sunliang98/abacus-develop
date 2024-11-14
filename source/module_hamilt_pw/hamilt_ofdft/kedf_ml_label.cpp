@@ -1,3 +1,5 @@
+#ifdef __MLKEDF
+
 #include "kedf_ml.h"
 
 void KEDF_ML::init_data(
@@ -316,3 +318,4 @@ void KEDF_ML::init_data(
         }
     }
 }
+#endif

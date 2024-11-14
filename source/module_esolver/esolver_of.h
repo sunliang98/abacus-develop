@@ -46,7 +46,9 @@ class ESolver_OF : public ESolver_FP
     KEDF_vW* vw_ = nullptr;
     KEDF_WT* wt_ = nullptr;
     KEDF_LKT* lkt_ = nullptr;
+#ifdef __MLKEDF
     KEDF_ML* ml_ = nullptr;
+#endif
 
     // ----------------- the optimization methods ------------------
     ModuleBase::Opt_CG* opt_cg_ = nullptr;

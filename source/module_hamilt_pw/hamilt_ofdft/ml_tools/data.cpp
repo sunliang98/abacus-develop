@@ -1,5 +1,6 @@
 #include "./data.h"
-#include "/home/xianyuer/data/1_sunliang/2_software/libnpy-old/include/npy.hpp"
+#include "/home/xianyuer/data/1_sunliang/2_software/libnpy/include/npy.hpp"
+// #include "/home/xianyuer/data/1_sunliang/2_software/libnpy-old/include/npy.hpp"
 
 Data::~Data()
 {

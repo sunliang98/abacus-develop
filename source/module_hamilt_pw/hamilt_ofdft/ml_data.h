@@ -1,6 +1,8 @@
 #ifndef ML_DATA_H
 #define ML_DATA_H
 
+#ifdef __MLKEDF
+
 #include <vector>
 #include "kedf_wt.h"
 #include "kedf_tf.h"
@@ -178,4 +180,5 @@ public:
     std::string file_name(std::string parameter, const int kernel_type, const double kernel_scaling);
 };
 
+#endif
 #endif

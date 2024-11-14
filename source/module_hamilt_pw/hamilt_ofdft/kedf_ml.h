@@ -1,6 +1,8 @@
 #ifndef KEDF_ML_H
 #define KEDF_ML_H
 
+#ifdef __MLKEDF
+
 #include "ml_data.h"
 
 #include <vector>
@@ -214,4 +216,6 @@ public:
 
     torch::Tensor get_data(std::string parameter, const int ikernel);
 };
+
+#endif
 #endif

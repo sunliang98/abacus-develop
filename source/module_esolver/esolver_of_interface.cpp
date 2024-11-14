@@ -66,6 +66,7 @@ void ESolver_OF::init_kedf(const Input_para& inp)
         }
         this->lkt_->set_para(this->dV_, inp.of_lkt_a);
     }
+#ifdef __MLKEDF
     if (this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
     {
         if (this->ml_ == nullptr)
@@ -77,6 +78,7 @@ void ESolver_OF::init_kedf(const Input_para& inp)
                         inp.of_ml_gammanl, inp.of_ml_pnl, inp.of_ml_qnl, inp.of_ml_xi, inp.of_ml_tanhxi,
                         inp.of_ml_tanhxi_nl, inp.of_ml_tanh_pnl, inp.of_ml_tanh_qnl, inp.of_ml_tanhp_nl, inp.of_ml_tanhq_nl, inp.of_ml_device, this->pw_rho);
     }
+#endif
 }
 
 /**
@@ -101,11 +103,13 @@ void ESolver_OF::kinetic_potential(double** prho, double** pphi, ModuleBase::mat
     {
         this->lkt_->lkt_potential(prho, this->pw_rho, rpot);
     }
+#ifdef __MLKEDF
     if (this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
     {
         this->ml_->ml_potential(prho, this->pw_rho, rpot);
         this->tf_->get_energy(prho); // temp
     }
+#endif
 
     // Before call vw_potential, change rpot to rpot * 2 * pphi
     for (int is = 0; is < PARAM.inp.nspin; ++is)
@@ -153,6 +157,7 @@ double ESolver_OF::kinetic_energy()
     {
         kinetic_energy += this->lkt_->lkt_energy;
     }
+#ifdef __MLKEDF
     if (this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
     {
         kinetic_energy += this->ml_->ml_energy;
@@ -162,6 +167,7 @@ double ESolver_OF::kinetic_energy()
             std::cout << "ML Term = " << this->ml_->ml_energy << " Ry, TF Term = " << this->tf_->tf_energy << " Ry." << std::endl;
         }
     }
+#endif
 
     return kinetic_energy;
 }

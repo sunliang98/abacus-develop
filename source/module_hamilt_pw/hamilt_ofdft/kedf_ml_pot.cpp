@@ -1,3 +1,5 @@
+#ifdef __MLKEDF
+
 #include "kedf_ml.h"
 
 #include "module_base/parallel_reduce.h"
@@ -539,3 +541,4 @@ void KEDF_ML::potTanhqTanhq_nlTerm(const double * const *prho, ModulePW::PW_Basi
     }
     delete[] tempQ;
 }
+#endif
