@@ -7,6 +7,9 @@
 #include "kedf_wt.h"
 #include "kedf_tf.h"
 #include "module_elecstate/elecstate_pw.h"
+#include "module_base/global_function.h"
+#include "module_hamilt_pw/hamilt_pwdft/global.h"
+#include "module_parameter/parameter.h"
 
 class ML_data{
 public:

@@ -22,6 +22,7 @@ if(ENABLE_MLKEDF)
       kedf_ml_pot.cpp
       kedf_ml_label.cpp
       ml_data.cpp
+      ml_data_descriptor.cpp
       ml_tools/nn_of.cpp
   )
 

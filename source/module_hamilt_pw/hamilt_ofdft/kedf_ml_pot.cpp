@@ -13,26 +13,36 @@ void KEDF_ML::get_potential_(const double * const * prho, ModulePW::PW_Basis *pw
 
     std::vector<double> pauli_potential(this->nx, 0.);
 
-    if (this->ml_gammanl)
+    if (this->ml_gammanl){
         this->potGammanlTerm(prho, pw_rho, pauli_potential);
-    if (this->ml_xi)
+    }
+    if (this->ml_xi){
         this->potXinlTerm(prho, pw_rho, pauli_potential);
-    if (this->ml_tanhxi)
+    }
+    if (this->ml_tanhxi){
         this->potTanhxinlTerm(prho, pw_rho, pauli_potential);
-    if (this->ml_tanhxi_nl)
+    }
+    if (this->ml_tanhxi_nl){
         this->potTanhxi_nlTerm(prho, pw_rho, pauli_potential);
-    if (this->ml_p || this->ml_pnl)
+    }
+    if (this->ml_p || this->ml_pnl){
         this->potPPnlTerm(prho, pw_rho, pauli_potential);
-    if (this->ml_q || this->ml_qnl)
+    }
+    if (this->ml_q || this->ml_qnl){
         this->potQQnlTerm(prho, pw_rho, pauli_potential);
-    if (this->ml_tanh_pnl)
+    }
+    if (this->ml_tanh_pnl){
         this->potTanhpTanh_pnlTerm(prho, pw_rho, pauli_potential);
-    if (this->ml_tanh_qnl)
+    }
+    if (this->ml_tanh_qnl){
         this->potTanhqTanh_qnlTerm(prho, pw_rho, pauli_potential);
-    if ((this->ml_tanhp || this->ml_tanhp_nl) && !this->ml_tanh_pnl)
+    }
+    if ((this->ml_tanhp || this->ml_tanhp_nl) && !this->ml_tanh_pnl){
         this->potTanhpTanhp_nlTerm(prho, pw_rho, pauli_potential);
-    if ((this->ml_tanhq || this->ml_tanhq_nl) && !this->ml_tanh_qnl)
+    }
+    if ((this->ml_tanhq || this->ml_tanhq_nl) && !this->ml_tanh_qnl){
         this->potTanhqTanhq_nlTerm(prho, pw_rho, pauli_potential);
+    }
 
     double kinetic_pot = 0.;
     int n_neg = 0;

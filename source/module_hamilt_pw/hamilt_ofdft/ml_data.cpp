@@ -3,12 +3,7 @@
 #include "ml_data.h"
 
 #include "npy.hpp"
-#include "module_base/parallel_reduce.h"
-#include "module_base/global_function.h"
-#include "module_hamilt_pw/hamilt_pwdft/global.h"
 #include "module_elecstate/module_charge/symmetry_rho.h"
-#include "module_base/module_device/types.h"
-#include "module_parameter/parameter.h"
 
 void ML_data::set_para(
     const int &nx,
@@ -147,13 +142,21 @@ void ML_data::generateTrainData_KS(
     ptempRho->rhog = new std::complex<double>*[1];
     ptempRho->rhog[0] = new std::complex<double>[pw_rho->npw];
 
-    for (int ir = 0; ir < this->nx; ++ir) ptempRho->rho[0][ir] = container[ir];
+    for (int ir = 0; ir < this->nx; ++ir){
+        ptempRho->rho[0][ir] = container[ir];
+    }
     srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
-    for (int ir = 0; ir < this->nx; ++ir) container[ir] = ptempRho->rho[0][ir];
+    for (int ir = 0; ir < this->nx; ++ir){
+        container[ir] = ptempRho->rho[0][ir];
+    }
 
-    for (int ir = 0; ir < this->nx; ++ir) ptempRho->rho[0][ir] = containernl[ir];
+    for (int ir = 0; ir < this->nx; ++ir){
+        ptempRho->rho[0][ir] = containernl[ir];
+    }
     srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
-    for (int ir = 0; ir < this->nx; ++ir) containernl[ir] = ptempRho->rho[0][ir];
+    for (int ir = 0; ir < this->nx; ++ir){
+        containernl[ir] = ptempRho->rho[0][ir];
+    }
 
     npy::SaveArrayAsNumpy("enhancement.npy", false, 1, cshape, container);
     npy::SaveArrayAsNumpy("pauli.npy", false, 1, cshape, containernl);
@@ -161,13 +164,21 @@ void ML_data::generateTrainData_KS(
     // enhancement factor of Pauli energy, and Pauli potential
     this->getF_KS2(psi, pelec, pw_psi, pw_rho, container, containernl);
 
-    for (int ir = 0; ir < this->nx; ++ir) ptempRho->rho[0][ir] = container[ir];
+    for (int ir = 0; ir < this->nx; ++ir){
+        ptempRho->rho[0][ir] = container[ir];
+    }
     srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
-    for (int ir = 0; ir < this->nx; ++ir) container[ir] = ptempRho->rho[0][ir];
+    for (int ir = 0; ir < this->nx; ++ir){
+        container[ir] = ptempRho->rho[0][ir];
+    }
 
-    for (int ir = 0; ir < this->nx; ++ir) ptempRho->rho[0][ir] = containernl[ir];
+    for (int ir = 0; ir < this->nx; ++ir){
+        ptempRho->rho[0][ir] = containernl[ir];
+    }
     srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
-    for (int ir = 0; ir < this->nx; ++ir) containernl[ir] = ptempRho->rho[0][ir];
+    for (int ir = 0; ir < this->nx; ++ir){
+        containernl[ir] = ptempRho->rho[0][ir];
+    }
 
     npy::SaveArrayAsNumpy("enhancement2.npy", false, 1, cshape, container);
     npy::SaveArrayAsNumpy("pauli2.npy", false, 1, cshape, containernl);
@@ -187,13 +198,6 @@ void ML_data::generate_descriptor(
     std::vector<std::vector<double>> &nablaRho
 )
 {
-    // std::vector<double> temp_prho(this->nx);
-    // this->loadVector("/home/xianyuer/data/1_sunliang/1_work/0_ml_kedf/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1-back/10_cdSi_27dim-eq-2023-03-20/rho.npy", temp_prho);
-    // double ** temp_rho = new double *[1];
-    // temp_rho[0] = new double[this->nx];
-    // for (int ir = 0; ir < this->nx; ++ir) temp_rho[0][ir] = temp_prho[ir];
-    // std::cout << "rho is loaded" << std::endl;
-
     // container which will contain gamma, p, q in turn
     std::vector<double> container(this->nx);
     std::vector<double> new_container(this->nx);
@@ -205,7 +209,9 @@ void ML_data::generate_descriptor(
 
     // rho
     std::vector<double> rho(this->nx);
-    for (int ir = 0; ir < this->nx; ++ir) rho[ir] = prho[0][ir];
+    for (int ir = 0; ir < this->nx; ++ir){
+        rho[ir] = prho[0][ir];
+    }
     npy::SaveArrayAsNumpy("rho.npy", false, 1, cshape, rho);
 
     // gamma
@@ -298,448 +304,7 @@ void ML_data::generate_descriptor(
         // tanh(q)_nl
         this->getTanhQ_nl(ik, new_container, pw_rho, new_containernl);
         npy::SaveArrayAsNumpy(this->file_name("tanhq_nl", ktype, kscaling), false, 1, cshape, new_containernl);
-
-        // // f(q) = q/(1+q)
-        // this->getfQ(container, new_container);
-        // npy::SaveArrayAsNumpy("fq.npy", false, 1, cshape, new_container);
-
-        // // f(q)_nl
-        // this->getfQ_nl(ik, new_container, pw_rho, new_containernl);
-        // npy::SaveArrayAsNumpy(this->file_name("fq_nl", ktype, kscaling), false, 1, cshape, new_containernl);
     }
-}
-
-void ML_data::getGamma(const double * const *prho, std::vector<double> &rgamma)
-{
-    for(int ir = 0; ir < this->nx; ++ir)
-    {
-        rgamma[ir] = pow(prho[0][ir]/this->rho0, 1./3.);
-    }
-}
-
-void ML_data::getP(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &pnablaRho, std::vector<double> &rp)
-{
-    for(int ir = 0; ir < this->nx; ++ir)
-    {
-        rp[ir] = 0.;
-        for (int j = 0; j < 3; ++j)
-        {
-            rp[ir] += pow(pnablaRho[j][ir], 2);
-        }
-        rp[ir] *= this->pqcoef / pow(prho[0][ir], 8.0/3.0);
-    }
-}
-
-void ML_data::getQ(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rq)
-{
-    // get Laplacian rho
-    std::complex<double> *recipRho = new std::complex<double>[pw_rho->npw];
-    pw_rho->real2recip(prho[0], recipRho);
-    for (int ip = 0; ip < pw_rho->npw; ++ip)
-    {
-        recipRho[ip] *= - pw_rho->gg[ip] * pw_rho->tpiba2;
-    }
-    pw_rho->recip2real(recipRho, rq.data());
-
-    for (int ir = 0; ir < this->nx; ++ir)
-    {
-        rq[ir] *= this->pqcoef / pow(prho[0][ir], 5.0/3.0);
-    }
-
-    delete[] recipRho;
-}
-
-void ML_data::getGammanl(const int ikernel, std::vector<double> &pgamma, ModulePW::PW_Basis *pw_rho, std::vector<double> &rgammanl)
-{
-    this->multiKernel(ikernel, pgamma.data(), pw_rho, rgammanl.data());
-}
-
-void ML_data::getPnl(const int ikernel, std::vector<double> &pp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpnl)
-{
-    this->multiKernel(ikernel, pp.data(), pw_rho, rpnl.data());
-}
-
-void ML_data::getQnl(const int ikernel, std::vector<double> &pq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rqnl)
-{
-    this->multiKernel(ikernel, pq.data(), pw_rho, rqnl.data());
-}
-
-// xi = gammanl/gamma
-void ML_data::getXi(std::vector<double> &pgamma, std::vector<double> &pgammanl, std::vector<double> &rxi)
-{
-    for (int ir = 0; ir < this->nx; ++ir)
-    {
-        if (pgamma[ir] == 0)
-        {
-            std::cout << "WARNING: gamma=0" << std::endl;
-            rxi[ir] = 0.;
-        }
-        else
-        {
-            rxi[ir] = pgammanl[ir]/pgamma[ir];
-        }
-    }
-}
-
-// tanhxi = tanh(gammanl/gamma)
-void ML_data::getTanhXi(const int ikernel, std::vector<double> &pgamma, std::vector<double> &pgammanl, std::vector<double> &rtanhxi)
-{
-    for (int ir = 0; ir < this->nx; ++ir)
-    {
-        if (pgamma[ir] == 0)
-        {
-            std::cout << "WARNING: gamma=0" << std::endl;
-            rtanhxi[ir] = 0.;
-        }
-        else
-        {
-            rtanhxi[ir] = std::tanh(pgammanl[ir]/pgamma[ir] * this->chi_xi[ikernel]);
-        }
-    }
-}
-
-// tanh(p)
-void ML_data::getTanhP(std::vector<double> &pp, std::vector<double> &rtanhp)
-{
-    this->tanh(pp, rtanhp, this->chi_p);
-}
-
-// tanh(q)
-void ML_data::getTanhQ(std::vector<double> &pq, std::vector<double> &rtanhq)
-{
-    this->tanh(pq, rtanhq, this->chi_q);
-}
-
-// tanh(pnl)
-void ML_data::getTanh_Pnl(const int ikernel, std::vector<double> &ppnl, std::vector<double> &rtanh_pnl)
-{
-    this->tanh(ppnl, rtanh_pnl, this->chi_pnl[ikernel]);
-}
-
-// tanh(qnl)
-void ML_data::getTanh_Qnl(const int ikernel, std::vector<double> &pqnl, std::vector<double> &rtanh_qnl)
-{
-    this->tanh(pqnl, rtanh_qnl, this->chi_qnl[ikernel]);
-}
-
-// tanh(p)_nl
-void ML_data::getTanhP_nl(const int ikernel, std::vector<double> &ptanhp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhp_nl)
-{
-    this->multiKernel(ikernel, ptanhp.data(), pw_rho, rtanhp_nl.data());
-}
-
-// tanh(q)_nl
-void ML_data::getTanhQ_nl(const int ikernel, std::vector<double> &ptanhq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhq_nl)
-{
-    this->multiKernel(ikernel, ptanhq.data(), pw_rho, rtanhq_nl.data());
-}
-
-// f(p) = p/(1+p)
-void ML_data::getfP(std::vector<double> &pp, std::vector<double> &rfp)
-{
-    this->f(pp, rfp);
-}
-
-// f(q) = q/(1+q)
-void ML_data::getfQ(std::vector<double> &pq, std::vector<double> &rfq)
-{
-    this->f(pq, rfq);
-}
-
-// f(p)_nl
-void ML_data::getfP_nl(const int ikernel, std::vector<double> &pfp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfp_nl)
-{
-    this->multiKernel(ikernel, pfp.data(), pw_rho, rfp_nl.data());
-}
-
-// f(q)_nl
-void ML_data::getfQ_nl(const int ikernel, std::vector<double> &pfq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfq_nl)
-{
-    this->multiKernel(ikernel, pfq.data(), pw_rho, rfq_nl.data());
-}
-
-// (tanhxi)_nl
-void ML_data::getTanhXi_nl(const int ikernel, std::vector<double> &ptanhxi, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhxi_nl)
-{
-    this->multiKernel(ikernel, ptanhxi.data(), pw_rho, rtanhxi_nl.data());
-}
-
-void ML_data::getPauli_WT(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpauli)
-{
-    ModuleBase::matrix potential(1, this->nx, true);
-
-    tf.tf_potential(prho, potential);
-    wt.wt_potential(prho, pw_rho, potential);
-
-    for (int ir = 0; ir < this->nx; ++ir) rpauli[ir] = potential(0, ir);
-}
-
-void ML_data::getF_WT(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rF)
-{
-    double wtden = 0.;
-    double tfden = 0.;
-    for (int ir = 0; ir < this->nx; ++ir)
-    {
-        wtden = wt.get_energy_density(prho, 0, ir, pw_rho);
-        tfden = tf.get_energy_density(prho, 0, ir);
-        rF[ir] = 1. + wtden/tfden;
-        // if (wtden < 0) std::cout << wtden/tfden << std::endl;
-    }
-}
-
-void ML_data::getF_KS1(
-    psi::Psi<std::complex<double>> *psi,
-    elecstate::ElecState *pelec,
-    ModulePW::PW_Basis_K *pw_psi,
-    ModulePW::PW_Basis *pw_rho,
-    const std::vector<std::vector<double>> &nablaRho,
-    std::vector<double> &rF,
-    std::vector<double> &rpauli
-)
-{
-    double *pauliED = new double[this->nx]; // Pauli Energy Density
-    ModuleBase::GlobalFunc::ZEROS(pauliED, this->nx);
-
-    double *pauliPot = new double[this->nx];
-    ModuleBase::GlobalFunc::ZEROS(pauliPot, this->nx);
-
-    std::complex<double> *wfcr = new std::complex<double>[this->nx];
-    ModuleBase::GlobalFunc::ZEROS(wfcr, this->nx);
-
-    double epsilonM = pelec->ekb(0,0);
-    assert(PARAM.inp.nspin == 1);
-
-    base_device::DEVICE_CPU* ctx;
-
-    // calculate positive definite kinetic energy density
-    for (int ik = 0; ik < psi->get_nk(); ++ik)
-    {
-        psi->fix_k(ik);
-        int ikk = psi->get_current_k();
-        assert(ikk == ik);
-        int npw = psi->get_current_nbas();
-        int nbands = psi->get_nbands();
-        for (int ibnd = 0; ibnd < nbands; ++ibnd)
-        {
-            if (pelec->wg(ik, ibnd) < ModuleBase::threshold_wg) {
-                continue;
-            }
-
-            pw_psi->recip_to_real(ctx, &psi->operator()(ibnd,0), wfcr, ik);
-            const double w1 = pelec->wg(ik, ibnd) / GlobalC::ucell.omega;
-            
-            // output one wf, to check KS equation
-            if (ik == 0 && ibnd == 0)
-            {
-                std::vector<double> wf_real = std::vector<double>(this->nx);
-                std::vector<double> wf_imag = std::vector<double>(this->nx);
-                for (int ir = 0; ir < this->nx; ++ir)
-                {
-                    wf_real[ir] = wfcr[ir].real();
-                    wf_imag[ir] = wfcr[ir].imag();
-                }
-                const long unsigned cshape[] = {(long unsigned) this->nx}; // shape of container and containernl
-                npy::SaveArrayAsNumpy("wfc_real.npy", false, 1, cshape, wf_real);
-                npy::SaveArrayAsNumpy("wfc_imag.npy", false, 1, cshape, wf_imag);
-                std::cout << "eigenvalue of wfc is " << pelec->ekb(ik, ibnd) << std::endl;
-                std::cout << "wg of wfc is " << pelec->wg(ik, ibnd) << std::endl;
-            }
-
-            if (w1 != 0.0)
-            {
-                // Find the energy of HOMO
-                if (pelec->ekb(ik,ibnd) > epsilonM)
-                {
-                    epsilonM = pelec->ekb(ik,ibnd);
-                }
-                // The last term of Pauli potential
-                for (int ir = 0; ir < pelec->charge->nrxx; ir++)
-                {
-                    pauliPot[ir] -= w1 * pelec->ekb(ik,ibnd) * norm(wfcr[ir]);
-                }
-            }
-
-            for (int j = 0; j < 3; ++j)
-            {
-                ModuleBase::GlobalFunc::ZEROS(wfcr, pelec->charge->nrxx);
-                for (int ig = 0; ig < npw; ig++)
-                {
-                    double fact
-                        = pw_psi->getgpluskcar(ik, ig)[j] * GlobalC::ucell.tpiba;
-                    wfcr[ig] = psi->operator()(ibnd, ig) * complex<double>(0.0, fact);
-                }
-
-                // pw_psi->recip_to_real(dev, wfcr, wfcr, ik);
-
-                pw_psi->recip2real(wfcr, wfcr, ik);
-                
-                for (int ir = 0; ir < this->nx; ++ir)
-                {
-                    pauliED[ir] += w1 * norm(wfcr[ir]); // actually, here should be w1/2 * norm(wfcr[ir]), but we multiply 2 to convert Ha to Ry.
-                }
-            }
-        }
-    }
-
-    std::cout << "(1) epsilon max = " << epsilonM << std::endl;
-    // calculate the positive definite vW energy density
-    for (int j = 0; j < 3; ++j)
-    {
-        for (int ir = 0; ir < this->nx; ++ir)
-        {
-            pauliED[ir] -= nablaRho[j][ir] * nablaRho[j][ir] / (8. * pelec->charge->rho[0][ir]) * 2.; // convert Ha to Ry.
-        }
-    }
-
-    // // check the vW energy density
-    // double **phi = new double*[1];
-    // phi[0] = new double[this->nx];
-    // std::vector<std::vector<double> > nablaPhi(3, std::vector<double>(this->nx, 0.));
-
-    // for (int ir = 0; ir < this->nx; ++ir)
-    // {
-    //     phi[0][ir] = sqrt(pelec->charge->rho[0][ir]);
-    // }
-    // this->getNablaRho(phi, pw_rho, nablaPhi);
-
-    // for (int ir = 0; ir < this->nx; ++ir)
-    // {
-    //     double term1 = nablaPhi[0][ir] * nablaPhi[0][ir] + nablaPhi[1][ir] * nablaPhi[1][ir] + nablaPhi[2][ir] * nablaPhi[2][ir];
-    //     double term2 = (nablaRho[0][ir] * nablaRho[0][ir] + nablaRho[1][ir] * nablaRho[1][ir] + nablaRho[2][ir] * nablaRho[2][ir] )/ (8. * pelec->charge->rho[0][ir]) * 2.;
-    //     if (term1 >= 1e-5 && term2 >= 1e-5)
-    //     {
-    //         std::cout << "1:" << term1 << "  2:" << term2 << std::endl;
-    //         assert(fabs(term1 - term2) <= 1e-6);
-    //     }
-    // }
-    // // ===========================
-
-    for (int ir = 0; ir < this->nx; ++ir)
-    {
-        rF[ir] = pauliED[ir] / (this->cTF * pow(pelec->charge->rho[0][ir], 5./3.));
-        // rpauli[ir] = pauliPot[ir];
-        rpauli[ir] = (pauliED[ir] + pauliPot[ir])/pelec->charge->rho[0][ir] + epsilonM;
-    }
-}
-
-void ML_data::getF_KS2(
-    psi::Psi<std::complex<double>> *psi,
-    elecstate::ElecState *pelec,
-    ModulePW::PW_Basis_K *pw_psi,
-    ModulePW::PW_Basis *pw_rho,
-    std::vector<double> &rF,
-    std::vector<double> &rpauli
-)
-{
-    double *pauliED = new double[this->nx]; // Pauli Energy Density
-    ModuleBase::GlobalFunc::ZEROS(pauliED, this->nx);
-
-    double *pauliPot = new double[this->nx];
-    ModuleBase::GlobalFunc::ZEROS(pauliPot, this->nx);
-
-    std::complex<double> *wfcr = new std::complex<double>[this->nx];
-    ModuleBase::GlobalFunc::ZEROS(wfcr, this->nx);
-
-    std::complex<double> *wfcg = nullptr;
-    std::complex<double> *LapWfcr = new std::complex<double>[this->nx];
-    ModuleBase::GlobalFunc::ZEROS(LapWfcr, this->nx);
-
-    double epsilonM = pelec->ekb(0,0);
-    assert(PARAM.inp.nspin == 1);
-
-    base_device::DEVICE_CPU* ctx;
-
-    // calculate kinetic energy density
-    for (int ik = 0; ik < psi->get_nk(); ++ik)
-    {
-        psi->fix_k(ik);
-        int ikk = psi->get_current_k();
-        assert(ikk == ik);
-        int npw = psi->get_current_nbas();
-        int nbands = psi->get_nbands();
-        delete[] wfcg;
-        wfcg = new std::complex<double>[npw];
-        for (int ibnd = 0; ibnd < nbands; ++ibnd)
-        {
-            if (pelec->wg(ik, ibnd) < ModuleBase::threshold_wg) {
-                continue;
-            }
-
-            pw_psi->recip_to_real(ctx, &psi->operator()(ibnd,0), wfcr, ik);
-            const double w1 = pelec->wg(ik, ibnd) / GlobalC::ucell.omega;
-
-            // if (w1 != 0.0)
-            // {
-                // Find the energy of HOMO
-                if (pelec->ekb(ik,ibnd) > epsilonM)
-                {
-                    epsilonM = pelec->ekb(ik,ibnd);
-                }
-                // The last term of Pauli potential
-                for (int ir = 0; ir < pelec->charge->nrxx; ir++)
-                {
-                    // pauliPot[ir] += w1 * norm(wfcr[ir]);
-                    pauliPot[ir] -= w1 * pelec->ekb(ik,ibnd) * norm(wfcr[ir]);
-                }
-            // }
-
-            ModuleBase::GlobalFunc::ZEROS(wfcg, npw);
-            for (int ig = 0; ig < npw; ig++)
-            {
-                double fact = pw_psi->getgk2(ik, ig) * GlobalC::ucell.tpiba2;
-                wfcg[ig] = - psi->operator()(ibnd, ig) * fact;
-            }
-
-            pw_psi->recip2real(wfcg, LapWfcr, ik);
-            
-            for (int ir = 0; ir < this->nx; ++ir)
-            {
-                pauliED[ir] += - w1 * (conj(wfcr[ir]) * LapWfcr[ir]).real(); // actually, here should be w1/2 * norm(wfcr[ir]), but we multiply 2 to convert Ha to Ry.
-            }
-        }
-    }
-
-    std::cout << "(2) epsilon max = " << epsilonM << std::endl;
-    // calculate the positive definite vW energy density
-    double *phi = new double[this->nx];
-    double *LapPhi = new double[this->nx];
-    for (int ir = 0; ir < this->nx; ++ir)
-    {
-        phi[ir] = sqrt(pelec->charge->rho[0][ir]);
-    }
-    this->Laplacian(phi, pw_rho, LapPhi);
-
-    for (int ir = 0; ir < this->nx; ++ir)
-    {
-        pauliED[ir] -= - phi[ir] * LapPhi[ir]; // convert Ha to Ry.
-    }
-
-    for (int ir = 0; ir < this->nx; ++ir)
-    {
-        rF[ir] = pauliED[ir] / (this->cTF * pow(pelec->charge->rho[0][ir], 5./3.));
-        // rpauli[ir] = pauliPot[ir];
-        rpauli[ir] = (pauliED[ir] + pauliPot[ir])/pelec->charge->rho[0][ir] + epsilonM;
-    }
-}
-
-void ML_data::getNablaRho(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &rnablaRho)
-{
-    std::complex<double> *recipRho = new std::complex<double>[pw_rho->npw];
-    std::complex<double> *recipNablaRho = new std::complex<double>[pw_rho->npw];
-    pw_rho->real2recip(prho[0], recipRho);
-    
-    std::complex<double> img(0.0, 1.0);
-    for (int j = 0; j < 3; ++j)
-    {
-        for (int ip = 0; ip < pw_rho->npw; ++ip)
-        {
-            recipNablaRho[ip] = img * pw_rho->gcar[ip][j] * recipRho[ip] * pw_rho->tpiba;
-        }
-        pw_rho->recip2real(recipNablaRho, rnablaRho[j].data());
-    }
-
-    delete[] recipRho;
-    delete[] recipNablaRho;
 }
 
 double ML_data::MLkernel(double eta, double tf_weight, double vw_weight)
@@ -859,7 +424,6 @@ void ML_data::read_kernel(const std::string &fileName, const double& scaling, Mo
             fac1 = (eta_in[ind2] - eta)/(eta_in[ind2] - eta_in[ind1]);
             fac2 = (eta - eta_in[ind1])/(eta_in[ind2] - eta_in[ind1]);
             kernel_[ig] = fac1 * w0_in[ind1] + fac2 * w0_in[ind2];
-            // kernel_[ig] *= std::pow(1. / scaling, 3);
         }
     }
 
@@ -916,21 +480,13 @@ void ML_data::divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * 
     delete[] recipContainer;
 }
 
-// void ML_data::dumpTensor(const torch::Tensor &data, std::string filename)
-// {
-//     std::cout << "Dumping " << filename << std::endl;
-//     std::vector<double> v(this->nx);
-//     for (int ir = 0; ir < this->nx; ++ir) v[ir] = data[ir].item<double>();
-//     // std::vector<double> v(data.data_ptr<float>(), data.data_ptr<float>() + data.numel()); // this works, but only supports float tensor
-//     const long unsigned cshape[] = {(long unsigned) this->nx}; // shape
-//     npy::SaveArrayAsNumpy(filename, false, 1, cshape, v);
-// }
 void ML_data::loadVector(std::string filename, std::vector<double> &data)
 {
     std::vector<long unsigned int> cshape = {(long unsigned) this->nx};
     bool fortran_order = false;
     npy::LoadArrayFromNumpy(filename, cshape, fortran_order, data);
 }
+
 void ML_data::dumpVector(std::string filename, const std::vector<double> &data)
 {
     const long unsigned cshape[] = {(long unsigned) this->nx}; // shape

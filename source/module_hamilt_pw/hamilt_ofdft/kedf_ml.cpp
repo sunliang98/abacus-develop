@@ -209,21 +209,15 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     bool fortran_order = false;
 
     std::vector<double> temp_prho(this->nx);
-    // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/1_validation_set_bccAl/reference/rho.npy", cshape, fortran_order, temp_prho);
-    // npy::LoadArrayFromNumpy("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", cshape, fortran_order, temp_prho);
-    // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/1_train/2022-11-11-potential-check/gpq/abacus/0_train_set/reference/rho.npy", temp_prho);
-    // this->ml_data->loadVector("/home/xianyuer/data/1_sunliang/1_work/0_ml_kedf/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/1_fccAl-eq-2023-03-20/rho.npy", temp_prho);
-    this->ml_data->loadVector("/home/xianyuer/data/1_sunliang/1_work/0_ml_kedf/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/10_cdSi_27dim-eq-2023-03-20/1_ecut60/rho.npy", temp_prho);
-    // this->ml_data->loadVector("/home/xianyuer/data/1_sunliang/1_work/0_ml_kedf/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/25_betatinSi_27dim-2023-03-20/0_ecut60/step_0/rho.npy", temp_prho);
-    // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/1_ks/2_bccAl_27dim-2022-12-12/rho.npy", temp_prho);
-    // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/3_ks-pbe-newpara/1_fccAl-eq-2023-02-14/rho.npy", temp_prho);
-    // this->ml_data->loadVector("/home/dell/1_work/7_ABACUS_ML_OF/1_test/0_generate_data/5_ks-pbe-chip0.2q0.1/19_Li3Mg-mp-976254-eq-2023-03-20/rho.npy", temp_prho);
+    this->ml_data->loadVector("dir_of_input_rho", temp_prho);
     double ** prho = new double *[1];
     prho[0] = new double[this->nx];
     for (int ir = 0; ir < this->nx; ++ir) prho[0][ir] = temp_prho[ir];
     for (int ir = 0; ir < this->nx; ++ir) 
     {
-        if (prho[0][ir] == 0.) std::cout << "WARNING: rho = 0" << std::endl;
+        if (prho[0][ir] == 0.){
+            std::cout << "WARNING: rho = 0" << std::endl;
+        }
     };
     std::cout << "Load rho done" << std::endl;
     // ==============================
@@ -284,14 +278,14 @@ void KEDF_ML::NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho
 
     this->nn->zero_grad();
     this->nn->inputs.requires_grad_(false);
-    // this->nn->setData(this->nn_input_index, this->gamma, this->p, this->q, this->gammanl, this->pnl, this->qnl,
-    //                   this->xi, this->tanhxi, this->tanhxi_nl, this->tanhp, this->tanhq, this->tanh_pnl, this->tanh_qnl, this->tanhp_nl, this->tanhq_nl,
-    //                   this->device_type);
     this->nn->set_data(this, this->descriptor_type, this->kernel_index, this->nn->inputs);
     this->nn->inputs.requires_grad_(true);
 
     this->nn->F = this->nn->forward(this->nn->inputs);    
-    if (this->nn->inputs.grad().numel()) this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
+    if (this->nn->inputs.grad().numel()) 
+    {
+        this->nn->inputs.grad().zero_(); // In the first step, inputs.grad() returns an undefined Tensor, so that numel() = 0.
+    }
 
     if (PARAM.inp.of_ml_feg != 3)
     {
@@ -337,15 +331,27 @@ void KEDF_ML::updateInput(const double * const * prho, ModulePW::PW_Basis *pw_rh
 {
     ModuleBase::timer::tick("KEDF_ML", "updateInput");
     // std::cout << "updata_input" << std::endl;
-    if (this->gene_data_label["gamma"][0])   this->ml_data->getGamma(prho, this->gamma);
+    if (this->gene_data_label["gamma"][0])
+    {   
+        this->ml_data->getGamma(prho, this->gamma);
+    }
     if (this->gene_data_label["p"][0])
     {
         this->ml_data->getNablaRho(prho, pw_rho, this->nablaRho);
         this->ml_data->getP(prho, pw_rho, this->nablaRho, this->p);
     }
-    if (this->gene_data_label["q"][0])       this->ml_data->getQ(prho, pw_rho, this->q);
-    if (this->gene_data_label["tanhp"][0])   this->ml_data->getTanhP(this->p, this->tanhp);
-    if (this->gene_data_label["tanhq"][0])   this->ml_data->getTanhQ(this->q, this->tanhq);
+    if (this->gene_data_label["q"][0])
+    {
+        this->ml_data->getQ(prho, pw_rho, this->q);
+    }
+    if (this->gene_data_label["tanhp"][0])
+    {
+        this->ml_data->getTanhP(this->p, this->tanhp);
+    }
+    if (this->gene_data_label["tanhq"][0])
+    {
+        this->ml_data->getTanhQ(this->q, this->tanhq);
+    }
 
     for (int ik = 0; ik < nkernel; ++ik)
     {
@@ -384,21 +390,67 @@ void KEDF_ML::updateInput(const double * const * prho, ModulePW::PW_Basis *pw_rh
 }
 
 torch::Tensor KEDF_ML::get_data(std::string parameter, const int ikernel){
-    if (parameter == "gamma")       return torch::tensor(this->gamma, this->device_type);
-    if (parameter == "p")           return torch::tensor(this->p, this->device_type);
-    if (parameter == "q")           return torch::tensor(this->q, this->device_type);
-    if (parameter == "tanhp")       return torch::tensor(this->tanhp, this->device_type);
-    if (parameter == "tanhq")       return torch::tensor(this->tanhq, this->device_type);
-    if (parameter == "gammanl")     return torch::tensor(this->gammanl[ikernel], this->device_type);
-    if (parameter == "pnl")         return torch::tensor(this->pnl[ikernel], this->device_type);
-    if (parameter == "qnl")         return torch::tensor(this->qnl[ikernel], this->device_type);
-    if (parameter == "xi")          return torch::tensor(this->xi[ikernel], this->device_type);
-    if (parameter == "tanhxi")      return torch::tensor(this->tanhxi[ikernel], this->device_type);
-    if (parameter == "tanhxi_nl")   return torch::tensor(this->tanhxi_nl[ikernel], this->device_type);
-    if (parameter == "tanh_pnl")    return torch::tensor(this->tanh_pnl[ikernel], this->device_type);
-    if (parameter == "tanh_qnl")    return torch::tensor(this->tanh_qnl[ikernel], this->device_type);
-    if (parameter == "tanhp_nl")    return torch::tensor(this->tanhp_nl[ikernel], this->device_type);
-    if (parameter == "tanhq_nl")    return torch::tensor(this->tanhq_nl[ikernel], this->device_type);
+
+    if (parameter == "gamma")
+    {
+        return torch::tensor(this->gamma, this->device_type);
+    }
+    if (parameter == "p")
+    {
+        return torch::tensor(this->p, this->device_type);
+    }
+    if (parameter == "q")
+    {
+        return torch::tensor(this->q, this->device_type);
+    }
+    if (parameter == "tanhp")
+    {
+        return torch::tensor(this->tanhp, this->device_type);
+    }
+    if (parameter == "tanhq")
+    {
+        return torch::tensor(this->tanhq, this->device_type);
+    }
+    if (parameter == "gammanl")
+    {
+        return torch::tensor(this->gammanl[ikernel], this->device_type);
+    }
+    if (parameter == "pnl")
+    {
+        return torch::tensor(this->pnl[ikernel], this->device_type);
+    }
+    if (parameter == "qnl")
+    {
+        return torch::tensor(this->qnl[ikernel], this->device_type);
+    }
+    if (parameter == "xi")
+    {
+        return torch::tensor(this->xi[ikernel], this->device_type);
+    }
+    if (parameter == "tanhxi")
+    {
+        return torch::tensor(this->tanhxi[ikernel], this->device_type);
+    }
+    if (parameter == "tanhxi_nl")
+    {
+        return torch::tensor(this->tanhxi_nl[ikernel], this->device_type);
+    }
+    if (parameter == "tanh_pnl")
+    {
+        return torch::tensor(this->tanh_pnl[ikernel], this->device_type);
+    }
+    if (parameter == "tanh_qnl")
+    {
+        return torch::tensor(this->tanh_qnl[ikernel], this->device_type);
+    }
+    if (parameter == "tanhp_nl")
+    {
+        return torch::tensor(this->tanhp_nl[ikernel], this->device_type);
+    }
+    if (parameter == "tanhq_nl")
+    {
+        return torch::tensor(this->tanhq_nl[ikernel], this->device_type);
+    }
     return torch::zeros({});
 }
 #endif

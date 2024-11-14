@@ -72,18 +72,6 @@ public:
     // output all parameters
     void generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf, ModulePW::PW_Basis *pw_rho, const double *veff);
     void localTest(const double * const *prho, ModulePW::PW_Basis *pw_rho);
-    // get input parameters
-    // void getGamma(const double * const *prho, std::vector<double> &rgamma);
-    // void getP(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &pnablaRho, std::vector<double> &rp);
-    // void getQ(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rq);
-    // void getGammanl(std::vector<double> &pgamma, ModulePW::PW_Basis *pw_rho, std::vector<double> &rgammanl);
-    // void getPnl(std::vector<double> &pp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpnl);
-    // void getQnl(std::vector<double> &pq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rqnl);
-    // // get target
-    // void getPauli(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpauli);
-    // void getF(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rF);
-    // // get intermediate variables of V_Pauli
-    // void getNablaRho(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &rnablaRho);
 
     // interface to NN
     void NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho, bool cal_grad);
