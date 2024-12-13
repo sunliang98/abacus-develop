@@ -141,7 +141,12 @@ ifdef LIBTORCH_DIR
       LIBTORCH_LIB_DIR= ${LIBTORCH_DIR}/lib
       LIBTORCH_LIB = -L${LIBTORCH_LIB_DIR} -ltorch -lc10 -Wl,-rpath,${LIBTORCH_LIB_DIR} -Wl,--no-as-needed,"${LIBTORCH_LIB_DIR}/libtorch_cpu.so" -Wl,--as-needed ${LIBTORCH_LIB_DIR}/libc10.so -lpthread -Wl,--no-as-needed,"${LIBTORCH_LIB_DIR}/libtorch.so" -Wl,--as-needed 
       CNPY_INCLUDE_DIR = -I${LIBNPY_DIR}/include
-      HONG += -D__DEEPKS
+      ifeq ($(ENABLE_DEEPKS), ON)
+        HONG += -D__DEEPKS
+      endif
+      ifeq ($(ENABLE_MLKEDF), ON)
+        HONG += -D__MLKEDF
+      endif
       INCLUDES += $(LIBTORCH_INCLUDE_DIR) $(CNPY_INCLUDE_DIR)
       LIBS += $(LIBTORCH_LIB)
   endif
