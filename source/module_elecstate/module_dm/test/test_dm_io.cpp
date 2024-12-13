@@ -48,7 +48,7 @@ void Grid_Driver::Find_atom(const UnitCell& ucell,
                             const ModuleBase::Vector3<double>& tau,
                             const int& T,
                             const int& I,
-                            AdjacentAtomInfo* adjs)
+                            AdjacentAtomInfo* adjs) const
 {
 }
 Grid::Grid(const int& test_grid_in) : test_grid(test_grid_in)
@@ -142,7 +142,7 @@ TEST_F(DMTest, DMConstructor1)
     int nspin = 1;
     // construct DM
     std::cout << paraV->nrow << paraV->ncol << std::endl;
-    elecstate::DensityMatrix<double, double> DM(kv, paraV, nspin);
+    elecstate::DensityMatrix<double, double> DM(paraV, nspin, kv->kvec_d, kv->get_nks());
     // read DMK
     std::string directory = "./support/";
     for (int is = 1; is <= nspin; ++is)
@@ -162,7 +162,7 @@ TEST_F(DMTest, DMConstructor1)
         }
     }
     // construct a new DM
-    elecstate::DensityMatrix<double, double> DM1(kv, paraV, nspin);
+    elecstate::DensityMatrix<double, double> DM1(paraV, nspin, kv->kvec_d, kv->get_nks());
     directory = "./support/output";
     for (int is = 1; is <= nspin; ++is)
     {

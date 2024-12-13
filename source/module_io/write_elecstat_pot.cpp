@@ -93,23 +93,14 @@ void write_elecstat_pot(
     double ef_tmp = 0.0;
     int out_fermi = 0;
 
-    ModuleIO::write_cube(
-#ifdef __MPI
-        bz,
-        nbz,
-        rho_basis->nplane,
-        rho_basis->startz_current,
-#endif
+    ModuleIO::write_vdata_palgrid(GlobalC::Pgrid,
         v_elecstat.data(),
         is,
         nspin,
         istep,
         fn,
-        rho_basis->nx,
-        rho_basis->ny,
-        rho_basis->nz,
         ef_tmp,
-        &(GlobalC::ucell),
+        ucell,
         precision,
         out_fermi);
 

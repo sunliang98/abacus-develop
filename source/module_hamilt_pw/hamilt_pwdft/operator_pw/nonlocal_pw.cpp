@@ -46,7 +46,7 @@ void Nonlocal<OperatorPW<T, Device>>::init(const int ik_in)
     // Calculate nonlocal pseudopotential vkb
 	if(this->ppcell->nkb > 0) //xiaohui add 2013-09-02. Attention...
 	{
-		this->ppcell->getvnl(this->ctx, this->ik, this->vkb);
+		this->ppcell->getvnl(this->ctx, *this->ucell, this->ik, this->vkb);
 	}
 
     if(this->next_op != nullptr)
@@ -214,9 +214,14 @@ void Nonlocal<OperatorPW<T, Device>>::act(
     const int npol,
     const T* tmpsi_in,
     T* tmhpsi,
-    const int ngk_ik)const
+    const int ngk_ik,
+    const bool is_first_node)const
 {
     ModuleBase::timer::tick("Operator", "NonlocalPW");
+    if(is_first_node)
+    {
+        setmem_complex_op()(this->ctx, tmhpsi, 0, nbasis*nbands/npol);
+    }
     if(!PARAM.inp.use_paw)
     {
         this->npw = ngk_ik;

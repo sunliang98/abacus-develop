@@ -49,7 +49,7 @@ void IState_Charge::begin(Gint_Gamma& gg,
                           const std::string& global_out_dir,
                           std::ofstream& ofs_warning,
                           const UnitCell* ucell_in,
-                          Grid_Driver* GridD_in,
+                          const Grid_Driver* GridD_in,
                           const K_Vectors& kv)
 {
     ModuleBase::TITLE("IState_Charge", "begin");
@@ -104,9 +104,9 @@ void IState_Charge::begin(Gint_Gamma& gg,
 
             DM.init_DMR(GridD_in, ucell_in);
             DM.cal_DMR();
-            gg.initialize_pvpR(*ucell_in, GridD_in);
+            gg.initialize_pvpR(*ucell_in, GridD_in, PARAM.inp.nspin);
             gg.transfer_DM2DtoGrid(DM.get_DMR_vector());
-            Gint_inout inout((double***)nullptr, rho, Gint_Tools::job_type::rho);
+            Gint_inout inout(rho, Gint_Tools::job_type::rho, PARAM.inp.nspin);
             gg.cal_gint(&inout);
 
             // A solution to replace the original implementation of the following code:
@@ -130,21 +130,12 @@ void IState_Charge::begin(Gint_Gamma& gg,
                 // Use a const vector to store efermi for all spins, replace the original implementation:
                 // const double ef_tmp = pelec->eferm.get_efval(is);
                 double ef_spin = ef_all_spin[is];
-                ModuleIO::write_cube(
-#ifdef __MPI
-                    bigpw_bz,
-                    bigpw_nbz,
-                    rhopw_nplane,
-                    rhopw_startz_current,
-#endif
+                ModuleIO::write_vdata_palgrid(GlobalC::Pgrid,
                     rho_save[is].data(),
                     is,
                     nspin,
                     0,
                     ssc.str(),
-                    rhopw_nx,
-                    rhopw_ny,
-                    rhopw_nz,
                     ef_spin,
                     ucell_in);
             }
@@ -181,7 +172,7 @@ void IState_Charge::begin(Gint_k& gk,
                           const std::string& global_out_dir,
                           std::ofstream& ofs_warning,
                           UnitCell* ucell_in,
-                          Grid_Driver* GridD_in,
+                          const Grid_Driver* GridD_in,
                           const K_Vectors& kv,
                           const bool if_separate_k,
                           Parallel_Grid* Pgrid,
@@ -219,7 +210,8 @@ void IState_Charge::begin(Gint_k& gk,
         if (bands_picked_[ib])
         {
             // Using new density matrix inplementation (multi-k)
-            elecstate::DensityMatrix<std::complex<double>, double> DM(&kv, this->ParaV, nspin);
+            const int nspin_dm = std::map<int, int>({ {1,1},{2,2},{4,1} })[nspin];
+            elecstate::DensityMatrix<std::complex<double>, double> DM(this->ParaV, nspin_dm, kv.kvec_d, kv.get_nks() / nspin_dm);
 
 #ifdef __MPI
             this->idmatrix(ib, nspin, nelec, nlocal, wg, DM, kv, if_separate_k);
@@ -242,9 +234,9 @@ void IState_Charge::begin(Gint_k& gk,
 
                     DM.init_DMR(GridD_in, ucell_in);
                     DM.cal_DMR(ik);
-                    gk.initialize_pvpR(*ucell_in, GridD_in);
+                    gk.initialize_pvpR(*ucell_in, GridD_in, PARAM.inp.nspin);
                     gk.transfer_DM2DtoGrid(DM.get_DMR_vector());
-                    Gint_inout inout(rho, Gint_Tools::job_type::rho);
+                    Gint_inout inout(rho, Gint_Tools::job_type::rho, PARAM.inp.nspin);
                     gk.cal_gint(&inout);
 
                     // Using std::vector to replace the original double** rho_save
@@ -264,21 +256,12 @@ void IState_Charge::begin(Gint_k& gk,
                         ssc << global_out_dir << "BAND" << ib + 1 << "_K" << ik + 1 << "_SPIN" << is + 1 << "_CHG.cube";
 
                         double ef_spin = ef_all_spin[is];
-                        ModuleIO::write_cube(
-#ifdef __MPI
-                            bigpw_bz,
-                            bigpw_nbz,
-                            rhopw_nplane,
-                            rhopw_startz_current,
-#endif
+                        ModuleIO::write_vdata_palgrid(GlobalC::Pgrid,
                             rho_save[is].data(),
                             is,
                             nspin,
                             0,
                             ssc.str(),
-                            rhopw_nx,
-                            rhopw_ny,
-                            rhopw_nz,
                             ef_spin,
                             ucell_in);
                     }
@@ -297,9 +280,9 @@ void IState_Charge::begin(Gint_k& gk,
 
                 DM.init_DMR(GridD_in, ucell_in);
                 DM.cal_DMR();
-                gk.initialize_pvpR(*ucell_in, GridD_in);
+                gk.initialize_pvpR(*ucell_in, GridD_in, PARAM.inp.nspin);
                 gk.transfer_DM2DtoGrid(DM.get_DMR_vector());
-                Gint_inout inout(rho, Gint_Tools::job_type::rho);
+                Gint_inout inout(rho, Gint_Tools::job_type::rho, PARAM.inp.nspin);
                 gk.cal_gint(&inout);
 
                 // Using std::vector to replace the original double** rho_save
@@ -332,21 +315,12 @@ void IState_Charge::begin(Gint_k& gk,
                     ssc << global_out_dir << "BAND" << ib + 1 << "_SPIN" << is + 1 << "_CHG.cube";
 
                     double ef_spin = ef_all_spin[is];
-                    ModuleIO::write_cube(
-#ifdef __MPI
-                        bigpw_bz,
-                        bigpw_nbz,
-                        rhopw_nplane,
-                        rhopw_startz_current,
-#endif
+                    ModuleIO::write_vdata_palgrid(GlobalC::Pgrid,
                         rho_save[is].data(),
                         is,
                         nspin,
                         0,
                         ssc.str(),
-                        rhopw_nx,
-                        rhopw_ny,
-                        rhopw_nz,
                         ef_spin,
                         ucell_in);
                 }

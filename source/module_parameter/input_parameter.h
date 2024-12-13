@@ -33,7 +33,7 @@ struct Input_para
     int kpar = 1;                   ///< ecch pool is for one k point
     int bndpar = 1;                 ///< parallel for stochastic/deterministic bands
     std::string latname = "none";   ///< lattice name
-    double ecutwfc = 50;            ///< energy cutoff for wavefunctions
+    double ecutwfc = 0;            ///< energy cutoff for wavefunctions
     double ecutrho = 0;             ///< energy cutoff for charge/potential
 
     int nx = 0, ny = 0, nz = 0;    ///< three dimension of FFT wavefunc
@@ -115,6 +115,10 @@ struct Input_para
     double scf_ene_thr = -1.0; ///< energy threshold for scf convergence, in eV
     int scf_thr_type = -1;     ///< type of the criterion of scf_thr, 1: reci drho, 2: real drho
     bool final_scf = false;    ///< whether to do final scf
+    bool scf_os_stop = false;  ///< whether to stop scf when oscillation is detected
+    double scf_os_thr = -0.01;  ///< drho threshold for oscillation
+    int scf_os_ndim = 0;       ///< number of old iterations used for oscillation detection
+    int sc_os_ndim = 5;       ///< number of old iterations used for oscillation detection in Spin-Constrained DFT
 
     bool lspinorb = false;   ///< consider the spin-orbit interaction
     bool noncolin = false;   ///< using non-collinear-spin
@@ -149,7 +153,7 @@ struct Input_para
     bool relax_new = true;
     bool relax = false; ///< allow relaxation along the specific direction
     double relax_scale_force = 0.5;
-    int relax_nmax = 1;        ///< number of max ionic iter
+    int relax_nmax = -1;       ///< number of max ionic iter
     double relax_cg_thr = 0.5; ///< threshold when cg to bfgs, pengfei add 2011-08-15
     double force_thr = -1;     ///< threshold of force in unit (Ry/Bohr)
     double force_thr_ev = -1;  ///< threshold of force in unit (eV/Angstrom)
@@ -160,7 +164,7 @@ struct Input_para
     double press3 = 0;
     double relax_bfgs_w1 = 0.01;     ///< wolfe condition 1
     double relax_bfgs_w2 = 0.5;      ///< wolfe condition 2
-    double relax_bfgs_rmax = 0.8;    ///< trust radius max
+    double relax_bfgs_rmax = 0.2;    ///< trust radius max
     double relax_bfgs_rmin = 1e-05;  ///< trust radius min
     double relax_bfgs_init = 0.5;    ///< initial move
     std::string fixed_axes = "None"; ///< which axes are fixed
@@ -334,13 +338,15 @@ struct Input_para
 
     // ==============   #Parameters (10.lr-tddft) ===========================
     int lr_nstates = 1; ///< the number of 2-particle states to be solved
+    std::vector<std::string> lr_init_xc_kernel = {};    ///< The method to initalize the xc kernel
     int nocc = -1;      ///< the number of occupied orbitals to form the 2-particle basis
     int nvirt = 1;      ///< the number of virtual orbitals to form the 2-particle basis (nocc + nvirt <= nbands)
     std::string xc_kernel = "LDA"; ///< exchange correlation (XC) kernel for LR-TDDFT
     std::string lr_solver = "dav"; ///< the eigensolver for LR-TDDFT
     double lr_thr = 1e-2;          ///< convergence threshold of the LR-TDDFT eigensolver
     bool out_wfc_lr = false; ///< whether to output the eigenvectors (excitation amplitudes) in the particle-hole basis
-    std::vector<double> abs_wavelen_range = {0., 0.}; ///< the range of wavelength(nm) to output the absorption spectrum
+    bool lr_unrestricted = false; ///< whether to use the unrestricted construction for LR-TDDFT
+    std::vector<double> abs_wavelen_range = {}; ///< the range of wavelength(nm) to output the absorption spectrum
     double abs_broadening = 0.01;                     ///< the broadening (eta) for LR-TDDFT absorption spectrum
     std::string ri_hartree_benchmark = "none"; ///< whether to use the RI approximation for the Hartree potential in LR-TDDFT for benchmark (with FHI-aims/ABACUS read-in style)
     std::vector<int> aims_nbasis = {};  ///< the number of basis functions for each atom type used in FHI-aims (for benchmark)
@@ -354,7 +360,7 @@ struct Input_para
     int out_pot = 0;                      ///< yes or no
     int out_wfc_pw = 0;                   ///< 0: no; 1: txt; 2: dat
     bool out_wfc_r = false;               ///< 0: no; 1: yes
-    int printe = 100;                     ///< mohan add 2011-03-16
+    int printe = 0;                       ///< Print out energy for each band for every printe step, default is scf_nmax
     std::vector<int> out_band = {0, 8};   ///< band calculation pengfei 2014-10-13
     int out_dos = 0;                      ///< dos calculation. mohan add 20090909
     bool out_mul = false;                 ///< qifeng add 2019-9-10
@@ -507,7 +513,7 @@ struct Input_para
     double exx_mixing_beta = 1.0;               ///< mixing_beta for outer-loop when exx_separate_loop=1
     double exx_lambda = 0.3;                    ///< used to compensate for divergence points at G=0 in the
                                                 ///< evaluation of Fock exchange using lcao_in_pw method
-    std::string exx_real_number = "0";          ///< exx calculated in real or complex
+    std::string exx_real_number = "default";          ///< exx calculated in real or complex
     double exx_pca_threshold = 0.0001;          ///< threshold to screen on-site ABFs in exx
     double exx_c_threshold = 0.0001;            ///< threshold to screen C matrix in exx
     double exx_v_threshold = 0.1;               ///< threshold to screen C matrix in exx
@@ -522,7 +528,7 @@ struct Input_para
                                                 ///< inequality
     double exx_cauchy_stress_threshold = 1e-07; ///< threshold to screen exx stress using Cauchy-Schwartz
                                                 ///< inequality
-    std::string exx_ccp_rmesh_times = "1";      ///< how many times larger the radial mesh required for
+    std::string exx_ccp_rmesh_times = "default";      ///< how many times larger the radial mesh required for
                                                 ///< calculating Columb potential is to that of atomic orbitals
     std::string exx_distribute_type = "htime";  ///< distribute type (assuming default as no specific value
                                                 ///< provided)
@@ -562,7 +568,8 @@ struct Input_para
     int sc_scf_nmin = 2;            ///< minimum number of outer scf loop before initial lambda loop
     double alpha_trial = 0.01;      ///< initial trial step size for lambda in eV/uB^2
     double sccut = 3.0;             ///< restriction of step size in eV/uB
-    std::string sc_file = "none";   ///< file name for Deltaspin (json format)
+    double sc_scf_thr = 1e-3;       ///< minimum number of outer scf loop before initial lambda loop
+    double sc_drop_thr = 1e-3;      ///< threshold for lambda-loop threshold cutoff in spin-constrained DFT
 
     // ==============   #Parameters (18.Quasiatomic Orbital analysis) =========
     ///<==========================================================
@@ -623,5 +630,12 @@ struct Input_para
     int  test_pp = 0;                ///< variables for test_pp only
     int  test_relax_method = false;  ///< variables for test_relax_method only
     int  test_deconstructor = false; ///< variables for test_deconstructor only
+
+    // ==============   #Parameters (21.RDMFT) =====================
+    // RDMFT    jghan added on 2024-07-06
+    bool rdmft = false;                           // rdmft, reduced density matrix funcional theory
+    double rdmft_power_alpha = 0.656;             // the alpha parameter of power-functional, g(occ_number) = occ_number^alpha
+    // double rdmft_wp22_omega;                 // the omega parameter of wp22-functional = exx_hse_omega
+
 };
 #endif

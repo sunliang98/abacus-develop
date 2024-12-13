@@ -1,8 +1,14 @@
 #ifndef DIAGODAVID_H
 #define DIAGODAVID_H
 
-#include "diagh.h"
+#include "module_base/macros.h"   // GetRealType
+#include "module_base/module_device/device.h"   // base_device
+#include "module_base/module_device/memory_op.h"// base_device::memory
+
 #include "module_hsolver/diag_comm_info.h"
+
+#include <vector>
+#include <functional>
 
 namespace hsolver
 {
@@ -73,7 +79,7 @@ class DiagoDavid
       const int ld_psi,           // Leading dimension of the psi input
       T *psi_in,                  // Pointer to eigenvectors
       Real* eigenvalue_in,        // Pointer to store the resulting eigenvalues
-      const Real david_diag_thr,  // Convergence threshold for the Davidson iteration
+      const std::vector<double>& ethr_band, // Convergence threshold for the Davidson iteration
       const int david_maxiter,    // Maximum allowed iterations for the Davidson method
       const int ntry_max = 5,     // Maximum number of diagonalization attempts (5 by default)
       const int notconv_max = 0); // Maximum number of allowed non-converged eigenvectors
@@ -128,7 +134,7 @@ class DiagoDavid
                   const int ld_psi,
                   T *psi_in,
                   Real* eigenvalue_in,
-                  const Real david_diag_thr,
+                  const std::vector<double>& ethr_band,
                   const int david_maxiter);
 
     void cal_grad(const HPsiFunc& hpsi_func,
@@ -199,7 +205,7 @@ class DiagoDavid
     using syncmem_h2d_op = base_device::memory::synchronize_memory_op<T, Device, base_device::DEVICE_CPU>;
     using syncmem_d2h_op = base_device::memory::synchronize_memory_op<T, base_device::DEVICE_CPU, Device>;
 
-    using hpsi_info = typename hamilt::Operator<T, Device>::hpsi_info;
+    // using hpsi_info = typename hamilt::Operator<T, Device>::hpsi_info; // Dependence of hpsi removed
 
     const T *one = nullptr, *zero = nullptr, *neg_one = nullptr;
     const T one_ = static_cast<T>(1.0), zero_ = static_cast<T>(0.0), neg_one_ = static_cast<T>(-1.0);

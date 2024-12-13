@@ -1,8 +1,8 @@
 // Author: Zhang Xiaoyang
 // A modified version of diago_lcao_test.cpp
-#define private public
+// #define private public
 #include "module_parameter/parameter.h"
-#undef private
+// #undef private
 // Remove some useless functions and dependencies. Serialized the full code
 // and refactored some function.
 
@@ -119,7 +119,7 @@ class DiagoLapackPrepare
         : nlocal(nlocal), nbands(nbands), nb2d(nb2d), sparsity(sparsity), hfname(hfname),
           sfname(sfname), solutionfname(solutionfname)
     {
-        dh = new hsolver::DiagoLapack<T>;
+        // dh = new hsolver::DiagoLapack<T>;
     }
 
     int nlocal, nbands, nb2d, sparsity;
@@ -127,7 +127,6 @@ class DiagoLapackPrepare
     std::vector<T> h;
     std::vector<T> s;
     HamiltTEST<T> hmtest;
-    hsolver::DiagH<T>* dh = nullptr;
     psi::Psi<T> psi;
     std::vector<double> e_solver;
     std::vector<double> e_lapack;
@@ -188,8 +187,10 @@ class DiagoLapackPrepare
 
     void set_env()
     {
-        PARAM.sys.nlocal = nlocal;
-        PARAM.input.nbands = nbands;
+        // PARAM.sys.nlocal = nlocal;
+        PARAM.set_sys_nlocal(nlocal);
+        // PARAM.input.nbands = nbands;
+        PARAM.set_input_nbands(nbands);
     }
 
     void diago()
@@ -200,9 +201,11 @@ class DiagoLapackPrepare
 
         for (int i = 0; i < REPEATRUN; i++)
         {
-            dh->diag(&hmtest, psi, e_solver.data());
+            hsolver::DiagoLapack<T> dh;
+            dh.diag(&hmtest, psi, e_solver.data());
+            // dh->diag(&hmtest, psi, e_solver.data());
         }
-        delete dh;
+        // delete dh;
     }
 
     void read_SOLUTION()

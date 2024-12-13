@@ -58,7 +58,8 @@ elecstate::DensityMatrix<std::complex<double>, double> Force_LCAO<std::complex<d
 {
 
     // construct a DensityMatrix object
-    elecstate::DensityMatrix<std::complex<double>, double> edm(&kv, &pv, nspin);
+    const int nspin_dm = nspin == 2 ? 2 : 1;
+    elecstate::DensityMatrix<std::complex<double>, double> edm(&pv, nspin_dm, kv.kvec_d, kv.get_nks() / nspin_dm);
 
     //--------------------------------------------
     // calculate the energy density matrix here.
@@ -98,6 +99,5 @@ elecstate::DensityMatrix<std::complex<double>, double> Force_LCAO<std::complex<d
     // cal_dm_2d
     edm.init_DMR(ra, &ucell);
     edm.cal_DMR();
-    // edm.sum_DMR_spin();
     return edm;
 }

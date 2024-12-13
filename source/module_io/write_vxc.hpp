@@ -238,13 +238,7 @@ void write_Vxc(const int nspin,
     for (int is = 0; is < nspin0; ++is)
     {
         vxcs_op_ao[is] = new hamilt::Veff<hamilt::OperatorLCAO<TK, TR>>(gint,
-                                                                        &vxc_k_ao,
-                                                                        kv.kvec_d,
-                                                                        potxc,
-                                                                        &vxcs_R_ao[is],
-                                                                        &ucell,
-                                                                        orb_cutoff,
-                                                                        &gd);
+            &vxc_k_ao, kv.kvec_d, potxc, &vxcs_R_ao[is], &ucell, orb_cutoff, &gd, nspin);
 
         vxcs_op_ao[is]->contributeHR();
     }
@@ -252,10 +246,10 @@ void write_Vxc(const int nspin,
     std::vector<std::vector<double>> e_orb_tot;   // orbital energy (total)
 #ifdef __EXX
     hamilt::OperatorEXX<hamilt::OperatorLCAO<TK, TR>> vexx_op_ao(&vxc_k_ao,
-        &vxcs_R_ao[0] /*for paraV*/, kv, Hexxd, Hexxc, hamilt::Add_Hexx_Type::k);
+        &vxcs_R_ao[0],ucell,/*for paraV*/ kv, Hexxd, Hexxc, hamilt::Add_Hexx_Type::k);
     hamilt::HS_Matrix_K<TK> vexxonly_k_ao(pv, 1); // only hk is needed, sk is skipped
     hamilt::OperatorEXX<hamilt::OperatorLCAO<TK, TR>> vexxonly_op_ao(&vexxonly_k_ao,
-        &vxcs_R_ao[0]/*for paraV*/, kv, Hexxd, Hexxc, hamilt::Add_Hexx_Type::k);
+        &vxcs_R_ao[0],ucell,/*for paraV*/ kv, Hexxd, Hexxc, hamilt::Add_Hexx_Type::k);
     std::vector<std::vector<double>> e_orb_exx; // orbital energy (EXX)
 #endif
     hamilt::OperatorDFTU<hamilt::OperatorLCAO<TK, TR>> vdftu_op_ao(&vxc_k_ao, kv.kvec_d, nullptr, kv.isk);
@@ -284,10 +278,10 @@ void write_Vxc(const int nspin,
             vexxonly_op_ao.contributeHk(ik);
             std::vector<TK> vexx_k_mo = cVc(vexxonly_k_ao.get_hk(), &psi(ik, 0, 0), nbasis, nbands, *pv, p2d);
             e_orb_exx.emplace_back(orbital_energy(ik, nbands, vexx_k_mo, p2d));
+            // ======test=======
+            // exx_energy += all_band_energy(ik, vexx_k_mo, p2d, wg);
+            // ======test=======
         }
-        // ======test=======
-        // exx_energy += all_band_energy(ik, vexx_k_mo, p2d, wg);
-        // ======test=======
 #endif
         if (PARAM.inp.dft_plus_u)
         {

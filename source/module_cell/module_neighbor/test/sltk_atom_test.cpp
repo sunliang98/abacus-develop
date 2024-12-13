@@ -29,31 +29,23 @@ protected:
 
 TEST_F(SltkAtomTest, AllocateAdjacentSet)
 {
-    test.allocate_AdjacentSet();
-    std::shared_ptr<AdjacentSet> a = test.getAdjacentSet();
-    int x = 1;
-    int y = 1;
-    int z = 1;
-    int offset = 1;
-    int test_grid_in = 1;
-    a->set(x, y, z, offset, test_grid_in);
-    EXPECT_EQ(a->box[0], 26);
-
-    test.delete_vector();
-    std::shared_ptr<AdjacentSet> b = test.getAdjacentSet();
-    EXPECT_EQ(b->box.size(), 0);
+    test.clearAdjacent();
+    FAtom test_temp(1.0, 2.0, 3.0, 4, 5, 0, 1, 2);
+    test.addAdjacent(test_temp);
+    EXPECT_EQ(test.getAdjacent().front()->getType(), 4);
 }
+
 
 TEST_F(SltkAtomTest, SetterGetters)
 {
-    test.setX(1.0);
-    test.setY(2.0);
-    test.setZ(3.0);
-    test.setType(4);
-    test.setNatom(5);
-    EXPECT_DOUBLE_EQ(test.x(), 1.0);
-    EXPECT_DOUBLE_EQ(test.y(), 2.0);
-    EXPECT_DOUBLE_EQ(test.z(), 3.0);
-    EXPECT_EQ(test.getType(), 4);
-    EXPECT_EQ(test.getNatom(), 5);
+    FAtom test_temp(1.0, 2.0, 3.0, 4, 5, 0, 1, 2);
+
+    EXPECT_DOUBLE_EQ(test_temp.x(), 1.0);
+    EXPECT_DOUBLE_EQ(test_temp.y(), 2.0);
+    EXPECT_DOUBLE_EQ(test_temp.z(), 3.0);
+    EXPECT_EQ(test_temp.getType(), 4);
+    EXPECT_EQ(test_temp.getNatom(), 5);
+    EXPECT_EQ(test_temp.getCellX(), 0);
+    EXPECT_EQ(test_temp.getCellY(), 1);
+    EXPECT_EQ(test_temp.getCellZ(), 2);
 }
