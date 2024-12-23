@@ -9,41 +9,18 @@ void KEDF_ML::init_data(
     const bool &of_ml_q,
     const bool &of_ml_tanhp,
     const bool &of_ml_tanhq,
-    const std::string &of_ml_gammanl_,
-    const std::string &of_ml_pnl_,
-    const std::string &of_ml_qnl_,
-    const std::string &of_ml_xi_,
-    const std::string &of_ml_tanhxi_,
-    const std::string &of_ml_tanhxi_nl_,
-    const std::string &of_ml_tanh_pnl_,
-    const std::string &of_ml_tanh_qnl_,
-    const std::string &of_ml_tanhp_nl_,
-    const std::string &of_ml_tanhq_nl_
+    const std::vector<int> &of_ml_gammanl,
+    const std::vector<int> &of_ml_pnl,
+    const std::vector<int> &of_ml_qnl,
+    const std::vector<int> &of_ml_xi,
+    const std::vector<int> &of_ml_tanhxi,
+    const std::vector<int> &of_ml_tanhxi_nl,
+    const std::vector<int> &of_ml_tanh_pnl,
+    const std::vector<int> &of_ml_tanh_qnl,
+    const std::vector<int> &of_ml_tanhp_nl,
+    const std::vector<int> &of_ml_tanhq_nl
 )
 {
-    bool* of_ml_gammanl = new bool[nkernel];
-    bool* of_ml_pnl = new bool[nkernel];
-    bool* of_ml_qnl = new bool[nkernel];
-    bool* of_ml_xi = new bool[nkernel];
-    bool* of_ml_tanhxi = new bool[nkernel];
-    bool* of_ml_tanhxi_nl = new bool[nkernel];
-    bool* of_ml_tanh_pnl = new bool[nkernel];
-    bool* of_ml_tanh_qnl = new bool[nkernel];
-    bool* of_ml_tanhp_nl = new bool[nkernel];
-    bool* of_ml_tanhq_nl = new bool[nkernel];
-
-    this->ml_data->split_string(of_ml_gammanl_, nkernel, false, of_ml_gammanl);
-    this->ml_data->split_string(of_ml_pnl_, nkernel, false, of_ml_pnl);
-    this->ml_data->split_string(of_ml_qnl_, nkernel, false, of_ml_qnl);
-    this->ml_data->split_string(of_ml_xi_, nkernel, false, of_ml_xi);
-    this->ml_data->split_string(of_ml_tanhxi_, nkernel, false, of_ml_tanhxi);
-    this->ml_data->split_string(of_ml_tanhxi_nl_, nkernel, false, of_ml_tanhxi_nl);
-    this->ml_data->split_string(of_ml_tanh_pnl_, nkernel, false, of_ml_tanh_pnl);
-    this->ml_data->split_string(of_ml_tanh_qnl_, nkernel, false, of_ml_tanh_qnl);
-    this->ml_data->split_string(of_ml_tanhp_nl_, nkernel, false, of_ml_tanhp_nl);
-    this->ml_data->split_string(of_ml_tanhq_nl_, nkernel, false, of_ml_tanhq_nl);
-    std::cout << "of_ml_gammanl  " << of_ml_gammanl[0] << "\t" << of_ml_gammanl[1] << std::endl;
-    std::cout << "of_ml_xi  " << of_ml_xi[0] << "\t" << of_ml_xi[1] << std::endl;
 
     this->ninput = 0;
 

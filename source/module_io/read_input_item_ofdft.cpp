@@ -194,79 +194,118 @@ void ReadInput::item_ofdft()
     {
         Input_Item item("of_ml_gammanl");
         item.annotation = "If the input variables contain gammanl";
-        read_sync_string(input.of_ml_gammanl);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_gammanl);
+        };
+        sync_intvec(input.of_ml_gammanl, para.input.of_ml_gammanl.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_pnl");
         item.annotation = "If the input variables contain pnl";
-        read_sync_string(input.of_ml_pnl);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_pnl);
+        };
+        sync_intvec(input.of_ml_pnl, para.input.of_ml_pnl.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_qnl");
         item.annotation = "If the input variables contain qnl";
-        read_sync_string(input.of_ml_qnl);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_qnl);
+        };
+        sync_intvec(input.of_ml_qnl, para.input.of_ml_qnl.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_xi");
         item.annotation = "If the input variables contain xi";
-        read_sync_string(input.of_ml_xi);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_xi);
+        };
+        sync_intvec(input.of_ml_xi, para.input.of_ml_xi.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_tanhxi");
         item.annotation = "If the input variables contain tanhxi";
-        read_sync_string(input.of_ml_tanhxi);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_tanhxi);
+        };
+        sync_intvec(input.of_ml_tanhxi, para.input.of_ml_tanhxi.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_tanhxi_nl");
         item.annotation = "If the input variables contain tanhxi_nl";
-        read_sync_string(input.of_ml_tanhxi_nl);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_tanhxi_nl);
+        };
+        sync_intvec(input.of_ml_tanhxi_nl, para.input.of_ml_tanhxi_nl.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_tanh_pnl");
         item.annotation = "If the input variables contain tanh_pnl";
-        read_sync_string(input.of_ml_tanh_pnl);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_tanh_pnl);
+        };
+        sync_intvec(input.of_ml_tanh_pnl, para.input.of_ml_tanh_pnl.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_tanh_qnl");
         item.annotation = "If the input variables contain tanh_qnl";
-        read_sync_string(input.of_ml_tanh_qnl);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_tanh_qnl);
+        };
+        sync_intvec(input.of_ml_tanh_qnl, para.input.of_ml_tanh_qnl.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_tanhp_nl");
         item.annotation = "If the input variables contain tanhp_nl";
-        read_sync_string(input.of_ml_tanhp_nl);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_tanhp_nl);
+        };
+        sync_intvec(input.of_ml_tanhp_nl, para.input.of_ml_tanhp_nl.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_tanhq_nl");
         item.annotation = "If the input variables contain tanhq_nl";
-        read_sync_string(input.of_ml_tanhq_nl);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_tanhq_nl);
+        };
+        sync_intvec(input.of_ml_tanhq_nl, para.input.of_ml_tanhq_nl.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_chi_xi");
         item.annotation = "tanhpxi = tanh(chi_xi * xi)";
-        read_sync_string(input.of_ml_chi_xi);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_chi_xi);
+        };
+        sync_doublevec(input.of_ml_chi_xi, para.input.of_ml_chi_xi.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_chi_pnl");
         item.annotation = "tanh_pnl = tanh(chi_pnl * pnl)";
-        read_sync_string(input.of_ml_chi_pnl);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_chi_pnl);
+        };
+        sync_doublevec(input.of_ml_chi_pnl, para.input.of_ml_chi_pnl.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_chi_qnl");
         item.annotation = "tanh_pnl = tanh(chi_qnl * qnl)";
-        read_sync_string(input.of_ml_chi_qnl);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_chi_qnl);
+        };
+        sync_doublevec(input.of_ml_chi_qnl, para.input.of_ml_chi_qnl.size(), 0);
         this->add_item(item);
     }
     {
@@ -284,31 +323,70 @@ void ReadInput::item_ofdft()
     {
         Input_Item item("of_ml_nkernel");
         item.annotation = "Number of kernels";
+        item.reset_value = [](const Input_Item& item, Parameter& para) {
+            if (para.input.of_ml_nkernel > 0)
+            {
+                reset_vector(para.input.of_ml_gammanl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_pnl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_qnl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_xi, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanhxi, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanhxi_nl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanh_pnl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanh_qnl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanhp_nl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanhq_nl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_chi_xi, para.input.of_ml_nkernel, 1.0);
+                reset_vector(para.input.of_ml_chi_pnl, para.input.of_ml_nkernel, 1.0);
+                reset_vector(para.input.of_ml_chi_qnl, para.input.of_ml_nkernel, 1.0);
+                reset_vector(para.input.of_ml_kernel, para.input.of_ml_nkernel, 1);
+                reset_vector(para.input.of_ml_kernel_scaling, para.input.of_ml_nkernel, 1.0);
+                reset_vector(para.input.of_ml_yukawa_alpha, para.input.of_ml_nkernel, 1.0);
+                std::string none = "none";
+                reset_vector(para.input.of_ml_kernel_file, para.input.of_ml_nkernel, none);
+            }
+        };
         read_sync_int(input.of_ml_nkernel);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_kernel");
         item.annotation = "Type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK";
-        read_sync_string(input.of_ml_kernel);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_kernel);
+        };
+        sync_intvec(input.of_ml_kernel, para.input.of_ml_kernel.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_kernel_scaling");
         item.annotation = "Scaling parameter of kernel";
-        read_sync_string(input.of_ml_kernel_scaling);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_kernel_scaling);
+        };
+        sync_doublevec(input.of_ml_kernel_scaling, para.input.of_ml_kernel_scaling.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_yukawa_alpha");
         item.annotation = "Parameter alpha of yukawa kernel";
-        read_sync_string(input.of_ml_yukawa_alpha);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_yukawa_alpha);
+        };
+        sync_doublevec(input.of_ml_yukawa_alpha, para.input.of_ml_yukawa_alpha.size(), 0);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_kernel_file");
         item.annotation = "The file of TKK";
-        read_sync_string(input.of_ml_kernel_file);
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            size_t count = item.get_size();
+            for (int i = 0; i < count; i++)
+            { 
+                para.input.of_ml_kernel_file.push_back(item.str_values[i]);
+            }
+        };
+        sync_stringvec(input.of_ml_kernel_file, para.input.of_ml_kernel_file.size(), "");
         this->add_item(item);
     }
     {

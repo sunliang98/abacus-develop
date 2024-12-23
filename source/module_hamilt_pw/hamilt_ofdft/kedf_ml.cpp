@@ -14,31 +14,31 @@ void KEDF_ML::set_para(
     const double vw_weight, 
     const double chi_p,
     const double chi_q,
-    const std::string chi_xi_,
-    const std::string chi_pnl_,
-    const std::string chi_qnl_,
+    const std::vector<double> &chi_xi,
+    const std::vector<double> &chi_pnl,
+    const std::vector<double> &chi_qnl,
     const int nnode,
     const int nlayer,
     const int &nkernel,
-    const std::string &kernel_type_,
-    const std::string &kernel_scaling_,
-    const std::string &yukawa_alpha_,
-    const std::string &kernel_file_,
+    const std::vector<int> &kernel_type,
+    const std::vector<double> &kernel_scaling,
+    const std::vector<double> &yukawa_alpha,
+    const std::vector<std::string> &kernel_file,
     const bool &of_ml_gamma,
     const bool &of_ml_p,
     const bool &of_ml_q,
     const bool &of_ml_tanhp,
     const bool &of_ml_tanhq,
-    const std::string &of_ml_gammanl_,
-    const std::string &of_ml_pnl_,
-    const std::string &of_ml_qnl_,
-    const std::string &of_ml_xi_,
-    const std::string &of_ml_tanhxi_,
-    const std::string &of_ml_tanhxi_nl_,
-    const std::string &of_ml_tanh_pnl_,
-    const std::string &of_ml_tanh_qnl_,
-    const std::string &of_ml_tanhp_nl_,
-    const std::string &of_ml_tanhq_nl_,
+    const std::vector<int> &of_ml_gammanl,
+    const std::vector<int> &of_ml_pnl,
+    const std::vector<int> &of_ml_qnl,
+    const std::vector<int> &of_ml_xi,
+    const std::vector<int> &of_ml_tanhxi,
+    const std::vector<int> &of_ml_tanhxi_nl,
+    const std::vector<int> &of_ml_tanh_pnl,
+    const std::vector<int> &of_ml_tanh_qnl,
+    const std::vector<int> &of_ml_tanhp_nl,
+    const std::vector<int> &of_ml_tanhq_nl,
     const std::string device_inpt,
     ModulePW::PW_Basis *pw_rho
 )
@@ -61,16 +61,16 @@ void KEDF_ML::set_para(
         of_ml_q,
         of_ml_tanhp,
         of_ml_tanhq,
-        of_ml_gammanl_,
-        of_ml_pnl_,
-        of_ml_qnl_,
-        of_ml_xi_,
-        of_ml_tanhxi_,
-        of_ml_tanhxi_nl_,
-        of_ml_tanh_pnl_,
-        of_ml_tanh_qnl_,
-        of_ml_tanhp_nl_,
-        of_ml_tanhq_nl_);
+        of_ml_gammanl,
+        of_ml_pnl,
+        of_ml_qnl,
+        of_ml_xi,
+        of_ml_tanhxi,
+        of_ml_tanhxi_nl,
+        of_ml_tanh_pnl,
+        of_ml_tanh_qnl,
+        of_ml_tanhp_nl,
+        of_ml_tanhq_nl);
 
     std::cout << "ninput = " << ninput << std::endl;
 
@@ -108,12 +108,12 @@ void KEDF_ML::set_para(
 
         this->chi_p = chi_p;
         this->chi_q = chi_q;
-        this->ml_data->split_string(chi_xi_, nkernel, 1., this->chi_xi);
-        this->ml_data->split_string(chi_pnl_, nkernel, 1., this->chi_pnl);
-        this->ml_data->split_string(chi_qnl_, nkernel, 1., this->chi_qnl);
+        this->chi_xi = chi_xi;
+        this->chi_pnl = chi_pnl;
+        this->chi_qnl = chi_qnl;
 
         this->ml_data->set_para(nx, nelec, tf_weight, vw_weight, chi_p, chi_q,
-                                chi_xi_, chi_pnl_, chi_qnl_, nkernel, kernel_type_, kernel_scaling_, yukawa_alpha_, kernel_file_, pw_rho);
+                                chi_xi, chi_pnl, chi_qnl, nkernel, kernel_type, kernel_scaling, yukawa_alpha, kernel_file, this->dV * pw_rho->nxyz, pw_rho);
     }
 }
 

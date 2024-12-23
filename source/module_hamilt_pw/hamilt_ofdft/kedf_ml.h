@@ -20,9 +20,6 @@ public:
     ~KEDF_ML()
     {
         delete this->ml_data;
-        delete[] this->chi_xi;
-        delete[] this->chi_pnl;
-        delete[] this->chi_qnl;
     }
 
     void set_para(
@@ -33,31 +30,31 @@ public:
         const double vw_weight, 
         const double chi_p,
         const double chi_q,
-        const std::string chi_xi_,
-        const std::string chi_pnl_,
-        const std::string chi_qnl_,
+        const std::vector<double> &chi_xi,
+        const std::vector<double> &chi_pnl,
+        const std::vector<double> &chi_qnl,
         const int nnode,
         const int nlayer,
         const int &nkernel,
-        const std::string &kernel_type_,
-        const std::string &kernel_scaling_,
-        const std::string &yukawa_alpha_,
-        const std::string &kernel_file_,
+        const std::vector<int> &kernel_type,
+        const std::vector<double> &kernel_scaling,
+        const std::vector<double> &yukawa_alpha,
+        const std::vector<std::string> &kernel_file,
         const bool &of_ml_gamma,
         const bool &of_ml_p,
         const bool &of_ml_q,
         const bool &of_ml_tanhp,
         const bool &of_ml_tanhq,
-        const std::string &of_ml_gammanl_,
-        const std::string &of_ml_pnl_,
-        const std::string &of_ml_qnl_,
-        const std::string &of_ml_xi_,
-        const std::string &of_ml_tanhxi_,
-        const std::string &of_ml_tanhxi_nl_,
-        const std::string &of_ml_tanh_pnl_,
-        const std::string &of_ml_tanh_qnl_,
-        const std::string &of_ml_tanhp_nl_,
-        const std::string &of_ml_tanhq_nl_,
+        const std::vector<int> &of_ml_gammanl,
+        const std::vector<int> &of_ml_pnl,
+        const std::vector<int> &of_ml_qnl,
+        const std::vector<int> &of_ml_xi,
+        const std::vector<int> &of_ml_tanhxi,
+        const std::vector<int> &of_ml_tanhxi_nl,
+        const std::vector<int> &of_ml_tanh_pnl,
+        const std::vector<int> &of_ml_tanh_qnl,
+        const std::vector<int> &of_ml_tanhp_nl,
+        const std::vector<int> &of_ml_tanhq_nl,
         const std::string device_inpt,
         ModulePW::PW_Basis *pw_rho);
 
@@ -133,7 +130,7 @@ public:
     std::vector<std::vector<double>> qnl = {};
     std::vector<std::vector<double>> nablaRho = {};
     // new parameters 2023-02-13
-    double* chi_xi = nullptr;
+    std::vector<double> chi_xi = {1.0};
     double chi_p = 1.;
     double chi_q = 1.;
     std::vector<std::vector<double>> xi = {}; // we assume ONLY ONE of them is used.
@@ -142,8 +139,8 @@ public:
     std::vector<double> tanhp = {};
     std::vector<double> tanhq = {};
     // plan 1
-    double* chi_pnl = nullptr;
-    double* chi_qnl = nullptr;
+    std::vector<double> chi_pnl = {1.0};
+    std::vector<double> chi_qnl = {1.0};
     std::vector<std::vector<double>> tanh_pnl = {};
     std::vector<std::vector<double>> tanh_qnl = {};
     // plan 2
@@ -168,16 +165,16 @@ public:
         const bool &of_ml_q,
         const bool &of_ml_tanhp,
         const bool &of_ml_tanhq,
-        const std::string &of_ml_gammanl_,
-        const std::string &of_ml_pnl_,
-        const std::string &of_ml_qnl_,
-        const std::string &of_ml_xi_,
-        const std::string &of_ml_tanhxi_,
-        const std::string &of_ml_tanhxi_nl_,
-        const std::string &of_ml_tanh_pnl_,
-        const std::string &of_ml_tanh_qnl_,
-        const std::string &of_ml_tanhp_nl_,
-        const std::string &of_ml_tanhq_nl_
+        const std::vector<int> &of_ml_gammanl_,
+        const std::vector<int> &of_ml_pnl,
+        const std::vector<int> &of_ml_qnl,
+        const std::vector<int> &of_ml_xi,
+        const std::vector<int> &of_ml_tanhxi,
+        const std::vector<int> &of_ml_tanhxi_nl,
+        const std::vector<int> &of_ml_tanh_pnl,
+        const std::vector<int> &of_ml_tanh_qnl,
+        const std::vector<int> &of_ml_tanhp_nl,
+        const std::vector<int> &of_ml_tanhq_nl
     );
     
     bool ml_gamma = false;

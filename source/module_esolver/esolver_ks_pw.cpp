@@ -957,13 +957,13 @@ void ESolver_KS_PW<T, Device>::after_all_runners(UnitCell& ucell)
     // generate training data for ML-KEDF
     if(PARAM.inp.of_ml_gene_data == 1)
     {
-        this->pelec->pot->update_from_charge(this->pelec->charge, &GlobalC::ucell);
+        this->pelec->pot->update_from_charge(this->pelec->charge, &ucell);
 
         ML_data ml_data;
         ml_data.set_para(this->pelec->charge->nrxx, PARAM.inp.nelec, PARAM.inp.of_tf_weight, PARAM.inp.of_vw_weight,
                             PARAM.inp.of_ml_chi_p, PARAM.inp.of_ml_chi_q, PARAM.inp.of_ml_chi_xi, PARAM.inp.of_ml_chi_pnl, PARAM.inp.of_ml_chi_qnl,
-                            PARAM.inp.of_ml_nkernel, PARAM.inp.of_ml_kernel, PARAM.inp.of_ml_kernel_scaling, PARAM.inp.of_ml_yukawa_alpha, PARAM.inp.of_ml_kernel_file, this->pw_rho);
-        ml_data.generateTrainData_KS(this->kspw_psi, this->pelec, this->pw_wfc, this->pw_rho, this->pelec->pot->get_effective_v(0));
+                            PARAM.inp.of_ml_nkernel, PARAM.inp.of_ml_kernel, PARAM.inp.of_ml_kernel_scaling, PARAM.inp.of_ml_yukawa_alpha, PARAM.inp.of_ml_kernel_file, ucell.omega, this->pw_rho);
+        ml_data.generateTrainData_KS(this->kspw_psi, this->pelec, this->pw_wfc, this->pw_rho, ucell, this->pelec->pot->get_effective_v(0));
     }
 #endif
 }

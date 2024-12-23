@@ -208,42 +208,43 @@ struct Input_para
     std::string of_kernel_file = "WTkernel.txt"; ///< The name of WT kernel file.
 
     // ML KEDF, sunliang added on 2022-11-07
-    bool of_ml_gene_data; // Generate training data or not
-    bool of_ml_local_test;  // Read in the density, and output the F and Pauli potential of it
-    int of_ml_feg; // if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0
+    bool of_ml_gene_data = false;                ///< Generate training data or not
+    bool of_ml_local_test = false;               ///< Read in the density, and output the F and Pauli potential of it
+    int of_ml_feg = 0;                           ///< if we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0
     // semi-local descriptors
-    bool of_ml_gamma; // If the input variables contain gamma
-    bool of_ml_p; // If the input variables contain p
-    bool of_ml_q; // If the input variables contain q
-    bool of_ml_tanhp; // If the input variables contain tanhp
-    bool of_ml_tanhq; // If the input variables contain tanhq
-    double of_ml_chi_p; // tanhp = tanh(chi*p)
-    double of_ml_chi_q; // tanhp = tanh(chi*q)
+    bool of_ml_gamma = false;                    ///< If the input variables contain gamma
+    bool of_ml_p = false;                        ///< If the input variables contain p
+    bool of_ml_q = false;                        ///< If the input variables contain q
+    bool of_ml_tanhp = false;                    ///< If the input variables contain tanhp
+    bool of_ml_tanhq = false;                    ///< If the input variables contain tanhq
+    double of_ml_chi_p = 1.0;                    ///< tanhp = tanh(chi*p)
+    double of_ml_chi_q = 1.0;                    ///< tanhp = tanh(chi*q)
     // non-local descriptors
-    std::string of_ml_gammanl; // If the input variables contain gammanl
-    std::string of_ml_pnl; // If the input variables contain pnl
-    std::string of_ml_qnl; // If the input variables contain qnl
-    std::string of_ml_xi; // If the input variables contain xi
-    std::string of_ml_tanhxi; // If the input variables contain tanhxi
-    std::string of_ml_tanhxi_nl; // If the input variables contain tanhxi_nl
-    std::string of_ml_tanh_pnl; // If the input variables contain tanh_pnl
-    std::string of_ml_tanh_qnl; // If the input variables contain tanh_qnl
-    std::string of_ml_tanhp_nl; // If the input variables contain tanhp_nl
-    std::string of_ml_tanhq_nl; // If the input variables contain tanhq_nl
-    std::string of_ml_chi_xi; // tanhpxi = tanh(chi * xi)
-    std::string of_ml_chi_pnl; // tanh_pnl = tanh(chi*pnl)
-    std::string of_ml_chi_qnl; // tanh_pnl = tanh(chi*qnl)
-    // r descriptors
+    // of_ml_gammanl should be a vector of bool, but here we use a vector of int for convinience
+    std::vector<int> of_ml_gammanl = {0};        ///< If the input variables contain gammanl
+    std::vector<int> of_ml_pnl = {0};            ///< If the input variables contain pnl
+    std::vector<int> of_ml_qnl = {0};            ///< If the input variables contain qnl
+    std::vector<int> of_ml_xi = {0};             ///< If the input variables contain xi
+    std::vector<int> of_ml_tanhxi = {0};         ///< If the input variables contain tanhxi
+    std::vector<int> of_ml_tanhxi_nl = {0};      ///< If the input variables contain tanhxi_nl
+    std::vector<int> of_ml_tanh_pnl = {0};       ///< If the input variables contain tanh_pnl
+    std::vector<int> of_ml_tanh_qnl = {0};       ///< If the input variables contain tanh_qnl
+    std::vector<int> of_ml_tanhp_nl = {0};       ///< If the input variables contain tanhp_nl
+    std::vector<int> of_ml_tanhq_nl = {0};       ///< If the input variables contain tanhq_nl
+
+    std::vector<double> of_ml_chi_xi = {1.0};    ///< tanhpxi = tanh(chi * xi)
+    std::vector<double> of_ml_chi_pnl = {1.0};   ///< tanh_pnl = tanh(chi*pnl)
+    std::vector<double> of_ml_chi_qnl = {1.0};   ///< tanh_pnl = tanh(chi*qnl)
     // size of nn 2023-04-19
-    int of_ml_nnode;    // number of node
-    int of_ml_nlayer;   // number of layer
+    int of_ml_nnode = 100;                       ///< number of node
+    int of_ml_nlayer = 3;                        ///< number of layer
     // kernel
-    int of_ml_nkernel;  // number of kernels
-    std::string of_ml_kernel;   // type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK
-    std::string of_ml_kernel_scaling; // scaling parameter of kernel
-    std::string of_ml_yukawa_alpha; // parameter alpha of yukawa kernel
-    std::string of_ml_kernel_file; // the file of TKK
-    std::string of_ml_device; // run NN on GPU or CPU
+    int of_ml_nkernel = 1;                                 ///< number of kernels
+    std::vector<int> of_ml_kernel = {1};                   ///< type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK
+    std::vector<double> of_ml_kernel_scaling = {1.0};      ///< scaling parameter of kernel
+    std::vector<double> of_ml_yukawa_alpha = {1.0};        ///< parameter alpha of yukawa kernel
+    std::vector<std::string> of_ml_kernel_file = {"none"}; ///< the file of TKK
+    std::string of_ml_device = "cpu";                      ///< run NN on GPU or CPU
 
     // ==============   #Parameters (7.stochastic DFT) ===========================
     int method_sto = 2;        ///< different methods for sdft, 1: slow, less memory 2:

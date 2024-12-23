@@ -12,14 +12,15 @@ void ML_data::set_para(
     const double &vw_weight,
     const double &chi_p,
     const double &chi_q,
-    const std::string &chi_xi_,
-    const std::string &chi_pnl_,
-    const std::string &chi_qnl_,
+    const std::vector<double> &chi_xi,
+    const std::vector<double> &chi_pnl,
+    const std::vector<double> &chi_qnl,
     const int &nkernel,
-    const std::string &kernel_type_,
-    const std::string &kernel_scaling_,
-    const std::string &yukawa_alpha_,
-    const std::string &kernel_file_,
+    const std::vector<int> &kernel_type,
+    const std::vector<double> &kernel_scaling,
+    const std::vector<double> &yukawa_alpha,
+    const std::vector<std::string> &kernel_file,
+    const double &omega,
     ModulePW::PW_Basis *pw_rho
 )
 {
@@ -27,15 +28,14 @@ void ML_data::set_para(
     this->nkernel = nkernel;
     this->chi_p = chi_p;
     this->chi_q = chi_q;
-    this->split_string(chi_xi_, nkernel, 1., this->chi_xi);
-    this->split_string(chi_pnl_, nkernel, 1., this->chi_pnl);
-    this->split_string(chi_qnl_, nkernel, 1., this->chi_qnl);
+    this->chi_xi = chi_xi;
+    this->chi_pnl = chi_pnl;
+    this->chi_qnl = chi_qnl;
 
-    this->split_string(kernel_type_, nkernel, 1, this->kernel_type);
-    this->split_string(kernel_scaling_, nkernel, 1., this->kernel_scaling);
-    this->split_string(yukawa_alpha_, nkernel, 1., this->yukawa_alpha);
-    std::string temp = "none";
-    this->split_string(kernel_file_, nkernel, temp, this->kernel_file);
+    this->kernel_type = kernel_type;
+    this->kernel_scaling = kernel_scaling;
+    this->yukawa_alpha = yukawa_alpha;
+    this->kernel_file = kernel_file;
     std::cout << "nkernel    " << nkernel << std::endl;
 
     if (PARAM.inp.of_wt_rho0 != 0)
@@ -44,7 +44,7 @@ void ML_data::set_para(
     }
     else
     {
-        this->rho0 = 1./GlobalC::ucell.omega * nelec;
+        this->rho0 = 1./omega * nelec;
     }
 
     this->kF = pow(3. * pow(ModuleBase::PI, 2) * this->rho0, 1./3.);
@@ -117,6 +117,7 @@ void ML_data::generateTrainData_KS(
     elecstate::ElecState *pelec,
     ModulePW::PW_Basis_K *pw_psi,
     ModulePW::PW_Basis *pw_rho,
+    UnitCell& ucell,
     const double* veff
 )
 {
@@ -129,7 +130,7 @@ void ML_data::generateTrainData_KS(
 
     const long unsigned cshape[] = {(long unsigned) this->nx}; // shape of container and containernl
     // enhancement factor of Pauli energy, and Pauli potential
-    this->getF_KS1(psi, pelec, pw_psi, pw_rho, nablaRho, container, containernl);
+    this->getF_KS1(psi, pelec, pw_psi, pw_rho, ucell, nablaRho, container, containernl);
 
     Symmetry_rho srho;
 
@@ -145,7 +146,7 @@ void ML_data::generateTrainData_KS(
     for (int ir = 0; ir < this->nx; ++ir){
         ptempRho->rho[0][ir] = container[ir];
     }
-    srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
+    srho.begin(0, *ptempRho, pw_rho, ucell.symm);
     for (int ir = 0; ir < this->nx; ++ir){
         container[ir] = ptempRho->rho[0][ir];
     }
@@ -153,7 +154,7 @@ void ML_data::generateTrainData_KS(
     for (int ir = 0; ir < this->nx; ++ir){
         ptempRho->rho[0][ir] = containernl[ir];
     }
-    srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
+    srho.begin(0, *ptempRho, pw_rho, ucell.symm);
     for (int ir = 0; ir < this->nx; ++ir){
         containernl[ir] = ptempRho->rho[0][ir];
     }
@@ -162,12 +163,12 @@ void ML_data::generateTrainData_KS(
     npy::SaveArrayAsNumpy("pauli.npy", false, 1, cshape, containernl);
 
     // enhancement factor of Pauli energy, and Pauli potential
-    this->getF_KS2(psi, pelec, pw_psi, pw_rho, container, containernl);
+    this->getF_KS2(psi, pelec, pw_psi, pw_rho, ucell, container, containernl);
 
     for (int ir = 0; ir < this->nx; ++ir){
         ptempRho->rho[0][ir] = container[ir];
     }
-    srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
+    srho.begin(0, *ptempRho, pw_rho, ucell.symm);
     for (int ir = 0; ir < this->nx; ++ir){
         container[ir] = ptempRho->rho[0][ir];
     }
@@ -175,7 +176,7 @@ void ML_data::generateTrainData_KS(
     for (int ir = 0; ir < this->nx; ++ir){
         ptempRho->rho[0][ir] = containernl[ir];
     }
-    srho.begin(0, *ptempRho, pw_rho, GlobalC::ucell.symm);
+    srho.begin(0, *ptempRho, pw_rho, ucell.symm);
     for (int ir = 0; ir < this->nx; ++ir){
         containernl[ir] = ptempRho->rho[0][ir];
     }

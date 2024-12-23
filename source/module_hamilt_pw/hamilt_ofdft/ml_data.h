@@ -16,13 +16,6 @@ public:
     ~ML_data()
     {
         for (int ik = 0; ik < this->nkernel; ++ik) delete[] this->kernel[ik];
-        delete[] this->kernel;
-        delete[] this->chi_xi;
-        delete[] this->chi_pnl;
-        delete[] this->chi_qnl;
-        delete[] this->kernel_type;
-        delete[] this->kernel_scaling;
-        delete[] this->yukawa_alpha;
     }
 
     void set_para(
@@ -32,14 +25,15 @@ public:
         const double &vw_weight,
         const double &chi_p,
         const double &chi_q,
-        const std::string &chi_xi_,
-        const std::string &chi_pnl_,
-        const std::string &chi_qnl_,
+        const std::vector<double> &chi_xi,
+        const std::vector<double> &chi_pnl,
+        const std::vector<double> &chi_qnl,
         const int &nkernel,
-        const std::string &kernel_type_,
-        const std::string &kernel_scaling_,
-        const std::string &yukawa_alpha_,
-        const std::string &kernel_file_,
+        const std::vector<int> &kernel_type,
+        const std::vector<double> &kernel_scaling,
+        const std::vector<double> &yukawa_alpha,
+        const std::vector<std::string> &kernel_file,
+        const double &omega,
         ModulePW::PW_Basis *pw_rho);
     // output all parameters
     void generateTrainData_WT(
@@ -54,6 +48,7 @@ public:
         elecstate::ElecState *pelec,
         ModulePW::PW_Basis_K *pw_psi,
         ModulePW::PW_Basis *pw_rho,
+        UnitCell& ucell,
         const double *veff
     );
     void generateTrainData_KS(
@@ -61,6 +56,7 @@ public:
         elecstate::ElecState *pelec,
         ModulePW::PW_Basis_K *pw_psi,
         ModulePW::PW_Basis *pw_rho,
+        UnitCell& ucell,
         const double *veff
     ){} // a mock function
     void generate_descriptor(
@@ -99,6 +95,7 @@ public:
         elecstate::ElecState *pelec,
         ModulePW::PW_Basis_K *pw_psi,
         ModulePW::PW_Basis *pw_rho,
+        UnitCell& ucell,
         const std::vector<std::vector<double>> &nablaRho,
         std::vector<double> &rF,
         std::vector<double> &rpauli
@@ -108,6 +105,7 @@ public:
         elecstate::ElecState *pelec,
         ModulePW::PW_Basis_K *pw_psi,
         ModulePW::PW_Basis *pw_rho,
+        UnitCell& ucell,
         std::vector<double> &rF,
         std::vector<double> &rpauli
     );
@@ -130,11 +128,11 @@ public:
     void f(std::vector<double> &pinput, std::vector<double> &routput);
 
     // new parameters 2023-02-13
-    double* chi_xi = nullptr;
+    std::vector<double> chi_xi = {1.0};
     double chi_p = 1.;
     double chi_q = 1.;
-    double* chi_pnl = nullptr;
-    double* chi_qnl = nullptr;
+    std::vector<double> chi_pnl = {1.0};
+    std::vector<double> chi_qnl = {1.0};
 
     int nx = 0;
     double dV = 0.;
@@ -148,37 +146,11 @@ public:
     const double pqcoef = 1.0 / (4.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0)); // coefficient of p and q
     
     int nkernel = 1;
-    int *kernel_type = nullptr;
-    double *kernel_scaling = nullptr;
-    double *yukawa_alpha = nullptr;
-    std::string *kernel_file = nullptr;
+    std::vector<int> kernel_type = {1};
+    std::vector<double> kernel_scaling = {1.0};
+    std::vector<double> yukawa_alpha = {1.0};
+    std::vector<std::string> kernel_file = {"none"};
     double **kernel = nullptr;
-
-    template<class T>
-    void split_string(const std::string &input, const int &length, const T &default_, T* &output)
-    {
-        if (output == nullptr)
-        {
-            output = new T[length];
-        }
-
-        std::stringstream input_string;
-        input_string << input;
-        std::stringstream convert_string;
-        std::string temp = "";
-        int i = 0;
-        while (std::getline(input_string, temp, '_') && i < length)
-        {
-            convert_string << temp;
-            convert_string >> output[i];
-            convert_string.clear();
-            ++i;
-        }
-        for (int j = i; j < length; ++j)
-        {
-            output[j] = default_;
-        }
-    }
 
     std::string file_name(std::string parameter, const int kernel_type, const double kernel_scaling);
 };

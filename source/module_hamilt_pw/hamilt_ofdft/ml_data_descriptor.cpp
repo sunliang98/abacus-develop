@@ -188,6 +188,7 @@ void ML_data::getF_KS1(
     elecstate::ElecState *pelec,
     ModulePW::PW_Basis_K *pw_psi,
     ModulePW::PW_Basis *pw_rho,
+    UnitCell& ucell,
     const std::vector<std::vector<double>> &nablaRho,
     std::vector<double> &rF,
     std::vector<double> &rpauli
@@ -222,7 +223,7 @@ void ML_data::getF_KS1(
             }
 
             pw_psi->recip_to_real(ctx, &psi->operator()(ibnd,0), wfcr, ik);
-            const double w1 = pelec->wg(ik, ibnd) / GlobalC::ucell.omega;
+            const double w1 = pelec->wg(ik, ibnd) / ucell.omega;
             
             // output one wf, to check KS equation
             if (ik == 0 && ibnd == 0)
@@ -261,7 +262,7 @@ void ML_data::getF_KS1(
                 for (int ig = 0; ig < npw; ig++)
                 {
                     double fact
-                        = pw_psi->getgpluskcar(ik, ig)[j] * GlobalC::ucell.tpiba;
+                        = pw_psi->getgpluskcar(ik, ig)[j] * ucell.tpiba;
                     wfcr[ig] = psi->operator()(ibnd, ig) * complex<double>(0.0, fact);
                 }
 
@@ -323,6 +324,7 @@ void ML_data::getF_KS2(
     elecstate::ElecState *pelec,
     ModulePW::PW_Basis_K *pw_psi,
     ModulePW::PW_Basis *pw_rho,
+    UnitCell& ucell,
     std::vector<double> &rF,
     std::vector<double> &rpauli
 )
@@ -362,7 +364,7 @@ void ML_data::getF_KS2(
             }
 
             pw_psi->recip_to_real(ctx, &psi->operator()(ibnd,0), wfcr, ik);
-            const double w1 = pelec->wg(ik, ibnd) / GlobalC::ucell.omega;
+            const double w1 = pelec->wg(ik, ibnd) / ucell.omega;
 
             // if (w1 != 0.0)
             // {
@@ -382,7 +384,7 @@ void ML_data::getF_KS2(
             ModuleBase::GlobalFunc::ZEROS(wfcg, npw);
             for (int ig = 0; ig < npw; ig++)
             {
-                double fact = pw_psi->getgk2(ik, ig) * GlobalC::ucell.tpiba2;
+                double fact = pw_psi->getgk2(ik, ig) * ucell.tpiba2;
                 wfcg[ig] = - psi->operator()(ibnd, ig) * fact;
             }
 
