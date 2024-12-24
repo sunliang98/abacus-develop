@@ -15,7 +15,10 @@ class ML_data{
 public:
     ~ML_data()
     {
-        for (int ik = 0; ik < this->nkernel; ++ik) delete[] this->kernel[ik];
+        for (int ik = 0; ik < this->nkernel; ++ik)
+        {
+            delete[] this->kernel[ik];
+        }
     }
 
     void set_para(
@@ -80,10 +83,6 @@ public:
     void getTanh_Qnl(const int ikernel, std::vector<double> &pqnl, std::vector<double> &rtanh_qnl);
     void getTanhP_nl(const int ikernel, std::vector<double> &ptanhp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhp_nl);
     void getTanhQ_nl(const int ikernel, std::vector<double> &ptanhq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhq_nl);
-    void getfP(std::vector<double> &pp, std::vector<double> &rfp);
-    void getfQ(std::vector<double> &pq, std::vector<double> &rfq);
-    void getfP_nl(const int ikernel, std::vector<double> &pfp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfp_nl);
-    void getfQ_nl(const int ikernel, std::vector<double> &pfq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfq_nl);
     // 2023-03-20
     void getTanhXi_nl(const int ikernel, std::vector<double> &ptanhxi, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhxi_nl);
     // get target
@@ -125,7 +124,6 @@ public:
 
     void tanh(std::vector<double> &pinput, std::vector<double> &routput, double chi=1.);
     double dtanh(double tanhx, double chi=1.);
-    void f(std::vector<double> &pinput, std::vector<double> &routput);
 
     // new parameters 2023-02-13
     std::vector<double> chi_xi = {1.0};
@@ -136,11 +134,9 @@ public:
 
     int nx = 0;
     double dV = 0.;
-    double rho0 = 0.;
-    double kF = 0.;
-    double tkF = 0.;
-    double alpha = 5./6.;
-    double beta = 5./6.;
+    double rho0 = 0.; // average rho
+    double kF = 0.; // Fermi vector kF = (3 pi^2 rho0)^(1/3)
+    double tkF = 0.; // 2 * kF
     // double weightml = 1.;
     const double cTF = 3.0/10.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0) * 2; // 10/3*(3*pi^2)^{2/3}, multiply by 2 to convert unit from Hartree to Ry, finally in Ry*Bohr^(-2)
     const double pqcoef = 1.0 / (4.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0)); // coefficient of p and q

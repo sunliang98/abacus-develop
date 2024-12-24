@@ -87,14 +87,10 @@ void KEDF_ML::set_para(
                 if (this->descriptor_type[i] == "gamma") feg_inpt[i] = 1.;
             }
 
-            // feg_inpt.requires_grad_(true);
-
             if (PARAM.inp.of_ml_feg == 1) 
-                // this->feg_net_F = torch::softplus(this->nn->forward(feg_inpt));
                 this->feg_net_F = torch::softplus(this->nn->forward(feg_inpt)).to(this->device_CPU).contiguous().data_ptr<double>()[0];
             else
             {
-                // this->feg_net_F = this->nn->forward(feg_inpt);
                 this->feg_net_F = this->nn->forward(feg_inpt).to(this->device_CPU).contiguous().data_ptr<double>()[0];
             }
 
@@ -148,13 +144,6 @@ void KEDF_ML::ml_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     this->enhancement_cpu_ptr = enhancement_cpu_tensor.data_ptr<double>();
     torch::Tensor gradient_cpu_tensor = this->nn->inputs.grad().to(this->device_CPU).contiguous();
     this->gradient_cpu_ptr = gradient_cpu_tensor.data_ptr<double>();
-    // std::cout << "F" << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
-    // this->enhancement_cpu_ptr = this->nn->F.to(this->device_CPU).contiguous().data_ptr<double>();
-    // std::cout << "F_CPU" << torch::slice(this->nn->F.to(this->device_CPU), 0, 0, 10) << std::endl;
-    // std::cout << "F_CPU_cont" << torch::slice(enhancement_cpu_tensor, 0, 0, 10) << std::endl;
-    // std::cout << "enhancement_cpu_ptr" << std::endl;
-    // for (int i = 0; i < 10; ++i) std::cout << enhancement_cpu_ptr[i] << "\t";
-    // std::cout << std::endl;
 
     this->get_potential_(prho, pw_rho, rpotential);
 
@@ -163,7 +152,6 @@ void KEDF_ML::ml_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     double energy = 0.;
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        // energy += this->nn->F[ir].item<double>() * pow(prho[0][ir], 5./3.);
         energy += enhancement_cpu_ptr[ir] * pow(prho[0][ir], 5./3.);
     }
     energy *= this->dV * this->cTF;
@@ -186,12 +174,8 @@ void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF
         torch::Tensor gradient_cpu_tensor = this->nn->inputs.grad().to(this->device_CPU).contiguous();
         this->gradient_cpu_ptr = gradient_cpu_tensor.data_ptr<double>();
 
-        // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
-        // std::cout << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
-
         torch::Tensor enhancement = this->nn->F.reshape({this->nx});
         ModuleBase::matrix potential(1, this->nx);
-        // torch::Tensor potential = torch::zeros_like(enhancement);
 
         this->get_potential_(prho, pw_rho, potential);
 
@@ -274,7 +258,6 @@ void KEDF_ML::set_device(std::string device_inpt)
 void KEDF_ML::NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho, bool cal_grad)
 {
     ModuleBase::timer::tick("KEDF_ML", "Forward");
-    // std::cout << "nn_forward" << std::endl;
 
     this->nn->zero_grad();
     this->nn->inputs.requires_grad_(false);
@@ -307,7 +290,6 @@ void KEDF_ML::NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho
         this->nn->F.backward(torch::ones({this->nx, 1}, this->device_type));
         ModuleBase::timer::tick("KEDF_ML", "Backward");
     }
-    // std::cout << "nn_forward" << std::endl;
 }
 
 void KEDF_ML::dumpTensor(const torch::Tensor &data, std::string filename)

@@ -44,8 +44,6 @@ struct NN_OFImpl:torch::nn::Module{
     torch::Tensor inputs;
     torch::Tensor input_vali;
     torch::Tensor F; // enhancement factor, output of NN
-    // torch::Tensor gradient;
-    // torch::Tensor potential;
 
     int nrxx = 10;
     int nrxx_vali = 0;

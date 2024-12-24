@@ -130,11 +130,7 @@ void KEDF_ML::init_data(
     for (int i = 0; i < ninput; ++i)
     {
         this->descriptor2kernel[descriptor_type[i]].push_back(kernel_index[i]);
-        // std::cout << "this->descriptor2kernel[descriptor_type[i]]    " << this->descriptor2kernel[descriptor_type[i]]
-        //           << std::endl;
         this->descriptor2index[descriptor_type[i]].push_back(i);
-        // std::cout << "this->descriptor2index[descriptor_type[i]]    " << this->descriptor2index[descriptor_type[i]]
-        //           << std::endl;
     }
     std::cout << "descriptor2index    " << descriptor2index << std::endl;
     std::cout << "descriptor2kernel    " << descriptor2kernel << std::endl;
@@ -158,9 +154,6 @@ void KEDF_ML::init_data(
     bool gene_gammanl_tot = false;
     bool gene_pnl_tot = false;
     bool gene_qnl_tot = false;
-    // bool gene_xi_tot = false;
-    // bool gene_tanhxi_tot = false;
-    // bool gene_tanhxi_nl_tot = false;
     bool gene_tanh_pnl_tot = false;
     bool gene_tanh_qnl_tot = false;
     bool gene_tanhp_nl_tot = false;
@@ -212,9 +205,6 @@ void KEDF_ML::init_data(
         gene_gammanl_tot = gene_gammanl_tot || this->gene_data_label["gammanl"][ik];
         gene_pnl_tot = gene_pnl_tot || this->gene_data_label["pnl"][ik];
         gene_qnl_tot = gene_qnl_tot || this->gene_data_label["qnl"][ik];
-        // gene_xi_tot = gene_xi_tot || this->gene_data_label["xi"][ik];
-        // gene_tanhxi_tot = gene_tanhxi_tot || this->gene_data_label["tanhxi"][ik];
-        // gene_tanhxi_nl_tot = gene_tanhxi_nl_tot || this->gene_data_label["tanhxi_nl"][ik];
         gene_tanh_pnl_tot = gene_tanh_pnl_tot || this->gene_data_label["tanh_pnl"][ik];
         gene_tanh_qnl_tot = gene_tanh_qnl_tot || this->gene_data_label["tanh_qnl"][ik];
         gene_tanhp_nl_tot = gene_tanhp_nl_tot || this->gene_data_label["tanhp_nl"][ik];
@@ -238,20 +228,25 @@ void KEDF_ML::init_data(
     this->gene_data_label["q"][0] = of_ml_q || this->gene_data_label["tanhq"][0] || gene_qnl_tot;
 
 
-    if (this->gene_data_label["gamma"][0])   this->gamma = std::vector<double>(this->nx, 0.);
-    if (this->gene_data_label["p"][0])
-    {
+    if (this->gene_data_label["gamma"][0]){
+        this->gamma = std::vector<double>(this->nx, 0.);
+    }
+    if (this->gene_data_label["p"][0]){
         this->nablaRho = std::vector<std::vector<double> >(3, std::vector<double>(this->nx, 0.));
         this->p = std::vector<double>(this->nx, 0.);
     }
-    if (this->gene_data_label["q"][0])       this->q = std::vector<double>(this->nx, 0.);
-    if (this->gene_data_label["tanhp"][0])   this->tanhp = std::vector<double>(this->nx, 0.);
-    if (this->gene_data_label["tanhq"][0])   this->tanhq = std::vector<double>(this->nx, 0.);
+    if (this->gene_data_label["q"][0]){
+        this->q = std::vector<double>(this->nx, 0.);
+    }
+    if (this->gene_data_label["tanhp"][0]){
+        this->tanhp = std::vector<double>(this->nx, 0.);
+    }
+    if (this->gene_data_label["tanhq"][0]){
+        this->tanhq = std::vector<double>(this->nx, 0.);
+    }
 
     for (int ik = 0; ik < nkernel; ++ik)
     {
-        // int ktype = this->ml_data->kernel_type[ik];
-        // double kscaling = input.kernel_scaling[ik];
         this->gammanl.push_back({});
         this->pnl.push_back({});
         this->qnl.push_back({});

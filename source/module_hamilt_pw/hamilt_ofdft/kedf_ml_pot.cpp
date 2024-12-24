@@ -9,7 +9,6 @@ void KEDF_ML::get_potential_(const double * const * prho, ModulePW::PW_Basis *pw
 {
     // get potential
     ModuleBase::timer::tick("KEDF_ML", "Pauli Potential");
-    // cout << "begin potential" << endl;
 
     std::vector<double> pauli_potential(this->nx, 0.);
 
@@ -44,37 +43,13 @@ void KEDF_ML::get_potential_(const double * const * prho, ModulePW::PW_Basis *pw
         this->potTanhqTanhq_nlTerm(prho, pw_rho, pauli_potential);
     }
 
-    double kinetic_pot = 0.;
-    int n_neg = 0;
     for (int ir = 0; ir < this->nx; ++ir)
     {
         pauli_potential[ir] += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
                       (5./3. * this->enhancement_cpu_ptr[ir] + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir)
                       + this->potXiTerm1(ir) + this->potTanhxiTerm1(ir) + this->potTanhpTerm1(ir) + this->potTanhqTerm1(ir));
-                    //   + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir]
-                    //   + xinlterm[ir] + tanhxinlterm[ir] + tanhxi_nlterm[ir]
-                    //   + tanhptanh_pnlterm[ir] + tanhqtanh_qnlterm[ir]
-                    //   + tanhptanhp_nlterm[ir] + tanhqtanhq_nlterm[ir];
-        // if (pauli_potential[ir] < 0) pauli_potential[ir] = 0;
         rpotential(0, ir) += pauli_potential[ir];
-
-        // if (this->enhancement_cpu_ptr[ir] < 0)
-        // {
-        //     std::cout << "WARNING: enhancement factor < 0 !!  " << this->enhancement_cpu_ptr[ir] << std::endl;
-        // }
-        // if (kinetic_pot < 0)
-        // {
-            // n_neg += 1;
-            // std::cout << "WARNING: pauli potential < 0 !!  " << kinetic_pot << std::endl;
-        // }
-        // rpotential(0, ir) += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
-        //                     (5./3. * this->enhancement_cpu_ptr[ir] + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir))
-        //                     + ppnlterm[ir] + qqnlterm[ir] + gammanlterm[ir];
     }
-    // if (n_neg > 0)
-    // {
-    //     std::cout << "WARNING: pauli potential < 0 !!  " << n_neg << std::endl;
-    // }
     ModuleBase::timer::tick("KEDF_ML", "Pauli Potential");
 }
 
@@ -227,7 +202,6 @@ void KEDF_ML::potTanhxi_nlTerm(const double * const *prho, ModulePW::PW_Basis *p
 // get contribution of p and pnl
 void KEDF_ML::potPPnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rPPnlTerm)
 {
-    // cout << "begin p" << endl;
     double *dFdpnl = new double[this->nx];
     std::vector<double> dFdpnl_tot(this->nx, 0.);
     std::vector<double> result(this->nx, 0.);
@@ -282,7 +256,6 @@ void KEDF_ML::potPPnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho
 
 void KEDF_ML::potQQnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rQQnlTerm)
 {
-    // if (!this->ml_q && !this->ml_qnl) return;
     double *dFdqnl = new double[this->nx];
     std::vector<double> dFdqnl_tot(this->nx, 0.);
     std::vector<double> result(this->nx, 0.);
@@ -331,10 +304,7 @@ void KEDF_ML::potQQnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho
 
 void KEDF_ML::potTanhpTanh_pnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhpTanh_pnlTerm)
 {
-    // if (!this->ml_tanhp && !this->ml_tanh_pnl) return;
-    // // Note we assume that tanhp_nl and tanh_pnl will NOT be used together.
-    // if (this->ml_tanhp_nl) return;
-    // // cout << "begin tanhp" << endl;
+    // Note we assume that tanhp_nl and tanh_pnl will NOT be used together.
     double *dFdpnl = new double[this->nx];
     std::vector<double> dFdpnl_tot(this->nx, 0.);
     std::vector<double> result(this->nx, 0.);
@@ -390,9 +360,7 @@ void KEDF_ML::potTanhpTanh_pnlTerm(const double * const *prho, ModulePW::PW_Basi
 
 void KEDF_ML::potTanhqTanh_qnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhqTanh_qnlTerm)
 {
-    // if (!this->ml_tanhq && !this->ml_tanh_qnl) return;
-    // // Note we assume that tanhq_nl and tanh_qnl will NOT be used together.
-    // if (this->ml_tanhq_nl) return;
+    // Note we assume that tanhq_nl and tanh_qnl will NOT be used together.
     double *dFdqnl = new double[this->nx];
     std::vector<double> dFdqnl_tot(this->nx, 0.);
     std::vector<double> result(this->nx, 0.);
@@ -444,8 +412,6 @@ void KEDF_ML::potTanhqTanh_qnlTerm(const double * const *prho, ModulePW::PW_Basi
 // Note we assume that tanhp_nl and tanh_pnl will NOT be used together.
 void KEDF_ML::potTanhpTanhp_nlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhpTanhp_nlTerm)
 {
-    // if (!this->ml_tanhp_nl) return;
-    // cout << "begin tanhp" << endl;
     double *dFdpnl = new double[this->nx];
     std::vector<double> dFdpnl_tot(this->nx, 0.);
     std::vector<double> result(this->nx, 0.);
@@ -501,8 +467,6 @@ void KEDF_ML::potTanhpTanhp_nlTerm(const double * const *prho, ModulePW::PW_Basi
 
 void KEDF_ML::potTanhqTanhq_nlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhqTanhq_nlTerm)
 {
-    // if (!this->ml_tanhq_nl) return;
-
     double *dFdqnl = new double[this->nx];
     std::vector<double> dFdqnl_tot(this->nx, 0.);
     std::vector<double> result(this->nx, 0.);

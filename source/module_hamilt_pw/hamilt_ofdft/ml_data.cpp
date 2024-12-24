@@ -36,7 +36,7 @@ void ML_data::set_para(
     this->kernel_scaling = kernel_scaling;
     this->yukawa_alpha = yukawa_alpha;
     this->kernel_file = kernel_file;
-    std::cout << "nkernel    " << nkernel << std::endl;
+    std::cout << "nkernel = " << nkernel << std::endl;
 
     if (PARAM.inp.of_wt_rho0 != 0)
     {
@@ -68,7 +68,6 @@ void ML_data::set_para(
                 if (this->kernel_type[ik] == 1)
                 {
                     this->kernel[ik][ip] = this->MLkernel(eta, tf_weight, vw_weight);
-                    // this->kernel[ik][ip] = std::pow(1. / this->kernel_scaling[ik], 3) * this->MLkernel(eta, tf_weight, vw_weight);
                 }
                 else if (this->kernel_type[ik] == 2)
                 {
@@ -271,14 +270,6 @@ void ML_data::generate_descriptor(
         // tanh(p)_nl
         this->getTanhP_nl(ik, new_container, pw_rho, new_containernl);
         npy::SaveArrayAsNumpy(this->file_name("tanhp_nl", ktype, kscaling), false, 1, cshape, new_containernl);
-
-        // f(p) = p/(1+p)
-        this->getfP(container, new_container);
-        npy::SaveArrayAsNumpy("fp.npy", false, 1, cshape, new_container);
-
-        // f(p)_nl
-        this->getfP_nl(ik, new_container, pw_rho, new_containernl);
-        npy::SaveArrayAsNumpy(this->file_name("fp_nl", ktype, kscaling), false, 1, cshape, new_containernl);
     }
 
     // q
@@ -505,15 +496,6 @@ void ML_data::tanh(std::vector<double> &pinput, std::vector<double> &routput, do
 double ML_data::dtanh(double tanhx, double chi)
 {
     return (1. - tanhx * tanhx) * chi;
-}
-
-void ML_data::f(std::vector<double> &pinput, std::vector<double> &routput)
-{
-    for (int i = 0; i < this->nx; ++i)
-    {
-        assert(pinput[i] >= 0);
-        routput[i] = pinput[i]/(1. + pinput[i]);
-    }
 }
 
 std::string ML_data::file_name(std::string parameter, const int kernel_type, const double kernel_scaling)

@@ -1,7 +1,6 @@
 #ifdef __MLKEDF
 
 #include "ml_data.h"
-// #include "npy.hpp"
 
 void ML_data::getGamma(const double * const *prho, std::vector<double> &rgamma)
 {
@@ -128,30 +127,6 @@ void ML_data::getTanhQ_nl(const int ikernel, std::vector<double> &ptanhq, Module
     this->multiKernel(ikernel, ptanhq.data(), pw_rho, rtanhq_nl.data());
 }
 
-// f(p) = p/(1+p)
-void ML_data::getfP(std::vector<double> &pp, std::vector<double> &rfp)
-{
-    this->f(pp, rfp);
-}
-
-// f(q) = q/(1+q)
-void ML_data::getfQ(std::vector<double> &pq, std::vector<double> &rfq)
-{
-    this->f(pq, rfq);
-}
-
-// f(p)_nl
-void ML_data::getfP_nl(const int ikernel, std::vector<double> &pfp, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfp_nl)
-{
-    this->multiKernel(ikernel, pfp.data(), pw_rho, rfp_nl.data());
-}
-
-// f(q)_nl
-void ML_data::getfQ_nl(const int ikernel, std::vector<double> &pfq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rfq_nl)
-{
-    this->multiKernel(ikernel, pfq.data(), pw_rho, rfq_nl.data());
-}
-
 // (tanhxi)_nl
 void ML_data::getTanhXi_nl(const int ikernel, std::vector<double> &ptanhxi, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhxi_nl)
 {
@@ -238,8 +213,8 @@ void ML_data::getF_KS1(
                 const long unsigned cshape[] = {(long unsigned) this->nx}; // shape of container and containernl
                 // npy::SaveArrayAsNumpy("wfc_real.npy", false, 1, cshape, wf_real);
                 // npy::SaveArrayAsNumpy("wfc_imag.npy", false, 1, cshape, wf_imag);
-                std::cout << "eigenvalue of wfc is " << pelec->ekb(ik, ibnd) << std::endl;
-                std::cout << "wg of wfc is " << pelec->wg(ik, ibnd) << std::endl;
+                // std::cout << "eigenvalue of wfc is " << pelec->ekb(ik, ibnd) << std::endl;
+                // std::cout << "wg of wfc is " << pelec->wg(ik, ibnd) << std::endl;
             }
 
             if (w1 != 0.0)
@@ -266,8 +241,6 @@ void ML_data::getF_KS1(
                     wfcr[ig] = psi->operator()(ibnd, ig) * complex<double>(0.0, fact);
                 }
 
-                // pw_psi->recip_to_real(dev, wfcr, wfcr, ik);
-
                 pw_psi->recip2real(wfcr, wfcr, ik);
                 
                 for (int ir = 0; ir < this->nx; ++ir)
@@ -288,33 +261,9 @@ void ML_data::getF_KS1(
         }
     }
 
-    // // check the vW energy density
-    // double **phi = new double*[1];
-    // phi[0] = new double[this->nx];
-    // std::vector<std::vector<double> > nablaPhi(3, std::vector<double>(this->nx, 0.));
-
-    // for (int ir = 0; ir < this->nx; ++ir)
-    // {
-    //     phi[0][ir] = sqrt(pelec->charge->rho[0][ir]);
-    // }
-    // this->getNablaRho(phi, pw_rho, nablaPhi);
-
-    // for (int ir = 0; ir < this->nx; ++ir)
-    // {
-    //     double term1 = nablaPhi[0][ir] * nablaPhi[0][ir] + nablaPhi[1][ir] * nablaPhi[1][ir] + nablaPhi[2][ir] * nablaPhi[2][ir];
-    //     double term2 = (nablaRho[0][ir] * nablaRho[0][ir] + nablaRho[1][ir] * nablaRho[1][ir] + nablaRho[2][ir] * nablaRho[2][ir] )/ (8. * pelec->charge->rho[0][ir]) * 2.;
-    //     if (term1 >= 1e-5 && term2 >= 1e-5)
-    //     {
-    //         std::cout << "1:" << term1 << "  2:" << term2 << std::endl;
-    //         assert(fabs(term1 - term2) <= 1e-6);
-    //     }
-    // }
-    // // ===========================
-
     for (int ir = 0; ir < this->nx; ++ir)
     {
         rF[ir] = pauliED[ir] / (this->cTF * pow(pelec->charge->rho[0][ir], 5./3.));
-        // rpauli[ir] = pauliPot[ir];
         rpauli[ir] = (pauliED[ir] + pauliPot[ir])/pelec->charge->rho[0][ir] + epsilonM;
     }
 }

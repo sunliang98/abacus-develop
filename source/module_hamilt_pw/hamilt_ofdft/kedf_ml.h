@@ -94,24 +94,15 @@ public:
     void potTanhpTanhp_nlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhpTanhp_nlTerm);
     void potTanhqTanhq_nlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rTanhqTanhq_nlTerm);
     // tools
-    // double MLkernel(double eta, double tf_weight, double vw_weight);
-    // void multiKernel(double *pinput, ModulePW::PW_Basis *pw_rho, double *routput);
-    // void Laplacian(double * pinput, ModulePW::PW_Basis *pw_rho, double * routput);
-    // void divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * routput);
     void dumpTensor(const torch::Tensor &data, std::string filename);
     void dumpMatrix(const ModuleBase::matrix &data, std::string filename);
     void updateInput(const double * const * prho, ModulePW::PW_Basis *pw_rho);
 
     ML_data *ml_data = nullptr;
 
-    int nx = 0;
-    int nx_tot = 0.; // used to initialize nn_of
+    int nx = 0; // number of grid points
+    int nx_tot = 0; // equal to nx (called by NN)
     double dV = 0.;
-    double rho0 = 0.;
-    double kF = 0.;
-    double tkF = 0.;
-    double alpha = 5./6.;
-    double beta = 5./6.;
     // double weightml = 1.;
     const double cTF = 3.0/10.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0) * 2; // 10/3*(3*pi^2)^{2/3}, multiply by 2 to convert unit from Hartree to Ry, finally in Ry*Bohr^(-2)
     const double pqcoef = 1.0 / (4.0 * pow(3*pow(M_PI, 2.0), 2.0/3.0)); // coefficient of p and q
@@ -120,8 +111,8 @@ public:
     double feg_net_F = 0.;
     double feg3_correct = 0.541324854612918; // ln(e - 1)
 
-    // informations about input
-    int ninput = 0;
+    // Descriptors and hyperparameters
+    int ninput = 0; // number of descriptors
     std::vector<double> gamma = {};
     std::vector<double> p = {};
     std::vector<double> q = {};
@@ -151,11 +142,12 @@ public:
     torch::Device device = torch::Device(torch::kCPU);
     torch::Device device_CPU = torch::Device(torch::kCPU);
 
+    // Nueral Network
     std::shared_ptr<NN_OFImpl> nn;
     double* enhancement_cpu_ptr = nullptr;
     double* gradient_cpu_ptr = nullptr;
 
-    int nkernel = 1;
+    int nkernel = 1; // number of kernels
 
     // maps
     void init_data(
@@ -177,6 +169,7 @@ public:
         const std::vector<int> &of_ml_tanhq_nl
     );
     
+    // Whether to use corresponding descriptors
     bool ml_gamma = false;
     bool ml_p = false;
     bool ml_q = false;
@@ -193,13 +186,13 @@ public:
     bool ml_tanhp_nl = false;
     bool ml_tanhq_nl = false;
 
-    std::vector<std::string> descriptor_type = {};
-    std::vector<int> kernel_index = {};    
-    std::map<std::string, std::vector<int>> descriptor2kernel = {};
-    std::map<std::string, std::vector<int>> descriptor2index = {};
-    std::map<std::string, std::vector<bool>> gene_data_label = {};
+    std::vector<std::string> descriptor_type = {};                  // the descriptors used
+    std::vector<int> kernel_index = {};                             // the index of the kernel used
+    std::map<std::string, std::vector<int>> descriptor2kernel = {}; // the map from descriptor to kernel index
+    std::map<std::string, std::vector<int>> descriptor2index = {};  // the map from descriptor to index
+    std::map<std::string, std::vector<bool>> gene_data_label = {};  // the map from descriptor to gene label
 
-    torch::Tensor get_data(std::string parameter, const int ikernel);
+    torch::Tensor get_data(std::string parameter, const int ikernel);   // get the descriptor data for the ikernel-th kernel
 };
 
 #endif

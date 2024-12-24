@@ -139,61 +139,61 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_local_test");
-        item.annotation = "Read in the density, and output the F and Pauli potential of it";
+        item.annotation = "Test: read in the density, and output the F and Pauli potential";
         read_sync_bool(input.of_ml_local_test);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_feg");
-        item.annotation = "If we enforce the Free Electron Gas limit: F = 1, dF/dgamma = 0";
+        item.annotation = "The Free Electron Gas limit: 0: no, 3: yes";
         read_sync_int(input.of_ml_feg);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_gamma");
-        item.annotation = "If the input variables contain gamma";
+        item.annotation = "Descriptor: gamma = (rho / rho0)^(1/3)";
         read_sync_bool(input.of_ml_gamma);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_p");
-        item.annotation = "If the input variables contain p";
+        item.annotation = "Descriptor: p = |nabla rho|^2 / [2 (3 pi^2)^(1/3) rho^(4/3)]^2";
         read_sync_bool(input.of_ml_p);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_q");
-        item.annotation = "If the input variables contain q";
+        item.annotation = "Descriptor: q = nabla^2 rho / [4 (3 pi^2)^(2/3) rho^(5/3)]";
         read_sync_bool(input.of_ml_q);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_tanhp");
-        item.annotation = "If the input variables contain tanhp";
+        item.annotation = "Descriptor: tanhp = tanh(chi_p * p)";
         read_sync_bool(input.of_ml_tanhp);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_tanhq");
-        item.annotation = "If the input variables contain tanhq";
+        item.annotation = "Descriptor: tanhq = tanh(chi_q * q)";
         read_sync_bool(input.of_ml_tanhq);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_chi_p");
-        item.annotation = "tanhp = tanh(chi_p * p)";
+        item.annotation = "Hyperparameter: tanhp = tanh(chi_p * p)";
         read_sync_double(input.of_ml_chi_p);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_chi_q");
-        item.annotation = "tanhq = tanh(chi_q * q)";
+        item.annotation = "Hyperparameter: tanhq = tanh(chi_q * q)";
         read_sync_double(input.of_ml_chi_q);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_gammanl");
-        item.annotation = "If the input variables contain gammanl";
+        item.annotation = "Descriptor: gammanl = int{gamma(r') * w(r-r') dr'}";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_gammanl);
         };
@@ -202,7 +202,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_pnl");
-        item.annotation = "If the input variables contain pnl";
+        item.annotation = "Descriptor: pnl = int{p(r') * w(r-r') dr'}";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_pnl);
         };
@@ -211,7 +211,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_qnl");
-        item.annotation = "If the input variables contain qnl";
+        item.annotation = "Descriptor: qnl = int{q(r') * w(r-r') dr'}";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_qnl);
         };
@@ -220,7 +220,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_xi");
-        item.annotation = "If the input variables contain xi";
+        item.annotation = "Descriptor: xi = int{rho(r')^(1/3) * w(r-r') dr'} / rho^(1/3)";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_xi);
         };
@@ -229,7 +229,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_tanhxi");
-        item.annotation = "If the input variables contain tanhxi";
+        item.annotation = "Descriptor: tanhxi = tanh(chi_xi * xi)";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_tanhxi);
         };
@@ -238,7 +238,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_tanhxi_nl");
-        item.annotation = "If the input variables contain tanhxi_nl";
+        item.annotation = "Descriptor: tanhxi_nl = int{tanhxi(r') * w(r-r') dr'}";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_tanhxi_nl);
         };
@@ -247,7 +247,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_tanh_pnl");
-        item.annotation = "If the input variables contain tanh_pnl";
+        item.annotation = "Descriptor: tanh_pnl = tanh(chi_pnl * pnl)";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_tanh_pnl);
         };
@@ -256,7 +256,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_tanh_qnl");
-        item.annotation = "If the input variables contain tanh_qnl";
+        item.annotation = "Descriptor: tanh_qnl = tanh(chi_qnl * qnl)";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_tanh_qnl);
         };
@@ -265,7 +265,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_tanhp_nl");
-        item.annotation = "If the input variables contain tanhp_nl";
+        item.annotation = "Descriptor: tanhp_nl = int{tanhp(r') * w(r-r') dr'}";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_tanhp_nl);
         };
@@ -274,7 +274,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_tanhq_nl");
-        item.annotation = "If the input variables contain tanhq_nl";
+        item.annotation = "Descriptor: tanhq_nl = int{tanhq(r') * w(r-r') dr'}";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_tanhq_nl);
         };
@@ -283,7 +283,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_chi_xi");
-        item.annotation = "tanhpxi = tanh(chi_xi * xi)";
+        item.annotation = "Hyperparameter: tanhpxi = tanh(chi_xi * xi)";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_chi_xi);
         };
@@ -292,7 +292,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_chi_pnl");
-        item.annotation = "tanh_pnl = tanh(chi_pnl * pnl)";
+        item.annotation = "Hyperparameter: tanh_pnl = tanh(chi_pnl * pnl)";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_chi_pnl);
         };
@@ -301,7 +301,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_chi_qnl");
-        item.annotation = "tanh_pnl = tanh(chi_qnl * qnl)";
+        item.annotation = "Hyperparameter: tanh_qnl = tanh(chi_qnl * qnl)";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_chi_qnl);
         };
@@ -310,13 +310,13 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_nnode");
-        item.annotation = "Number of node";
+        item.annotation = "Hyperparameter: number of node of hidden layer";
         read_sync_int(input.of_ml_nnode);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_nlayer");
-        item.annotation = "Number of layer";
+        item.annotation = "Hyperparameter: number of hidden layer";
         read_sync_int(input.of_ml_nlayer);
         this->add_item(item);
     }
@@ -360,7 +360,7 @@ void ReadInput::item_ofdft()
     }
     {
         Input_Item item("of_ml_kernel_scaling");
-        item.annotation = "Scaling parameter of kernel";
+        item.annotation = "Scaling parameter of kernel, w(r-r') = scaling^3 * w(scaling (r-r'))";
         item.read_value = [](const Input_Item& item, Parameter& para) {
             parse_expression(item.str_values, para.input.of_ml_kernel_scaling);
         };
