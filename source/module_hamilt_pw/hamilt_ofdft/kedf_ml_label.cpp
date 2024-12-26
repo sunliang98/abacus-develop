@@ -2,6 +2,26 @@
 
 #include "kedf_ml.h"
 
+/**
+ * @brief Initialize the data for ML KEDF, and generate the mapping between descriptor and kernel
+ * 
+ * @param nkernel number of kernels
+ * @param of_ml_gamma whether to use gamma descriptor
+ * @param of_ml_p whether to use p descriptor
+ * @param of_ml_q whether to use q descriptor
+ * @param of_ml_tanhp whether to use tanhp descriptor
+ * @param of_ml_tanhq whether to use tanhq descriptor
+ * @param of_ml_gammanl whether to use gammanl descriptor
+ * @param of_ml_pnl whether to use pnl descriptor
+ * @param of_ml_qnl whether to use qnl descriptor
+ * @param of_ml_xi whether to use xi descriptor
+ * @param of_ml_tanhxi whether to use tanhxi descriptor
+ * @param of_ml_tanhxi_nl whether to use tanhxi_nl descriptor
+ * @param of_ml_tanh_pnl whether to use tanh_pnl descriptor
+ * @param of_ml_tanh_qnl whether to use tanh_qnl descriptor
+ * @param of_ml_tanhp_nl whether to use tanhp_nl descriptor
+ * @param of_ml_tanhq_nl whether to use tanhq_nl descriptor
+ */
 void KEDF_ML::init_data(
     const int &nkernel,
     const bool &of_ml_gamma,

@@ -211,10 +211,6 @@ void ML_data::getF_KS1(
                     wf_imag[ir] = wfcr[ir].imag();
                 }
                 const long unsigned cshape[] = {(long unsigned) this->nx}; // shape of container and containernl
-                // npy::SaveArrayAsNumpy("wfc_real.npy", false, 1, cshape, wf_real);
-                // npy::SaveArrayAsNumpy("wfc_imag.npy", false, 1, cshape, wf_imag);
-                // std::cout << "eigenvalue of wfc is " << pelec->ekb(ik, ibnd) << std::endl;
-                // std::cout << "wg of wfc is " << pelec->wg(ik, ibnd) << std::endl;
             }
 
             if (w1 != 0.0)
@@ -315,20 +311,14 @@ void ML_data::getF_KS2(
             pw_psi->recip_to_real(ctx, &psi->operator()(ibnd,0), wfcr, ik);
             const double w1 = pelec->wg(ik, ibnd) / ucell.omega;
 
-            // if (w1 != 0.0)
-            // {
-                // Find the energy of HOMO
-                if (pelec->ekb(ik,ibnd) > epsilonM)
-                {
-                    epsilonM = pelec->ekb(ik,ibnd);
-                }
-                // The last term of Pauli potential
-                for (int ir = 0; ir < pelec->charge->nrxx; ir++)
-                {
-                    // pauliPot[ir] += w1 * norm(wfcr[ir]);
-                    pauliPot[ir] -= w1 * pelec->ekb(ik,ibnd) * norm(wfcr[ir]);
-                }
-            // }
+            if (pelec->ekb(ik,ibnd) > epsilonM)
+            {
+                epsilonM = pelec->ekb(ik,ibnd);
+            }
+            for (int ir = 0; ir < pelec->charge->nrxx; ir++)
+            {
+                pauliPot[ir] -= w1 * pelec->ekb(ik,ibnd) * norm(wfcr[ir]);
+            }
 
             ModuleBase::GlobalFunc::ZEROS(wfcg, npw);
             for (int ig = 0; ig < npw; ig++)
@@ -364,7 +354,6 @@ void ML_data::getF_KS2(
     for (int ir = 0; ir < this->nx; ++ir)
     {
         rF[ir] = pauliED[ir] / (this->cTF * pow(pelec->charge->rho[0][ir], 5./3.));
-        // rpauli[ir] = pauliPot[ir];
         rpauli[ir] = (pauliED[ir] + pauliPot[ir])/pelec->charge->rho[0][ir] + epsilonM;
     }
 }

@@ -113,6 +113,14 @@ void KEDF_ML::set_para(
     }
 }
 
+/**
+ * @brief Get the energy of ML KEDF
+ * \f[ E_{ML} = c_{TF} * \int{F(\rho) \rho^{5/3} dr} \f]
+ * 
+ * @param prho charge density
+ * @param pw_rho PW_Basis
+ * @return the energy of ML KEDF
+ */
 double KEDF_ML::get_energy(const double * const * prho, ModulePW::PW_Basis *pw_rho)
 {
     this->updateInput(prho, pw_rho);
@@ -134,6 +142,13 @@ double KEDF_ML::get_energy(const double * const * prho, ModulePW::PW_Basis *pw_r
     return this->ml_energy;
 }
 
+/**
+ * @brief Get the potential of ML KEDF, and add it into rpotential
+ * 
+ * @param prho charge density
+ * @param pw_rho PW_Basis
+ * @param rpotential rpotential => rpotential + V_{ML}
+ */
 void KEDF_ML::ml_potential(const double * const * prho, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential)
 {
     this->updateInput(prho, pw_rho);
@@ -160,6 +175,15 @@ void KEDF_ML::ml_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     ModuleBase::timer::tick("KEDF_ML", "Pauli Energy");
 }
 
+/**
+ * @brief Generate training data for ML KEDF
+ * 
+ * @param prho charge density
+ * @param wt KEDF_WT
+ * @param tf KEDF_TF
+ * @param pw_rho PW_Basis
+ * @param veff effective potential
+ */
 void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF &tf,  ModulePW::PW_Basis *pw_rho, const double *veff)
 {
     this->ml_data->generateTrainData_WT(prho, wt, tf, pw_rho, veff);
@@ -185,9 +209,14 @@ void KEDF_ML::generateTrainData(const double * const *prho, KEDF_WT &wt, KEDF_TF
     }
 }
 
+/**
+ * @brief For test
+ * 
+ * @param prho charge density
+ * @param pw_rho PW_Basis
+ */
 void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
 {
-    // time_t start, end;
     // for test =====================
     std::vector<long unsigned int> cshape = {(long unsigned) this->nx};
     bool fortran_order = false;
@@ -216,8 +245,6 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     torch::Tensor gradient_cpu_tensor = this->nn->inputs.grad().to(this->device_CPU).contiguous();
     this->gradient_cpu_ptr = gradient_cpu_tensor.data_ptr<double>();
 
-    // std::cout << torch::slice(this->nn->gradient, 0, 0, 10) << std::endl;
-    // std::cout << torch::slice(this->nn->F, 0, 0, 10) << std::endl;
     std::cout << "enhancement done" << std::endl;
 
     torch::Tensor enhancement = this->nn->F.reshape({this->nx});
@@ -231,6 +258,11 @@ void KEDF_ML::localTest(const double * const *pprho, ModulePW::PW_Basis *pw_rho)
     exit(0);
 }
 
+/**
+ * @brief Set the device for ML KEDF
+ * 
+ * @param device_inpt "cpu" or "gpu"
+ */
 void KEDF_ML::set_device(std::string device_inpt)
 {
     if (device_inpt == "cpu")
@@ -255,6 +287,13 @@ void KEDF_ML::set_device(std::string device_inpt)
     this->device = torch::Device(this->device_type);
 }
 
+/**
+ * @brief Interface to Neural Network forward
+ * 
+ * @param prho charge density
+ * @param pw_rho PW_Basis
+ * @param cal_grad whether to calculate the gradient
+ */
 void KEDF_ML::NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho, bool cal_grad)
 {
     ModuleBase::timer::tick("KEDF_ML", "Forward");
@@ -292,6 +331,12 @@ void KEDF_ML::NN_forward(const double * const * prho, ModulePW::PW_Basis *pw_rho
     }
 }
 
+/**
+ * @brief Dump the torch::Tensor into .npy file
+ * 
+ * @param data torch::Tensor
+ * @param filename file name
+ */
 void KEDF_ML::dumpTensor(const torch::Tensor &data, std::string filename)
 {
     std::cout << "Dumping " << filename << std::endl;
@@ -301,6 +346,12 @@ void KEDF_ML::dumpTensor(const torch::Tensor &data, std::string filename)
     this->ml_data->dumpVector(filename, v);
 }
 
+/**
+ * @brief Dump the matrix into .npy file
+ * 
+ * @param data matrix
+ * @param filename file name
+ */
 void KEDF_ML::dumpMatrix(const ModuleBase::matrix &data, std::string filename)
 {
     std::cout << "Dumping " << filename << std::endl;
@@ -309,6 +360,12 @@ void KEDF_ML::dumpMatrix(const ModuleBase::matrix &data, std::string filename)
     this->ml_data->dumpVector(filename, v);
 }
 
+/**
+ * @brief Update the desciptors for ML KEDF
+ * 
+ * @param prho charge density
+ * @param pw_rho PW_Basis
+ */
 void KEDF_ML::updateInput(const double * const * prho, ModulePW::PW_Basis *pw_rho)
 {
     ModuleBase::timer::tick("KEDF_ML", "updateInput");
@@ -371,6 +428,12 @@ void KEDF_ML::updateInput(const double * const * prho, ModulePW::PW_Basis *pw_rh
     ModuleBase::timer::tick("KEDF_ML", "updateInput");
 }
 
+/**
+ * @brief Return the descriptors for ML KEDF
+ * 
+ * @param parameter "gamma", "p", "q", "tanhp", "tanhq", "gammanl", "pnl", "qnl", "xi", "tanhxi", "tanhxi_nl", "tanh_pnl", "tanh_qnl", "tanhp_nl", "tanhq_nl"
+ * @param ikernel kernel index
+ */
 torch::Tensor KEDF_ML::get_data(std::string parameter, const int ikernel){
 
     if (parameter == "gamma")

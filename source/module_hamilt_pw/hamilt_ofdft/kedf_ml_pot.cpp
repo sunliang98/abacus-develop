@@ -5,6 +5,13 @@
 #include "module_base/parallel_reduce.h"
 #include "module_base/global_function.h"
 
+/**
+ * @brief Calculate the Pauli potential of ML KEDF
+ * 
+ * @param prho charge density
+ * @param pw_rho PW_Basis
+ * @param rpotential rpotential => rpotential + V_{ML}
+ */
 void KEDF_ML::get_potential_(const double * const * prho, ModulePW::PW_Basis *pw_rho, ModuleBase::matrix &rpotential)
 {
     // get potential
