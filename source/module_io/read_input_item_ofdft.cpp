@@ -138,15 +138,96 @@ void ReadInput::item_ofdft()
         this->add_item(item);
     }
     {
-        Input_Item item("of_ml_local_test");
-        item.annotation = "Test: read in the density, and output the F and Pauli potential";
-        read_sync_bool(input.of_ml_local_test);
+        Input_Item item("of_ml_device");
+        item.annotation = "Run NN on GPU or CPU";
+        read_sync_string(input.of_ml_device);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_nnode");
+        item.annotation = "Hyperparameter: number of node of hidden layer";
+        read_sync_int(input.of_ml_nnode);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_nlayer");
+        item.annotation = "Hyperparameter: number of hidden layer";
+        read_sync_int(input.of_ml_nlayer);
         this->add_item(item);
     }
     {
         Input_Item item("of_ml_feg");
         item.annotation = "The Free Electron Gas limit: 0: no, 3: yes";
         read_sync_int(input.of_ml_feg);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_nkernel");
+        item.annotation = "Number of kernels";
+        item.reset_value = [](const Input_Item& item, Parameter& para) {
+            if (para.input.of_ml_nkernel > 0)
+            {
+                reset_vector(para.input.of_ml_gammanl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_pnl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_qnl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_xi, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanhxi, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanhxi_nl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanh_pnl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanh_qnl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanhp_nl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_tanhq_nl, para.input.of_ml_nkernel, 0);
+                reset_vector(para.input.of_ml_chi_xi, para.input.of_ml_nkernel, 1.0);
+                reset_vector(para.input.of_ml_chi_pnl, para.input.of_ml_nkernel, 1.0);
+                reset_vector(para.input.of_ml_chi_qnl, para.input.of_ml_nkernel, 1.0);
+                reset_vector(para.input.of_ml_kernel, para.input.of_ml_nkernel, 1);
+                reset_vector(para.input.of_ml_kernel_scaling, para.input.of_ml_nkernel, 1.0);
+                reset_vector(para.input.of_ml_yukawa_alpha, para.input.of_ml_nkernel, 1.0);
+                std::string none = "none";
+                reset_vector(para.input.of_ml_kernel_file, para.input.of_ml_nkernel, none);
+            }
+        };
+        read_sync_int(input.of_ml_nkernel);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_kernel");
+        item.annotation = "Type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK";
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_kernel);
+        };
+        sync_intvec(input.of_ml_kernel, para.input.of_ml_kernel.size(), 0);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_kernel_scaling");
+        item.annotation = "Scaling parameter of kernel, w(r-r') = scaling^3 * w(scaling (r-r'))";
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_kernel_scaling);
+        };
+        sync_doublevec(input.of_ml_kernel_scaling, para.input.of_ml_kernel_scaling.size(), 0);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_yukawa_alpha");
+        item.annotation = "Parameter alpha of yukawa kernel";
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            parse_expression(item.str_values, para.input.of_ml_yukawa_alpha);
+        };
+        sync_doublevec(input.of_ml_yukawa_alpha, para.input.of_ml_yukawa_alpha.size(), 0);
+        this->add_item(item);
+    }
+    {
+        Input_Item item("of_ml_kernel_file");
+        item.annotation = "The file of TKK";
+        item.read_value = [](const Input_Item& item, Parameter& para) {
+            size_t count = item.get_size();
+            for (int i = 0; i < count; i++)
+            { 
+                para.input.of_ml_kernel_file.push_back(item.str_values[i]);
+            }
+        };
+        sync_stringvec(input.of_ml_kernel_file, para.input.of_ml_kernel_file.size(), "");
         this->add_item(item);
     }
     {
@@ -309,90 +390,9 @@ void ReadInput::item_ofdft()
         this->add_item(item);
     }
     {
-        Input_Item item("of_ml_nnode");
-        item.annotation = "Hyperparameter: number of node of hidden layer";
-        read_sync_int(input.of_ml_nnode);
-        this->add_item(item);
-    }
-    {
-        Input_Item item("of_ml_nlayer");
-        item.annotation = "Hyperparameter: number of hidden layer";
-        read_sync_int(input.of_ml_nlayer);
-        this->add_item(item);
-    }
-    {
-        Input_Item item("of_ml_nkernel");
-        item.annotation = "Number of kernels";
-        item.reset_value = [](const Input_Item& item, Parameter& para) {
-            if (para.input.of_ml_nkernel > 0)
-            {
-                reset_vector(para.input.of_ml_gammanl, para.input.of_ml_nkernel, 0);
-                reset_vector(para.input.of_ml_pnl, para.input.of_ml_nkernel, 0);
-                reset_vector(para.input.of_ml_qnl, para.input.of_ml_nkernel, 0);
-                reset_vector(para.input.of_ml_xi, para.input.of_ml_nkernel, 0);
-                reset_vector(para.input.of_ml_tanhxi, para.input.of_ml_nkernel, 0);
-                reset_vector(para.input.of_ml_tanhxi_nl, para.input.of_ml_nkernel, 0);
-                reset_vector(para.input.of_ml_tanh_pnl, para.input.of_ml_nkernel, 0);
-                reset_vector(para.input.of_ml_tanh_qnl, para.input.of_ml_nkernel, 0);
-                reset_vector(para.input.of_ml_tanhp_nl, para.input.of_ml_nkernel, 0);
-                reset_vector(para.input.of_ml_tanhq_nl, para.input.of_ml_nkernel, 0);
-                reset_vector(para.input.of_ml_chi_xi, para.input.of_ml_nkernel, 1.0);
-                reset_vector(para.input.of_ml_chi_pnl, para.input.of_ml_nkernel, 1.0);
-                reset_vector(para.input.of_ml_chi_qnl, para.input.of_ml_nkernel, 1.0);
-                reset_vector(para.input.of_ml_kernel, para.input.of_ml_nkernel, 1);
-                reset_vector(para.input.of_ml_kernel_scaling, para.input.of_ml_nkernel, 1.0);
-                reset_vector(para.input.of_ml_yukawa_alpha, para.input.of_ml_nkernel, 1.0);
-                std::string none = "none";
-                reset_vector(para.input.of_ml_kernel_file, para.input.of_ml_nkernel, none);
-            }
-        };
-        read_sync_int(input.of_ml_nkernel);
-        this->add_item(item);
-    }
-    {
-        Input_Item item("of_ml_kernel");
-        item.annotation = "Type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK";
-        item.read_value = [](const Input_Item& item, Parameter& para) {
-            parse_expression(item.str_values, para.input.of_ml_kernel);
-        };
-        sync_intvec(input.of_ml_kernel, para.input.of_ml_kernel.size(), 0);
-        this->add_item(item);
-    }
-    {
-        Input_Item item("of_ml_kernel_scaling");
-        item.annotation = "Scaling parameter of kernel, w(r-r') = scaling^3 * w(scaling (r-r'))";
-        item.read_value = [](const Input_Item& item, Parameter& para) {
-            parse_expression(item.str_values, para.input.of_ml_kernel_scaling);
-        };
-        sync_doublevec(input.of_ml_kernel_scaling, para.input.of_ml_kernel_scaling.size(), 0);
-        this->add_item(item);
-    }
-    {
-        Input_Item item("of_ml_yukawa_alpha");
-        item.annotation = "Parameter alpha of yukawa kernel";
-        item.read_value = [](const Input_Item& item, Parameter& para) {
-            parse_expression(item.str_values, para.input.of_ml_yukawa_alpha);
-        };
-        sync_doublevec(input.of_ml_yukawa_alpha, para.input.of_ml_yukawa_alpha.size(), 0);
-        this->add_item(item);
-    }
-    {
-        Input_Item item("of_ml_kernel_file");
-        item.annotation = "The file of TKK";
-        item.read_value = [](const Input_Item& item, Parameter& para) {
-            size_t count = item.get_size();
-            for (int i = 0; i < count; i++)
-            { 
-                para.input.of_ml_kernel_file.push_back(item.str_values[i]);
-            }
-        };
-        sync_stringvec(input.of_ml_kernel_file, para.input.of_ml_kernel_file.size(), "");
-        this->add_item(item);
-    }
-    {
-        Input_Item item("of_ml_device");
-        item.annotation = "Run NN on GPU or CPU";
-        read_sync_string(input.of_ml_device);
+        Input_Item item("of_ml_local_test");
+        item.annotation = "Test: read in the density, and output the F and Pauli potential";
+        read_sync_bool(input.of_ml_local_test);
         this->add_item(item);
     }
 }

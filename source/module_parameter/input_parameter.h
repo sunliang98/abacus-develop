@@ -209,8 +209,18 @@ struct Input_para
 
     // ML KEDF, sunliang added on 2022-11-07
     bool of_ml_gene_data = false;                ///< Generate training data or not
-    bool of_ml_local_test = false;               ///< Test: read in the density, and output the F and Pauli potential
+    // device
+    std::string of_ml_device = "cpu";                      ///< Run NN on GPU or CPU
+    // size of nn 2023-04-19
+    int of_ml_nnode = 100;                       ///< Hyperparameter: number of node of hidden layer
+    int of_ml_nlayer = 3;                        ///< Hyperparameter: number of hidden layer
     int of_ml_feg = 0;                           ///< The Free Electron Gas limit: 0: no, 3: yes
+    // kernel
+    int of_ml_nkernel = 1;                                 ///< Number of kernels
+    std::vector<int> of_ml_kernel = {1};                   ///< Type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK
+    std::vector<double> of_ml_kernel_scaling = {1.0};      ///< Scaling parameter of kernel, w(r-r') = lambda^3 * w(lambda (r-r')), lambda = 1/scaling
+    std::vector<double> of_ml_yukawa_alpha = {1.0};        ///< Parameter alpha of yukawa kernel
+    std::vector<std::string> of_ml_kernel_file = {"none"}; ///< The file of TKK
     // semi-local descriptors
     bool of_ml_gamma = false;                    ///< Descriptor: gamma = (rho / rho0)^(1/3)
     bool of_ml_p = false;                        ///< Descriptor: p = |nabla rho|^2 / [2 (3 pi^2)^(1/3) rho^(4/3)]^2
@@ -234,17 +244,7 @@ struct Input_para
     std::vector<double> of_ml_chi_xi = {1.0};    ///< Hyperparameter: tanhpxi = tanh(chi_xi * xi)
     std::vector<double> of_ml_chi_pnl = {1.0};   ///< Hyperparameter: tanh_pnl = tanh(chi_pnl * pnl)
     std::vector<double> of_ml_chi_qnl = {1.0};   ///< Hyperparameter: tanh_qnl = tanh(chi_qnl * qnl)
-    // size of nn 2023-04-19
-    int of_ml_nnode = 100;                       ///< Hyperparameter: number of node of hidden layer
-    int of_ml_nlayer = 3;                        ///< Hyperparameter: number of hidden layer
-    // kernel
-    int of_ml_nkernel = 1;                                 ///< Number of kernels
-    std::vector<int> of_ml_kernel = {1};                   ///< Type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK
-    std::vector<double> of_ml_kernel_scaling = {1.0};      ///< Scaling parameter of kernel, w(r-r') = scaling^3 * w(scaling (r-r'))
-    std::vector<double> of_ml_yukawa_alpha = {1.0};        ///< Parameter alpha of yukawa kernel
-    std::vector<std::string> of_ml_kernel_file = {"none"}; ///< The file of TKK
-    // device
-    std::string of_ml_device = "cpu";                      ///< Run NN on GPU or CPU
+    bool of_ml_local_test = false;               ///< Test: read in the density, and output the F and Pauli potential
 
     // ==============   #Parameters (7.stochastic DFT) ===========================
     int method_sto = 2;        ///< different methods for sdft, 1: slow, less memory 2:
