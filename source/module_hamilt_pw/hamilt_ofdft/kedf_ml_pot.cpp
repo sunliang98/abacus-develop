@@ -257,7 +257,8 @@ void KEDF_ML::potPPnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho
         rPPnlTerm[ir] += result[ir];
     }
 
-    for (int i = 0; i < 3; ++i) delete[] tempP[i];
+    for (int i = 0; i < 3; ++i) { delete[] tempP[i];
+}
     delete[] tempP;
 }
 
@@ -361,7 +362,8 @@ void KEDF_ML::potTanhpTanh_pnlTerm(const double * const *prho, ModulePW::PW_Basi
     {
         rTanhpTanh_pnlTerm[ir] += result[ir];
     }
-    for (int i = 0; i < 3; ++i) delete[] tempP[i];
+    for (int i = 0; i < 3; ++i) { delete[] tempP[i];
+}
     delete[] tempP;
 }
 
@@ -468,7 +470,8 @@ void KEDF_ML::potTanhpTanhp_nlTerm(const double * const *prho, ModulePW::PW_Basi
     {
         rTanhpTanhp_nlTerm[ir] += result[ir];
     }
-    for (int i = 0; i < 3; ++i) delete[] tempP[i];
+    for (int i = 0; i < 3; ++i) { delete[] tempP[i];
+}
     delete[] tempP;
 }
 
