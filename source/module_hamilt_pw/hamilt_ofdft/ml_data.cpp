@@ -47,7 +47,7 @@ void ML_data::set_para(
         this->rho0 = 1./omega * nelec;
     }
 
-    this->kF = pow(3. * pow(ModuleBase::PI, 2) * this->rho0, 1./3.);
+    this->kF = std::pow(3. * std::pow(ModuleBase::PI, 2) * this->rho0, 1./3.);
     this->tkF = 2. * this->kF;
 
     this->kernel = new double*[this->nkernel];

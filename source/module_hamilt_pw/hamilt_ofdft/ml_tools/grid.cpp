@@ -46,7 +46,7 @@ void Grid::initScRecipGrid(const int fftdim,
                            std::vector<std::vector<torch::Tensor>> &grid,
                            std::vector<torch::Tensor> &gg)
 {
-    volume[index] = pow(a, 3);
+    volume[index] = std::pow(a, 3);
     torch::Tensor fre = torch::fft::fftfreq(fftdim, a / fftdim).to(device) * 2. * M_PI;
     grid[index] = torch::meshgrid({fre, fre, fre});
     gg[index] = grid[index][0] * grid[index][0] + grid[index][1] * grid[index][1] + grid[index][2] * grid[index][2];
@@ -61,7 +61,7 @@ void Grid::initFccRecipGrid(const int fftdim,
                             std::vector<torch::Tensor> &gg)
 {
     // std::cout << "init grid" << std::endl;
-    volume[index] = pow(a, 3) / 4.;
+    volume[index] = std::pow(a, 3) / 4.;
     double coef = 1. / sqrt(2.);
     // std::cout << "fftfreq" << std::endl;
     torch::Tensor fre = torch::fft::fftfreq(fftdim, a * coef / fftdim).to(device) * 2. * M_PI;
@@ -81,7 +81,7 @@ void Grid::initBccRecipGrid(const int fftdim,
                             std::vector<std::vector<torch::Tensor>> &grid,
                             std::vector<torch::Tensor> &gg)
 {
-    volume[index] = pow(a, 3) / 2.;
+    volume[index] = std::pow(a, 3) / 2.;
     double coef = sqrt(3.) / 2.;
     torch::Tensor fre = torch::fft::fftfreq(fftdim, a * coef / fftdim).to(device) * 2. * M_PI;
     auto originalGrid = torch::meshgrid({fre, fre, fre});

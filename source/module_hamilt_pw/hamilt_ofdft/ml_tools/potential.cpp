@@ -78,31 +78,31 @@ torch::Tensor Potential::get_potential(const int istru,
     // semi-local potential terms
     if (this->ml_gamma) {
         potential += this->potGammaTerm(data.gamma[istru], gradient);
-}
+    }
     if (this->ml_p) {
         potential += this->potPTerm1(data.p[istru], gradient);
-}
+    }
     if (this->ml_q) {
         potential += this->potQTerm1(data.q[istru], gradient);
-}
+    }
     if (this->ml_xi) {
         potential += this->potXiTerm1(data.rho[istru], data.xi, gradient);
-}
+    }
     if (this->ml_tanhxi) {
         potential += this->potTanhxiTerm1(data.rho[istru], data.xi, data.tanhxi, gradient);
-}
+    }
     if (this->ml_tanhp) {
         potential += this->potTanhpTerm1(data.p[istru], data.tanhp[istru], gradient);
-}
+    }
     if (this->ml_tanhq) {
         potential += this->potTanhqTerm1(data.q[istru], data.tanhq[istru], gradient);
-}
+    }
     potential *= data.tau_tf[istru] / data.rho[istru];
 
     // non-local potential terms
     if (this->ml_gammanl) {
         potential += this->potGammanlTerm(data.rho[istru], data.gamma[istru], kernels, data.tau_tf[istru], gradient);
-}
+    }
     if (this->ml_p || this->ml_pnl) {
         potential += this->potPPnlTerm(data.rho[istru],
                                        data.nablaRho[istru],
@@ -111,7 +111,7 @@ torch::Tensor Potential::get_potential(const int istru,
                                        data.tau_tf[istru],
                                        gradient,
                                        grid.fft_grid[istru]);
-}
+    }
     if (this->ml_q || this->ml_qnl) {
         potential += this->potQQnlTerm(data.rho[istru],
                                        data.q[istru],
@@ -119,17 +119,17 @@ torch::Tensor Potential::get_potential(const int istru,
                                        data.tau_tf[istru],
                                        gradient,
                                        grid.fft_gg[istru]);
-}
+    }
     if (this->ml_xi) {
         potential += this->potXinlTerm(data.rho[istru], kernels, data.tau_tf[istru], gradient);
-}
+    }
     if (this->ml_tanhxi) {
         potential += this->potTanhxinlTerm(data.rho[istru], data.tanhxi, kernels, data.tau_tf[istru], gradient);
-}
+    }
     if (this->ml_tanhxi_nl) {
         potential
             += this->potTanhxi_nlTerm(data.rho[istru], data.xi, data.tanhxi, kernels, data.tau_tf[istru], gradient);
-}
+    }
     if ((this->ml_tanhp || this->ml_tanhp_nl) && !this->ml_tanh_pnl) {
         potential += this->potTanhpTanhp_nlTerm(data.rho[istru],
                                                 data.nablaRho[istru],
@@ -139,7 +139,7 @@ torch::Tensor Potential::get_potential(const int istru,
                                                 data.tau_tf[istru],
                                                 gradient,
                                                 grid.fft_grid[istru]);
-}
+    }
     if ((this->ml_tanhq || this->ml_tanhq_nl) && !this->ml_tanh_qnl) {
         potential += this->potTanhqTanhq_nlTerm(data.rho[istru],
                                                 data.q[istru],
@@ -148,7 +148,7 @@ torch::Tensor Potential::get_potential(const int istru,
                                                 data.tau_tf[istru],
                                                 gradient,
                                                 grid.fft_gg[istru]);
-}
+    }
     if (this->ml_tanh_pnl) {
         potential += this->potTanhpTanh_pnlTerm(data.rho[istru],
                                                 data.nablaRho[istru],
@@ -159,7 +159,7 @@ torch::Tensor Potential::get_potential(const int istru,
                                                 data.tau_tf[istru],
                                                 gradient,
                                                 grid.fft_grid[istru]);
-}
+    }
     if (this->ml_tanh_qnl) {
         potential += this->potTanhqTanh_qnlTerm(data.rho[istru],
                                                 data.q[istru],
@@ -169,7 +169,7 @@ torch::Tensor Potential::get_potential(const int istru,
                                                 data.tau_tf[istru],
                                                 gradient,
                                                 grid.fft_gg[istru]);
-}
+    }
 
     // Input::print("get potential done");
     return potential;
@@ -254,14 +254,14 @@ torch::Tensor Potential::potPPnlTerm(const torch::Tensor &rho,
                                : torch::zeros_like(nablaRho[i]);
         if (this->ml_pnl) {
             temp[i] += -this->pqcoef * 2. * nablaRho[i] / torch::pow(rho, 8. / 3.) * dFdpnl_nl;
-}
+        }
     }
     // std::cout << torch::slice(temp[0][0][0], 0, 0, 10);
     torch::Tensor result = this->divergence(temp, grid);
 
     if (this->ml_pnl) {
         result += -8. / 3. * p / rho * dFdpnl_nl;
-}
+    }
     // std::cout << torch::slice(result[0][0], 0, 20) << std::endl;
 
     // std::cout << "potPPnlTerm done" << std::endl;
@@ -296,12 +296,12 @@ torch::Tensor Potential::potQQnlTerm(const torch::Tensor &rho,
                                       : torch::zeros_like(q);
     if (this->ml_qnl) {
         temp += this->pqcoef / torch::pow(rho, 5. / 3.) * dFdqnl_nl;
-}
+    }
     torch::Tensor result = this->Laplacian(temp, gg);
 
     if (this->ml_qnl) {
         result += -5. / 3. * q / rho * dFdqnl_nl;
-}
+    }
 
     // std::cout << "potQQnlTerm done" << std::endl;
     return result;
@@ -462,13 +462,13 @@ torch::Tensor Potential::potTanhpTanh_pnlTerm(const torch::Tensor &rho,
                                    : torch::zeros_like(nablaRho[i]);
         if (this->ml_tanh_pnl) {
             temp[i] += -this->pqcoef * 2. * nablaRho[i] / torch::pow(rho, 8. / 3.) * dFdpnl_nl;
-}
+        }
     }
     torch::Tensor result = this->divergence(temp, grid);
 
     if (this->ml_tanh_pnl) {
         result += -8. / 3. * p / rho * dFdpnl_nl;
-}
+    }
 
     return result;
 }
@@ -503,12 +503,12 @@ torch::Tensor Potential::potTanhqTanh_qnlTerm(const torch::Tensor &rho,
                                           : torch::zeros_like(q);
     if (this->ml_tanh_qnl) {
         temp += this->pqcoef / torch::pow(rho, 5. / 3.) * dFdqnl_nl;
-}
+    }
     torch::Tensor result = this->Laplacian(temp, gg);
 
     if (this->ml_tanh_qnl) {
         result += -5. / 3. * q / rho * dFdqnl_nl;
-}
+    }
 
     return result;
 }
@@ -546,13 +546,13 @@ torch::Tensor Potential::potTanhpTanhp_nlTerm(const torch::Tensor &rho,
                                    : torch::zeros_like(nablaRho[i]);
         if (this->ml_tanhp_nl) {
             temp[i] += -this->pqcoef * 2. * nablaRho[i] / torch::pow(rho, 8. / 3.) * dFdpnl_nl;
-}
+        }
     }
     torch::Tensor result = this->divergence(temp, grid);
 
     if (this->ml_tanhp_nl) {
         result += -8. / 3. * p / rho * dFdpnl_nl;
-}
+    }
 
     return result;
 }
@@ -586,12 +586,12 @@ torch::Tensor Potential::potTanhqTanhq_nlTerm(const torch::Tensor &rho,
                                           : torch::zeros_like(q);
     if (this->ml_tanhq_nl) {
         temp += this->pqcoef / torch::pow(rho, 5. / 3.) * dFdqnl_nl;
-}
+    }
     torch::Tensor result = this->Laplacian(temp, gg);
 
     if (this->ml_tanhq_nl) {
         result += -5. / 3. * q / rho * dFdqnl_nl;
-}
+    }
 
     return result;
 }

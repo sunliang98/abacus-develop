@@ -119,7 +119,7 @@ void Data::init_label(Input &input)
 void Data::init_data(const int nkernel, const int ndata, const int fftdim, const torch::Device device)
 {
     // Input::print("init_data");
-    this->nx = pow(fftdim, 3);
+    this->nx = std::pow(fftdim, 3);
     this->nx_tot = this->nx * ndata;
 
     this->rho = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);

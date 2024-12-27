@@ -133,7 +133,7 @@ double KEDF_ML::get_energy(const double * const * prho, ModulePW::PW_Basis *pw_r
     double energy = 0.;
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        energy += enhancement_cpu_ptr[ir] * pow(prho[0][ir], 5./3.);
+        energy += enhancement_cpu_ptr[ir] * std::pow(prho[0][ir], 5./3.);
     }
     std::cout << "energy" << energy << std::endl;
     energy *= this->dV * this->cTF;
@@ -167,7 +167,7 @@ void KEDF_ML::ml_potential(const double * const * prho, ModulePW::PW_Basis *pw_r
     double energy = 0.;
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        energy += enhancement_cpu_ptr[ir] * pow(prho[0][ir], 5./3.);
+        energy += enhancement_cpu_ptr[ir] * std::pow(prho[0][ir], 5./3.);
     }
     energy *= this->dV * this->cTF;
     this->ml_energy = energy;

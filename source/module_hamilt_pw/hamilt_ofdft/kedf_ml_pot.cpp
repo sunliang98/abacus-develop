@@ -52,7 +52,7 @@ void KEDF_ML::get_potential_(const double * const * prho, ModulePW::PW_Basis *pw
 
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        pauli_potential[ir] += this->cTF * pow(prho[0][ir], 5./3.) / prho[0][ir] *
+        pauli_potential[ir] += this->cTF * std::pow(prho[0][ir], 5./3.) / prho[0][ir] *
                       (5./3. * this->enhancement_cpu_ptr[ir] + this->potGammaTerm(ir) + this->potPTerm1(ir) + this->potQTerm1(ir)
                       + this->potXiTerm1(ir) + this->potTanhxiTerm1(ir) + this->potTanhpTerm1(ir) + this->potTanhqTerm1(ir));
         rpotential(0, ir) += pauli_potential[ir];
@@ -122,7 +122,7 @@ void KEDF_ML::potGammanlTerm(const double * const *prho, ModulePW::PW_Basis *pw_
         int d2i = this->descriptor2index["gammanl"][ik];
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            dFdgammanl[ir] = this->cTF * pow(prho[0][ir], 5./3.) * this->gradient_cpu_ptr[ir * this->ninput + d2i];
+            dFdgammanl[ir] = this->cTF * std::pow(prho[0][ir], 5./3.) * this->gradient_cpu_ptr[ir * this->ninput + d2i];
         }
         this->ml_data->multiKernel(d2k, dFdgammanl, pw_rho, dFdgammanl);
         for (int ir = 0; ir < this->nx; ++ir)
@@ -142,12 +142,12 @@ void KEDF_ML::potXinlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho
         int d2i = this->descriptor2index["xi"][ik];
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            dFdxi[ir] = this->cTF * pow(prho[0][ir], 4./3.) * this->gradient_cpu_ptr[ir * this->ninput + d2i];
+            dFdxi[ir] = this->cTF * std::pow(prho[0][ir], 4./3.) * this->gradient_cpu_ptr[ir * this->ninput + d2i];
         }
         this->ml_data->multiKernel(d2k, dFdxi, pw_rho, dFdxi);
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            rXinlTerm[ir] += 1./3. * pow(prho[0][ir], -2./3.) * dFdxi[ir];
+            rXinlTerm[ir] += 1./3. * std::pow(prho[0][ir], -2./3.) * dFdxi[ir];
         }
     }
     delete[] dFdxi;
@@ -162,13 +162,13 @@ void KEDF_ML::potTanhxinlTerm(const double * const *prho, ModulePW::PW_Basis *pw
         int d2i = this->descriptor2index["tanhxi"][ik];
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            dFdtanhxi[ir] = this->cTF * pow(prho[0][ir], 4./3.) * this->ml_data->dtanh(this->tanhxi[d2k][ir], this->chi_xi[d2k])
+            dFdtanhxi[ir] = this->cTF * std::pow(prho[0][ir], 4./3.) * this->ml_data->dtanh(this->tanhxi[d2k][ir], this->chi_xi[d2k])
                         * this->gradient_cpu_ptr[ir * this->ninput + d2i];
         }
         this->ml_data->multiKernel(d2k, dFdtanhxi, pw_rho, dFdtanhxi);
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            rTanhxinlTerm[ir] += 1./3. * pow(prho[0][ir], -2./3.) * dFdtanhxi[ir];
+            rTanhxinlTerm[ir] += 1./3. * std::pow(prho[0][ir], -2./3.) * dFdtanhxi[ir];
         }
     }
     delete[] dFdtanhxi;
@@ -185,12 +185,12 @@ void KEDF_ML::potTanhxi_nlTerm(const double * const *prho, ModulePW::PW_Basis *p
         int d2i = this->descriptor2index["tanhxi_nl"][ik];
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            dFdtanhxi_nl[ir] = this->cTF * pow(prho[0][ir], 5./3.) * this->gradient_cpu_ptr[ir * this->ninput + d2i];
+            dFdtanhxi_nl[ir] = this->cTF * std::pow(prho[0][ir], 5./3.) * this->gradient_cpu_ptr[ir * this->ninput + d2i];
         }
         this->ml_data->multiKernel(d2k, dFdtanhxi_nl, pw_rho, dFdtanhxi_nl);
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            dFdtanhxi_nl[ir] *= this->ml_data->dtanh(this->tanhxi[d2k][ir], this->chi_xi[d2k]) / pow(prho[0][ir], 1./3.);
+            dFdtanhxi_nl[ir] *= this->ml_data->dtanh(this->tanhxi[d2k][ir], this->chi_xi[d2k]) / std::pow(prho[0][ir], 1./3.);
         }
         this->ml_data->multiKernel(d2k, dFdtanhxi_nl, pw_rho, dFdtanhxi_nl_nl);
         for (int ir = 0; ir < this->nx; ++ir)
@@ -200,7 +200,7 @@ void KEDF_ML::potTanhxi_nlTerm(const double * const *prho, ModulePW::PW_Basis *p
     }
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        rTanhxi_nlTerm[ir] += result[ir] * 1./3. * pow(prho[0][ir], -2./3.);
+        rTanhxi_nlTerm[ir] += result[ir] * 1./3. * std::pow(prho[0][ir], -2./3.);
     }
     delete[] dFdtanhxi_nl;
     delete[] dFdtanhxi_nl_nl;
@@ -219,7 +219,7 @@ void KEDF_ML::potPPnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho
 
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            dFdpnl[ir] = this->cTF * pow(prho[0][ir], 5./3.) * this->gradient_cpu_ptr[ir * this->ninput + d2i];
+            dFdpnl[ir] = this->cTF * std::pow(prho[0][ir], 5./3.) * this->gradient_cpu_ptr[ir * this->ninput + d2i];
         }
         this->ml_data->multiKernel(d2k, dFdpnl, pw_rho, dFdpnl);
         for (int ir = 0; ir < this->nx; ++ir)
@@ -238,7 +238,7 @@ void KEDF_ML::potPPnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho
             tempP[i][ir] = (this->ml_p)? - 3./20. * this->gradient_cpu_ptr[ir * this->ninput + this->descriptor2index["p"][0]] * nablaRho[i][ir] / prho[0][ir] * /*Ha2Ry*/ 2. : 0.;
             if (this->ml_pnl)
             {
-                tempP[i][ir] += - this->pqcoef * 2. * this->nablaRho[i][ir] / pow(prho[0][ir], 8./3.) * dFdpnl_tot[ir];
+                tempP[i][ir] += - this->pqcoef * 2. * this->nablaRho[i][ir] / std::pow(prho[0][ir], 8./3.) * dFdpnl_tot[ir];
             }
         }
     }
@@ -257,8 +257,10 @@ void KEDF_ML::potPPnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho
         rPPnlTerm[ir] += result[ir];
     }
 
-    for (int i = 0; i < 3; ++i) { delete[] tempP[i];
-}
+    for (int i = 0; i < 3; ++i)
+    { 
+        delete[] tempP[i];
+    }
     delete[] tempP;
 }
 
@@ -274,7 +276,7 @@ void KEDF_ML::potQQnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho
 
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            dFdqnl[ir] = this->cTF * pow(prho[0][ir], 5./3.) * this->gradient_cpu_ptr[ir * this->ninput + d2i];
+            dFdqnl[ir] = this->cTF * std::pow(prho[0][ir], 5./3.) * this->gradient_cpu_ptr[ir * this->ninput + d2i];
         }
         this->ml_data->multiKernel(d2k, dFdqnl, pw_rho, dFdqnl);
         for (int ir = 0; ir < this->nx; ++ir)
@@ -290,7 +292,7 @@ void KEDF_ML::potQQnlTerm(const double * const *prho, ModulePW::PW_Basis *pw_rho
         tempQ[ir] = (this->ml_q)? 3./40. * this->gradient_cpu_ptr[ir * this->ninput + this->descriptor2index["q"][0]] * /*Ha2Ry*/ 2. : 0.;
         if (this->ml_qnl)
         {
-            tempQ[ir] += this->pqcoef / pow(prho[0][ir], 5./3.) * dFdqnl_tot[ir];
+            tempQ[ir] += this->pqcoef / std::pow(prho[0][ir], 5./3.) * dFdqnl_tot[ir];
         }
     }
     this->ml_data->Laplacian(tempQ, pw_rho, result.data());
@@ -323,7 +325,7 @@ void KEDF_ML::potTanhpTanh_pnlTerm(const double * const *prho, ModulePW::PW_Basi
 
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            dFdpnl[ir] = this->cTF * pow(prho[0][ir], 5./3.) * this->ml_data->dtanh(this->tanh_pnl[d2k][ir], this->chi_pnl[d2k])
+            dFdpnl[ir] = this->cTF * std::pow(prho[0][ir], 5./3.) * this->ml_data->dtanh(this->tanh_pnl[d2k][ir], this->chi_pnl[d2k])
                          * this->gradient_cpu_ptr[ir * this->ninput + d2i];
         }
         this->ml_data->multiKernel(d2k, dFdpnl, pw_rho, dFdpnl);
@@ -344,7 +346,7 @@ void KEDF_ML::potTanhpTanh_pnlTerm(const double * const *prho, ModulePW::PW_Basi
                            * this->gradient_cpu_ptr[ir * this->ninput + this->descriptor2index["tanhp"][0]] * nablaRho[i][ir] / prho[0][ir] * /*Ha2Ry*/ 2. : 0.;
             if (this->ml_tanh_pnl)
             {
-                tempP[i][ir] += - this->pqcoef * 2. * this->nablaRho[i][ir] / pow(prho[0][ir], 8./3.) * dFdpnl_tot[ir];
+                tempP[i][ir] += - this->pqcoef * 2. * this->nablaRho[i][ir] / std::pow(prho[0][ir], 8./3.) * dFdpnl_tot[ir];
             }
         }
     }
@@ -362,8 +364,10 @@ void KEDF_ML::potTanhpTanh_pnlTerm(const double * const *prho, ModulePW::PW_Basi
     {
         rTanhpTanh_pnlTerm[ir] += result[ir];
     }
-    for (int i = 0; i < 3; ++i) { delete[] tempP[i];
-}
+    for (int i = 0; i < 3; ++i) 
+    { 
+        delete[] tempP[i];
+    }
     delete[] tempP;
 }
 
@@ -380,7 +384,7 @@ void KEDF_ML::potTanhqTanh_qnlTerm(const double * const *prho, ModulePW::PW_Basi
 
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            dFdqnl[ir] = this->cTF * pow(prho[0][ir], 5./3.) * this->ml_data->dtanh(this->tanh_qnl[d2k][ir], this->chi_qnl[d2k])
+            dFdqnl[ir] = this->cTF * std::pow(prho[0][ir], 5./3.) * this->ml_data->dtanh(this->tanh_qnl[d2k][ir], this->chi_qnl[d2k])
                          * this->gradient_cpu_ptr[ir * this->ninput + d2i];
         }
         this->ml_data->multiKernel(d2k, dFdqnl, pw_rho, dFdqnl);
@@ -398,7 +402,7 @@ void KEDF_ML::potTanhqTanh_qnlTerm(const double * const *prho, ModulePW::PW_Basi
                     * this->gradient_cpu_ptr[ir * this->ninput + this->descriptor2index["tanhq"][0]] * /*Ha2Ry*/ 2. : 0.;
         if (this->ml_tanh_qnl)
         {
-            tempQ[ir] += this->pqcoef / pow(prho[0][ir], 5./3.) * dFdqnl_tot[ir];
+            tempQ[ir] += this->pqcoef / std::pow(prho[0][ir], 5./3.) * dFdqnl_tot[ir];
         }
     }
     this->ml_data->Laplacian(tempQ, pw_rho, result.data());
@@ -431,7 +435,7 @@ void KEDF_ML::potTanhpTanhp_nlTerm(const double * const *prho, ModulePW::PW_Basi
 
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            dFdpnl[ir] = this->cTF * pow(prho[0][ir], 5./3.)
+            dFdpnl[ir] = this->cTF * std::pow(prho[0][ir], 5./3.)
                          * this->gradient_cpu_ptr[ir * this->ninput + d2i];
         }
         this->ml_data->multiKernel(d2k, dFdpnl, pw_rho, dFdpnl);
@@ -452,7 +456,7 @@ void KEDF_ML::potTanhpTanhp_nlTerm(const double * const *prho, ModulePW::PW_Basi
                            * this->gradient_cpu_ptr[ir * this->ninput + this->descriptor2index["tanhp"][0]] * nablaRho[i][ir] / prho[0][ir] * /*Ha2Ry*/ 2. : 0.;
             if (this->ml_tanhp_nl)
             {
-                tempP[i][ir] += - this->pqcoef * 2. * this->nablaRho[i][ir] / pow(prho[0][ir], 8./3.) * dFdpnl_tot[ir];
+                tempP[i][ir] += - this->pqcoef * 2. * this->nablaRho[i][ir] / std::pow(prho[0][ir], 8./3.) * dFdpnl_tot[ir];
             }
         }
     }
@@ -470,8 +474,10 @@ void KEDF_ML::potTanhpTanhp_nlTerm(const double * const *prho, ModulePW::PW_Basi
     {
         rTanhpTanhp_nlTerm[ir] += result[ir];
     }
-    for (int i = 0; i < 3; ++i) { delete[] tempP[i];
-}
+    for (int i = 0; i < 3; ++i) 
+    { 
+        delete[] tempP[i];
+    }
     delete[] tempP;
 }
 
@@ -487,7 +493,7 @@ void KEDF_ML::potTanhqTanhq_nlTerm(const double * const *prho, ModulePW::PW_Basi
 
         for (int ir = 0; ir < this->nx; ++ir)
         {
-            dFdqnl[ir] = this->cTF * pow(prho[0][ir], 5./3.)
+            dFdqnl[ir] = this->cTF * std::pow(prho[0][ir], 5./3.)
                          * this->gradient_cpu_ptr[ir * this->ninput + d2i];
         }
         this->ml_data->multiKernel(d2k, dFdqnl, pw_rho, dFdqnl);
@@ -506,7 +512,7 @@ void KEDF_ML::potTanhqTanhq_nlTerm(const double * const *prho, ModulePW::PW_Basi
         if (this->ml_tanhq_nl)
         {
             dFdqnl_tot[ir] *= this->ml_data->dtanh(this->tanhq[ir], this->chi_q);
-            tempQ[ir] += this->pqcoef / pow(prho[0][ir], 5./3.) * dFdqnl_tot[ir];
+            tempQ[ir] += this->pqcoef / std::pow(prho[0][ir], 5./3.) * dFdqnl_tot[ir];
         }
     }
     this->ml_data->Laplacian(tempQ, pw_rho, result.data());

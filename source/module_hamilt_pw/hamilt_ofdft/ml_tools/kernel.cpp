@@ -24,7 +24,7 @@ void Kernel::fill_kernel(const int fftdim,
         {
             rho0 = torch::sum(rho[id]).item<double>() / std::pow(fftdim, 3);
             std::cout << "There are " << rho0 * volume[id] << " electrons in " << cell[id] << " strcture." << std::endl;
-            tkF = 2. * pow(3. * pow(M_PI, 2) * rho0, 1. / 3.);
+            tkF = 2. * std::pow(3. * std::pow(M_PI, 2) * rho0, 1. / 3.);
             this->kernel[id] = torch::zeros({fftdim, fftdim, fftdim}).to(device);
             for (int ix = 0; ix < fftdim; ++ix)
             {
@@ -156,7 +156,7 @@ void Kernel::read_kernel(const int fftdim,
     {
         rho0 = torch::sum(rho[id]).item<double>() / std::pow(fftdim, 3);
         std::cout << "There are " << rho0 * volume[id] << " electrons in " << cell[id] << " strcture." << std::endl;
-        tkF = 2. * pow(3. * pow(M_PI, 2) * rho0, 1. / 3.);
+        tkF = 2. * std::pow(3. * std::pow(M_PI, 2) * rho0, 1. / 3.);
         this->kernel[id] = torch::zeros({fftdim, fftdim, fftdim}).to(device);
 
         double eta = 0.;

@@ -6,7 +6,7 @@ void ML_data::getGamma(const double * const *prho, std::vector<double> &rgamma)
 {
     for(int ir = 0; ir < this->nx; ++ir)
     {
-        rgamma[ir] = pow(prho[0][ir]/this->rho0, 1./3.);
+        rgamma[ir] = std::pow(prho[0][ir]/this->rho0, 1./3.);
     }
 }
 
@@ -17,9 +17,9 @@ void ML_data::getP(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::
         rp[ir] = 0.;
         for (int j = 0; j < 3; ++j)
         {
-            rp[ir] += pow(pnablaRho[j][ir], 2);
+            rp[ir] += std::pow(pnablaRho[j][ir], 2);
         }
-        rp[ir] *= this->pqcoef / pow(prho[0][ir], 8.0/3.0);
+        rp[ir] *= this->pqcoef / std::pow(prho[0][ir], 8.0/3.0);
     }
 }
 
@@ -36,7 +36,7 @@ void ML_data::getQ(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::
 
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        rq[ir] *= this->pqcoef / pow(prho[0][ir], 5.0/3.0);
+        rq[ir] *= this->pqcoef / std::pow(prho[0][ir], 5.0/3.0);
     }
 
     delete[] recipRho;
@@ -259,7 +259,7 @@ void ML_data::getF_KS1(
 
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        rF[ir] = pauliED[ir] / (this->cTF * pow(pelec->charge->rho[0][ir], 5./3.));
+        rF[ir] = pauliED[ir] / (this->cTF * std::pow(pelec->charge->rho[0][ir], 5./3.));
         rpauli[ir] = (pauliED[ir] + pauliPot[ir])/pelec->charge->rho[0][ir] + epsilonM;
     }
 }
@@ -353,7 +353,7 @@ void ML_data::getF_KS2(
 
     for (int ir = 0; ir < this->nx; ++ir)
     {
-        rF[ir] = pauliED[ir] / (this->cTF * pow(pelec->charge->rho[0][ir], 5./3.));
+        rF[ir] = pauliED[ir] / (this->cTF * std::pow(pelec->charge->rho[0][ir], 5./3.));
         rpauli[ir] = (pauliED[ir] + pauliPot[ir])/pelec->charge->rho[0][ir] + epsilonM;
     }
 }
