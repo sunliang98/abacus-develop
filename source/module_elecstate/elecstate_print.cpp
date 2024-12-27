@@ -282,6 +282,7 @@ void ElecState::print_band(const int& ik, const int& printe, const int& iter)
 }
 
 /// @brief print total free energy and other energies
+/// @param ucell: unit cell
 /// @param converged: if converged
 /// @param iter_in: iter
 /// @param scf_thr: threshold for scf
@@ -289,7 +290,8 @@ void ElecState::print_band(const int& ik, const int& printe, const int& iter)
 /// @param pw_diag_thr: threshold for diagonalization
 /// @param avg_iter: averaged diagonalization iteration of each scf iteration
 /// @param print: if print to screen
-void ElecState::print_etot(const bool converged,
+void ElecState::print_etot(const Magnetism& magnet,
+                           const bool converged,
                            const int& iter_in,
                            const double& scf_thr,
                            const double& scf_thr_kin,
@@ -319,19 +321,31 @@ void ElecState::print_etot(const bool converged,
     if (printe > 0 && ((iter + 1) % printe == 0 || converged || iter == PARAM.inp.scf_nmax))
     {
         int n_order = std::max(0, Occupy::gaussian_type);
-        titles.push_back("E_KohnSham");     energies_Ry.push_back(this->f_en.etot);
-        titles.push_back("E_KS(sigma->0)"); energies_Ry.push_back(this->f_en.etot - this->f_en.demet/(2+n_order));
-        titles.push_back("E_Harris");       energies_Ry.push_back(this->f_en.etot_harris);
-        titles.push_back("E_band");         energies_Ry.push_back(this->f_en.eband);
-        titles.push_back("E_one_elec");     energies_Ry.push_back(this->f_en.eband + this->f_en.deband);
-        titles.push_back("E_Hartree");      energies_Ry.push_back(this->f_en.hartree_energy);
-        titles.push_back("E_xc");           energies_Ry.push_back(this->f_en.etxc - this->f_en.etxcc);
-        titles.push_back("E_Ewald");        energies_Ry.push_back(this->f_en.ewald_energy);
-        titles.push_back("E_entropy(-TS)"); energies_Ry.push_back(this->f_en.demet);
-        titles.push_back("E_descf");        energies_Ry.push_back(this->f_en.descf);
-        titles.push_back("E_IonElec");      energies_Ry.push_back(this->f_en.eion_elec);
-        titles.push_back("E_Kinetic");      energies_Ry.push_back(this->f_en.etot - this->f_en.eion_elec - this->f_en.hartree_energy - this->f_en.etxc + this->f_en.etxcc - this->f_en.ewald_energy);
-        std::string vdw_method = get_input_vdw_method();
+        titles.push_back("E_KohnSham");
+        energies_Ry.push_back(this->f_en.etot);
+        titles.push_back("E_KS(sigma->0)");
+        energies_Ry.push_back(this->f_en.etot - this->f_en.demet / (2 + n_order));
+        titles.push_back("E_Harris");
+        energies_Ry.push_back(this->f_en.etot_harris);
+        titles.push_back("E_band");
+        energies_Ry.push_back(this->f_en.eband);
+        titles.push_back("E_one_elec");
+        energies_Ry.push_back(this->f_en.eband + this->f_en.deband);
+        titles.push_back("E_Hartree");
+        energies_Ry.push_back(this->f_en.hartree_energy);
+        titles.push_back("E_xc");
+        energies_Ry.push_back(this->f_en.etxc - this->f_en.etxcc);
+        titles.push_back("E_Ewald");
+        energies_Ry.push_back(this->f_en.ewald_energy);
+        titles.push_back("E_entropy(-TS)");
+        energies_Ry.push_back(this->f_en.demet);
+        titles.push_back("E_descf");
+        energies_Ry.push_back(this->f_en.descf);
+        titles.push_back("E_IonElec");
+        energies_Ry.push_back(this->f_en.eion_elec);
+        titles.push_back("E_Kinetic");
+        energies_Ry.push_back(this->f_en.etot - this->f_en.eion_elec - this->f_en.hartree_energy - this->f_en.etxc + this->f_en.etxcc - this->f_en.ewald_energy);
+        std::string vdw_method = PARAM.inp.vdw_method;
         if (vdw_method == "d2") // Peize Lin add 2014-04, update 2021-03-09
         {
             titles.push_back("E_vdwD2");
@@ -421,13 +435,13 @@ void ElecState::print_etot(const bool converged,
         switch (PARAM.inp.nspin)
         {
         case 2:
-            mag = {get_ucell_tot_magnetization(), get_ucell_abs_magnetization()};
+            mag = {magnet.tot_magnetization, magnet.abs_magnetization};
             break;
         case 4:
-            mag = {get_ucell_tot_magnetization_nc_x(),
-                   get_ucell_tot_magnetization_nc_y(),
-                   get_ucell_tot_magnetization_nc_z(),
-                   get_ucell_abs_magnetization()};
+            mag = {magnet.tot_magnetization_nc[0],
+                   magnet.tot_magnetization_nc[1],
+                   magnet.tot_magnetization_nc[2],
+                   magnet.abs_magnetization};
             break;
         default:
             mag = {};
@@ -438,7 +452,7 @@ void ElecState::print_etot(const bool converged,
         {
             drho.push_back(scf_thr_kin);
         }
-        elecstate::print_scf_iterinfo(get_ks_solver_type(),
+        elecstate::print_scf_iterinfo(PARAM.inp.ks_solver,
                                       iter,
                                       6,
                                       mag,

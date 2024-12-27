@@ -12,12 +12,11 @@
 #include "module_hamilt_general/module_surchem/surchem.h" //sunml add 2022-08-10
 #include "module_hamilt_general/module_vdw/vdw.h"
 #include "module_parameter/parameter.h"
-#ifdef __DEEPKS
 #include "module_elecstate/elecstate_lcao.h"
+#ifdef __DEEPKS
 #include "module_hamilt_lcao/module_deepks/LCAO_deepks.h"    //caoyu add for deepks 2021-06-03
 #include "module_hamilt_lcao/module_deepks/LCAO_deepks_io.h" // mohan add 2024-07-22
 #endif
-#include "module_elecstate/elecstate_lcao.h"
 #include "module_hamilt_lcao/hamilt_lcaodft/operator_lcao/dftu_lcao.h"
 #include "module_hamilt_lcao/hamilt_lcaodft/operator_lcao/dspin_lcao.h"
 #include "module_hamilt_lcao/hamilt_lcaodft/operator_lcao/nonlocal_new.h"
@@ -31,11 +30,11 @@ Force_Stress_LCAO<T>::~Force_Stress_LCAO()
 {
 }
 template <typename T>
-void Force_Stress_LCAO<T>::getForceStress(const bool isforce,
+void Force_Stress_LCAO<T>::getForceStress(UnitCell& ucell,
+                                          const bool isforce,
                                           const bool isstress,
                                           const bool istestf,
                                           const bool istests,
-                                          const UnitCell& ucell,
                                           const Grid_Driver& gd,
                                           Parallel_Orbitals& pv,
                                           const elecstate::ElecState* pelec,
@@ -46,10 +45,11 @@ void Force_Stress_LCAO<T>::getForceStress(const bool isforce,
                                           const LCAO_Orbitals& orb,
                                           ModuleBase::matrix& fcs,
                                           ModuleBase::matrix& scs,
-                                          const pseudopot_cell_vnl& nlpp,
+                                          const pseudopot_cell_vl& locpp,
                                           const Structure_Factor& sf,
                                           const K_Vectors& kv,
                                           ModulePW::PW_Basis* rhopw,
+                                          surchem& solvent,
 #ifdef __EXX
                                           Exx_LRI<double>& exx_lri_double,
                                           Exx_LRI<std::complex<double>>& exx_lri_complex,
@@ -105,7 +105,7 @@ void Force_Stress_LCAO<T>::getForceStress(const bool isforce,
                              pelec->vnew_exist,
                              pelec->charge,
                              rhopw,
-                             nlpp,
+                             locpp,
                              sf);
     }
 
@@ -150,7 +150,7 @@ void Force_Stress_LCAO<T>::getForceStress(const bool isforce,
                               pelec->f_en.etxc,
                               pelec->charge,
                               rhopw,
-                              nlpp,
+                              locpp,
                               sf);
     }
 
@@ -279,7 +279,7 @@ void Force_Stress_LCAO<T>::getForceStress(const bool isforce,
     if (PARAM.inp.imp_sol && isforce)
     {
         fsol.create(nat, 3);
-        GlobalC::solvent_model.cal_force_sol(ucell, rhopw, nlpp.vloc, fsol);
+        solvent.cal_force_sol(ucell, rhopw, locpp.vloc, fsol);
     }
 
     //! atomic forces from DFT+U (Quxin version)
@@ -510,7 +510,14 @@ void Force_Stress_LCAO<T>::getForceStress(const bool isforce,
                     {
                         const std::vector<std::vector<double>>& dm_gamma
                             = dynamic_cast<const elecstate::ElecStateLCAO<double>*>(pelec)->get_DM()->get_DMK_vector();
-                        GlobalC::ld.cal_gdmx(dm_gamma, ucell, orb, gd, kv.get_nks(), kv.kvec_d, isstress);
+                        GlobalC::ld.cal_gdmx(dm_gamma,
+                                             ucell,
+                                             orb,
+                                             gd,
+                                             kv.get_nks(),
+                                             kv.kvec_d,
+                                             GlobalC::ld.phialpha,
+                                             isstress);
                     }
                     else
                     {
@@ -519,7 +526,8 @@ void Force_Stress_LCAO<T>::getForceStress(const bool isforce,
                                   ->get_DM()
                                   ->get_DMK_vector();
 
-                        GlobalC::ld.cal_gdmx(dm_k, ucell, orb, gd, kv.get_nks(), kv.kvec_d, isstress);
+                        GlobalC::ld
+                            .cal_gdmx(dm_k, ucell, orb, gd, kv.get_nks(), kv.kvec_d, GlobalC::ld.phialpha, isstress);
                     }
                     if (PARAM.inp.deepks_out_unittest)
                     {
@@ -829,7 +837,7 @@ void Force_Stress_LCAO<T>::getForceStress(const bool isforce,
 
 // local pseudopotential, ewald, core correction, scc terms in force
 template <typename T>
-void Force_Stress_LCAO<T>::calForcePwPart(const UnitCell& ucell,
+void Force_Stress_LCAO<T>::calForcePwPart(UnitCell& ucell,
                                           ModuleBase::matrix& fvl_dvl,
                                           ModuleBase::matrix& fewalds,
                                           ModuleBase::matrix& fcc,
@@ -839,7 +847,7 @@ void Force_Stress_LCAO<T>::calForcePwPart(const UnitCell& ucell,
                                           const bool vnew_exist,
                                           const Charge* const chr,
                                           ModulePW::PW_Basis* rhopw,
-                                          const pseudopot_cell_vnl& nlpp,
+                                          const pseudopot_cell_vl& locpp,
                                           const Structure_Factor& sf)
 {
     ModuleBase::TITLE("Force_Stress_LCAO", "calForcePwPart");
@@ -847,7 +855,7 @@ void Force_Stress_LCAO<T>::calForcePwPart(const UnitCell& ucell,
     // local pseudopotential force:
     // use charge density; plane wave; local pseudopotential;
     //--------------------------------------------------------
-    f_pw.cal_force_loc(ucell, fvl_dvl, rhopw, nlpp.vloc, chr);
+    f_pw.cal_force_loc(ucell, fvl_dvl, rhopw, locpp.vloc, chr);
     //--------------------------------------------------------
     // ewald force: use plane wave only.
     //--------------------------------------------------------
@@ -856,11 +864,11 @@ void Force_Stress_LCAO<T>::calForcePwPart(const UnitCell& ucell,
     //--------------------------------------------------------
     // force due to core correlation.
     //--------------------------------------------------------
-    f_pw.cal_force_cc(fcc, rhopw, chr, nlpp.numeric, GlobalC::ucell);
+    f_pw.cal_force_cc(fcc, rhopw, chr, locpp.numeric, ucell);
     //--------------------------------------------------------
     // force due to self-consistent charge.
     //--------------------------------------------------------
-    f_pw.cal_force_scc(fscc, rhopw, vnew, vnew_exist, nlpp.numeric, ucell);
+    f_pw.cal_force_scc(fscc, rhopw, vnew, vnew_exist, locpp.numeric, ucell);
     return;
 }
 
@@ -974,7 +982,7 @@ void Force_Stress_LCAO<std::complex<double>>::integral_part(const bool isGammaOn
 
 // vlocal, hartree, ewald, core correction, exchange-correlation terms in stress
 template <typename T>
-void Force_Stress_LCAO<T>::calStressPwPart(const UnitCell& ucell,
+void Force_Stress_LCAO<T>::calStressPwPart(UnitCell& ucell,
                                            ModuleBase::matrix& sigmadvl,
                                            ModuleBase::matrix& sigmahar,
                                            ModuleBase::matrix& sigmaewa,
@@ -983,7 +991,7 @@ void Force_Stress_LCAO<T>::calStressPwPart(const UnitCell& ucell,
                                            const double& etxc,
                                            const Charge* const chr,
                                            ModulePW::PW_Basis* rhopw,
-                                           const pseudopot_cell_vnl& nlpp,
+                                           const pseudopot_cell_vl& locpp,
                                            const Structure_Factor& sf)
 {
     ModuleBase::TITLE("Force_Stress_LCAO", "calStressPwPart");
@@ -991,7 +999,7 @@ void Force_Stress_LCAO<T>::calStressPwPart(const UnitCell& ucell,
     // local pseudopotential stress:
     // use charge density; plane wave; local pseudopotential;
     //--------------------------------------------------------
-    sc_pw.stress_loc(ucell, sigmadvl, rhopw, nlpp.vloc, &sf, 0, chr);
+    sc_pw.stress_loc(ucell, sigmadvl, rhopw, locpp.vloc, &sf, 0, chr);
 
     //--------------------------------------------------------
     // hartree term
@@ -1006,7 +1014,7 @@ void Force_Stress_LCAO<T>::calStressPwPart(const UnitCell& ucell,
     //--------------------------------------------------------
     // stress due to core correlation.
     //--------------------------------------------------------
-    sc_pw.stress_cc(sigmacc, rhopw, &sf, 0, nlpp.numeric, chr);
+    sc_pw.stress_cc(sigmacc, rhopw, ucell, &sf, 0, locpp.numeric, chr);
 
     //--------------------------------------------------------
     // stress due to self-consistent charge.

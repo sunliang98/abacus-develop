@@ -211,17 +211,19 @@ void ESolver_KS_LCAO<TK, TR>::others(UnitCell& ucell, const int istep)
     }
 
 #ifdef __DEEPKS
-    // for each ionic step, the overlap <psi|alpha> must be rebuilt
+    // for each ionic step, the overlap <phi|alpha> must be rebuilt
     // since it depends on ionic positions
     if (PARAM.globalv.deepks_setorb)
     {
         const Parallel_Orbitals* pv = &this->pv;
-        // build and save <psi(0)|alpha(R)> at beginning
-        GlobalC::ld.build_psialpha(PARAM.inp.cal_force, ucell, orb_, this->gd, *(two_center_bundle_.overlap_orb_alpha));
+        // allocate <phi(0)|alpha(R)>, phialpha is different every ion step, so it is allocated here
+        GlobalC::ld.allocate_phialpha(PARAM.inp.cal_force, ucell, orb_, this->gd);
+        // build and save <phi(0)|alpha(R)> at beginning
+        GlobalC::ld.build_phialpha(PARAM.inp.cal_force, ucell, orb_, this->gd, *(two_center_bundle_.overlap_orb_alpha));
 
         if (PARAM.inp.deepks_out_unittest)
         {
-            GlobalC::ld.check_psialpha(PARAM.inp.cal_force, ucell, orb_, this->gd);
+            GlobalC::ld.check_phialpha(PARAM.inp.cal_force, ucell, orb_, this->gd);
         }
     }
 #endif
@@ -249,7 +251,7 @@ void ESolver_KS_LCAO<TK, TR>::others(UnitCell& ucell, const int istep)
     elecstate::cal_ux(ucell);
 
     // pelec should be initialized before these calculations
-    this->pelec->init_scf(istep, this->sf.strucFac, this->ppcell.numeric, ucell.symm);
+    this->pelec->init_scf(istep, ucell, this->Pgrid, this->sf.strucFac, this->locpp.numeric, ucell.symm);
     // self consistent calculations for electronic ground state
     if (cal_type == "get_pchg")
     {
@@ -279,6 +281,7 @@ void ESolver_KS_LCAO<TK, TR>::others(UnitCell& ucell, const int istep)
                       PARAM.globalv.global_out_dir,
                       GlobalV::ofs_warning,
                       &ucell,
+                      this->Pgrid,
                       &this->gd,
                       this->kv);
         }
@@ -308,10 +311,11 @@ void ESolver_KS_LCAO<TK, TR>::others(UnitCell& ucell, const int istep)
                       PARAM.globalv.global_out_dir,
                       GlobalV::ofs_warning,
                       &ucell,
+                      this->Pgrid,
                       &this->gd,
                       this->kv,
                       PARAM.inp.if_separate_k,
-                      &GlobalC::Pgrid,
+                      &this->Pgrid,
                       this->pelec->charge->ngmc);
         }
         std::cout << FmtCore::format(" >> Finish %s.\n * * * * * *\n", "getting partial charge");
@@ -327,6 +331,7 @@ void ESolver_KS_LCAO<TK, TR>::others(UnitCell& ucell, const int istep)
                       this->pw_rhod,
                       this->pw_wfc,
                       this->pw_big,
+                      this->Pgrid,
                       this->pv,
                       this->GG,
                       PARAM.inp.out_wfc_pw,
@@ -348,6 +353,7 @@ void ESolver_KS_LCAO<TK, TR>::others(UnitCell& ucell, const int istep)
                       this->pw_rhod,
                       this->pw_wfc,
                       this->pw_big,
+                      this->Pgrid,
                       this->pv,
                       this->GK,
                       PARAM.inp.out_wfc_pw,

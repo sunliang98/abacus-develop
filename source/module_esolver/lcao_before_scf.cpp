@@ -51,15 +51,12 @@ void ESolver_KS_LCAO<TK, TR>::before_scf(UnitCell& ucell, const int istep)
     if (ucell.ionic_position_updated)
     {
         this->CE.update_all_dis(ucell);
-        this->CE.extrapolate_charge(
-#ifdef __MPI
-            &(GlobalC::Pgrid),
-#endif
-            ucell,
-            this->pelec->charge,
-            &(this->sf),
-            GlobalV::ofs_running,
-            GlobalV::ofs_warning);
+        this->CE.extrapolate_charge(&(this->Pgrid),
+                                    ucell,
+                                    this->pelec->charge,
+                                    &(this->sf),
+                                    GlobalV::ofs_running,
+                                    GlobalV::ofs_warning);
     }
 
     //----------------------------------------------------------
@@ -208,17 +205,19 @@ void ESolver_KS_LCAO<TK, TR>::before_scf(UnitCell& ucell, const int istep)
     }
 
 #ifdef __DEEPKS
-    // for each ionic step, the overlap <psi|alpha> must be rebuilt
+    // for each ionic step, the overlap <phi|alpha> must be rebuilt
     // since it depends on ionic positions
     if (PARAM.globalv.deepks_setorb)
     {
         const Parallel_Orbitals* pv = &this->pv;
-        // build and save <psi(0)|alpha(R)> at beginning
-        GlobalC::ld.build_psialpha(PARAM.inp.cal_force, ucell, orb_, this->gd, *(two_center_bundle_.overlap_orb_alpha));
+        // allocate <phi(0)|alpha(R)>, phialpha is different every ion step, so it is allocated here
+        GlobalC::ld.allocate_phialpha(PARAM.inp.cal_force, ucell, orb_, this->gd);
+        // build and save <phi(0)|alpha(R)> at beginning
+        GlobalC::ld.build_phialpha(PARAM.inp.cal_force, ucell, orb_, this->gd, *(two_center_bundle_.overlap_orb_alpha));
 
         if (PARAM.inp.deepks_out_unittest)
         {
-            GlobalC::ld.check_psialpha(PARAM.inp.cal_force, ucell, orb_, this->gd);
+            GlobalC::ld.check_phialpha(PARAM.inp.cal_force, ucell, orb_, this->gd);
         }
     }
 #endif
@@ -260,7 +259,7 @@ void ESolver_KS_LCAO<TK, TR>::before_scf(UnitCell& ucell, const int istep)
     }
 #endif // __EXX
 
-    this->pelec->init_scf(istep, this->sf.strucFac, this->ppcell.numeric, ucell.symm);
+    this->pelec->init_scf(istep, ucell, this->Pgrid, this->sf.strucFac, this->locpp.numeric, ucell.symm);
 
     //! output the initial charge density
     if (PARAM.inp.out_chg[0] == 2)
@@ -269,7 +268,7 @@ void ESolver_KS_LCAO<TK, TR>::before_scf(UnitCell& ucell, const int istep)
         {
             std::stringstream ss;
             ss << PARAM.globalv.global_out_dir << "SPIN" << is + 1 << "_CHG_INI.cube";
-            ModuleIO::write_vdata_palgrid(GlobalC::Pgrid,
+            ModuleIO::write_vdata_palgrid(this->Pgrid,
                                           this->pelec->charge->rho[is],
                                           is,
                                           PARAM.inp.nspin,
@@ -287,7 +286,7 @@ void ESolver_KS_LCAO<TK, TR>::before_scf(UnitCell& ucell, const int istep)
         {
             std::stringstream ss;
             ss << PARAM.globalv.global_out_dir << "SPIN" << is + 1 << "_POT_INI.cube";
-            ModuleIO::write_vdata_palgrid(GlobalC::Pgrid,
+            ModuleIO::write_vdata_palgrid(this->Pgrid,
                                           this->pelec->pot->get_effective_v(is),
                                           is,
                                           PARAM.inp.nspin,
@@ -332,7 +331,7 @@ void ESolver_KS_LCAO<TK, TR>::before_scf(UnitCell& ucell, const int istep)
         for (int is = 0; is < nspin0; is++)
         {
             std::string fn = PARAM.globalv.global_out_dir + "/SPIN" + std::to_string(is + 1) + "_CHG.cube";
-            ModuleIO::write_vdata_palgrid(GlobalC::Pgrid,
+            ModuleIO::write_vdata_palgrid(this->Pgrid,
                                           this->pelec->charge->rho[is],
                                           is,
                                           PARAM.inp.nspin,
@@ -371,7 +370,7 @@ void ESolver_KS_LCAO<TK, TR>::before_scf(UnitCell& ucell, const int istep)
         // necessary operation of these parameters have be done with p_esolver->Init() in source/driver_run.cpp
         rdmft_solver.update_ion(ucell,
                                 *(this->pw_rho),
-                                this->ppcell.vloc,
+                                this->locpp.vloc,
                                 this->sf.strucFac); // add by jghan, 2024-03-16/2024-10-08
     }
 
