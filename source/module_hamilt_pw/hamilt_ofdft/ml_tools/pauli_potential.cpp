@@ -1,6 +1,6 @@
-#include "./potential.h"
+#include "./pauli_potential.h"
 
-void Potential::init(const Input &input,
+void PauliPotential::init(const Input &input,
                      const int ninput,
                      const std::vector<std::string> &descriptor_type,
                      const std::vector<int> &kernel_index)
@@ -64,7 +64,7 @@ void Potential::init(const Input &input,
     this->ml_tanhq_nl = this->descriptor2index["tanhq_nl"].size() > 0;
 }
 
-torch::Tensor Potential::get_potential(const int istru,
+torch::Tensor PauliPotential::get_potential(const int istru,
                                        const Data &data,
                                        const torch::Tensor &F,
                                        const torch::Tensor &gradient,
@@ -175,7 +175,7 @@ torch::Tensor Potential::get_potential(const int istru,
     return potential;
 }
 
-torch::Tensor Potential::potGammaTerm(const torch::Tensor &gamma, const torch::Tensor &gradient)
+torch::Tensor PauliPotential::potGammaTerm(const torch::Tensor &gamma, const torch::Tensor &gradient)
 {
     // std::cout << "potGammaTerm" << std::endl;
     return 1. / 3. * gamma
@@ -183,7 +183,7 @@ torch::Tensor Potential::potGammaTerm(const torch::Tensor &gamma, const torch::T
                  .reshape({this->fftdim, this->fftdim, this->fftdim});
 }
 
-torch::Tensor Potential::potPTerm1(const torch::Tensor &p, const torch::Tensor &gradient)
+torch::Tensor PauliPotential::potPTerm1(const torch::Tensor &p, const torch::Tensor &gradient)
 {
     // std::cout << "potPTerm1" << std::endl;
     return -8. / 3. * p
@@ -191,7 +191,7 @@ torch::Tensor Potential::potPTerm1(const torch::Tensor &p, const torch::Tensor &
                  .reshape({this->fftdim, this->fftdim, this->fftdim});
 }
 
-torch::Tensor Potential::potQTerm1(const torch::Tensor &q, const torch::Tensor &gradient)
+torch::Tensor PauliPotential::potQTerm1(const torch::Tensor &q, const torch::Tensor &gradient)
 {
     // std::cout << "potQTerm1" << std::endl;
     return -5. / 3. * q
@@ -199,7 +199,7 @@ torch::Tensor Potential::potQTerm1(const torch::Tensor &q, const torch::Tensor &
                  .reshape({this->fftdim, this->fftdim, this->fftdim});
 }
 
-torch::Tensor Potential::potGammanlTerm(const torch::Tensor &rho,
+torch::Tensor PauliPotential::potGammanlTerm(const torch::Tensor &rho,
                                         const torch::Tensor &gamma,
                                         const Kernel *kernels,
                                         // const torch::Tensor &kernel,
@@ -222,7 +222,7 @@ torch::Tensor Potential::potGammanlTerm(const torch::Tensor &rho,
     return result;
 }
 
-torch::Tensor Potential::potPPnlTerm(const torch::Tensor &rho,
+torch::Tensor PauliPotential::potPPnlTerm(const torch::Tensor &rho,
                                      const torch::Tensor &nablaRho,
                                      const torch::Tensor &p,
                                      const Kernel *kernels,
@@ -268,7 +268,7 @@ torch::Tensor Potential::potPPnlTerm(const torch::Tensor &rho,
     return result;
 }
 
-torch::Tensor Potential::potQQnlTerm(const torch::Tensor &rho,
+torch::Tensor PauliPotential::potQQnlTerm(const torch::Tensor &rho,
                                      const torch::Tensor &q,
                                      const Kernel *kernels,
                                      //  const torch::Tensor &kernel,
@@ -307,7 +307,7 @@ torch::Tensor Potential::potQQnlTerm(const torch::Tensor &rho,
     return result;
 }
 
-torch::Tensor Potential::potXiTerm1(const torch::Tensor &rho, const std::vector<torch::Tensor> &xi, const torch::Tensor &gradient)
+torch::Tensor PauliPotential::potXiTerm1(const torch::Tensor &rho, const std::vector<torch::Tensor> &xi, const torch::Tensor &gradient)
 {
     torch::Tensor result = torch::zeros_like(rho);
     for (int ik = 0; ik < this->descriptor2kernel["xi"].size(); ++ik)
@@ -321,7 +321,7 @@ torch::Tensor Potential::potXiTerm1(const torch::Tensor &rho, const std::vector<
     return result;
 }
 
-torch::Tensor Potential::potTanhxiTerm1(const torch::Tensor &rho,
+torch::Tensor PauliPotential::potTanhxiTerm1(const torch::Tensor &rho,
                                         const std::vector<torch::Tensor> &xi,
                                         const std::vector<torch::Tensor> &tanhxi,
                                         const torch::Tensor &gradient)
@@ -337,7 +337,7 @@ torch::Tensor Potential::potTanhxiTerm1(const torch::Tensor &rho,
     return result;
 }
 
-torch::Tensor Potential::potTanhpTerm1(const torch::Tensor &p,
+torch::Tensor PauliPotential::potTanhpTerm1(const torch::Tensor &p,
                                        const torch::Tensor &tanhp,
                                        const torch::Tensor &gradient)
 {
@@ -346,7 +346,7 @@ torch::Tensor Potential::potTanhpTerm1(const torch::Tensor &p,
                  .reshape({this->fftdim, this->fftdim, this->fftdim});
 }
 
-torch::Tensor Potential::potTanhqTerm1(const torch::Tensor &q,
+torch::Tensor PauliPotential::potTanhqTerm1(const torch::Tensor &q,
                                        const torch::Tensor &tanhq,
                                        const torch::Tensor &gradient)
 {
@@ -355,7 +355,7 @@ torch::Tensor Potential::potTanhqTerm1(const torch::Tensor &q,
                  .reshape({this->fftdim, this->fftdim, this->fftdim});
 }
 
-torch::Tensor Potential::potXinlTerm(const torch::Tensor &rho,
+torch::Tensor PauliPotential::potXinlTerm(const torch::Tensor &rho,
                                      const Kernel *kernels,
                                      //  const torch::Tensor &kernel,
                                      const torch::Tensor &tauTF,
@@ -376,7 +376,7 @@ torch::Tensor Potential::potXinlTerm(const torch::Tensor &rho,
     return result;
 }
 
-torch::Tensor Potential::potTanhxinlTerm(const torch::Tensor &rho,
+torch::Tensor PauliPotential::potTanhxinlTerm(const torch::Tensor &rho,
                                          const std::vector<torch::Tensor> &tanhxi,
                                          const Kernel *kernels,
                                          //  const torch::Tensor &kernel,
@@ -399,7 +399,7 @@ torch::Tensor Potential::potTanhxinlTerm(const torch::Tensor &rho,
     return result;
 }
 
-torch::Tensor Potential::potTanhxi_nlTerm(const torch::Tensor &rho,
+torch::Tensor PauliPotential::potTanhxi_nlTerm(const torch::Tensor &rho,
                                           const std::vector<torch::Tensor> &xi,
                                           const std::vector<torch::Tensor> &tanhxi,
                                           const Kernel *kernels,
@@ -428,7 +428,7 @@ torch::Tensor Potential::potTanhxi_nlTerm(const torch::Tensor &rho,
     return result;
 }
 
-torch::Tensor Potential::potTanhpTanh_pnlTerm(const torch::Tensor &rho,
+torch::Tensor PauliPotential::potTanhpTanh_pnlTerm(const torch::Tensor &rho,
                                               const torch::Tensor &nablaRho,
                                               const torch::Tensor &p,
                                               const torch::Tensor &tanhp,
@@ -473,7 +473,7 @@ torch::Tensor Potential::potTanhpTanh_pnlTerm(const torch::Tensor &rho,
     return result;
 }
 
-torch::Tensor Potential::potTanhqTanh_qnlTerm(const torch::Tensor &rho,
+torch::Tensor PauliPotential::potTanhqTanh_qnlTerm(const torch::Tensor &rho,
                                               const torch::Tensor &q,
                                               const torch::Tensor &tanhq,
                                               const std::vector<torch::Tensor> &tanh_qnl,
@@ -513,7 +513,7 @@ torch::Tensor Potential::potTanhqTanh_qnlTerm(const torch::Tensor &rho,
     return result;
 }
 
-torch::Tensor Potential::potTanhpTanhp_nlTerm(const torch::Tensor &rho,
+torch::Tensor PauliPotential::potTanhpTanhp_nlTerm(const torch::Tensor &rho,
                                               const torch::Tensor &nablaRho,
                                               const torch::Tensor &p,
                                               const torch::Tensor &tanhp,
@@ -557,7 +557,7 @@ torch::Tensor Potential::potTanhpTanhp_nlTerm(const torch::Tensor &rho,
     return result;
 }
 
-torch::Tensor Potential::potTanhqTanhq_nlTerm(const torch::Tensor &rho,
+torch::Tensor PauliPotential::potTanhqTanhq_nlTerm(const torch::Tensor &rho,
                                               const torch::Tensor &q,
                                               const torch::Tensor &tanhq,
                                               const Kernel *kernels,
@@ -596,7 +596,7 @@ torch::Tensor Potential::potTanhqTanhq_nlTerm(const torch::Tensor &rho,
     return result;
 }
 
-torch::Tensor Potential::divergence(const torch::Tensor &input, const std::vector<torch::Tensor> &grid)
+torch::Tensor PauliPotential::divergence(const torch::Tensor &input, const std::vector<torch::Tensor> &grid)
 {
     torch::Tensor result = torch::zeros_like(input[0]);
     // torch::Tensor img = torch::tensor({1.0j});
@@ -611,12 +611,12 @@ torch::Tensor Potential::divergence(const torch::Tensor &input, const std::vecto
     return result;
 }
 
-torch::Tensor Potential::Laplacian(const torch::Tensor &input, const torch::Tensor &gg)
+torch::Tensor PauliPotential::Laplacian(const torch::Tensor &input, const torch::Tensor &gg)
 {
     return torch::real(torch::fft::ifftn(torch::fft::fftn(input) * -gg));
 }
 
-torch::Tensor Potential::dtanh(const torch::Tensor &tanhx, const double chi)
+torch::Tensor PauliPotential::dtanh(const torch::Tensor &tanhx, const double chi)
 {
     return (torch::ones_like(tanhx) - tanhx * tanhx) * chi;
     // return (1. - tanhx * tanhx) * chi;

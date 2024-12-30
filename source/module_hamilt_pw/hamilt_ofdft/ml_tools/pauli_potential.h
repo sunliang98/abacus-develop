@@ -7,7 +7,7 @@
 #include "./kernel.h"
 #include "./grid.h"
 
-class Potential{
+class PauliPotential{
 
 public:
     void init(const Input &input, const int ninput, const std::vector<std::string> &descriptor_type, const std::vector<int> &kernel_index);

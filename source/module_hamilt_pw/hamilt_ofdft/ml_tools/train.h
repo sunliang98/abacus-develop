@@ -6,7 +6,7 @@
 #include "./input.h"
 #include "./kernel.h"
 #include "./nn_of.h"
-#include "./potential.h"
+#include "./pauli_potential.h"
 
 #include <torch/torch.h>
 
@@ -22,7 +22,7 @@ class Train
     Grid grid_vali;
     Kernel *kernel_train = nullptr;
     Kernel *kernel_vali = nullptr;
-    Potential potential;
+    PauliPotential potential;
     //----------- training set -----------
     Data data_train;
     double *train_volume = nullptr;

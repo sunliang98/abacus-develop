@@ -21,7 +21,7 @@ else()
 endif()
 include_directories(${libnpy_SOURCE_DIR}/include)
 
-add_executable(nnof main.cpp data.cpp nn_of.cpp grid.cpp input.cpp kernel.cpp potential.cpp train.cpp)
+add_executable(nnof main.cpp data.cpp nn_of.cpp grid.cpp input.cpp kernel.cpp pauli_potential.cpp train.cpp)
 target_link_libraries(nnof "${TORCH_LIBRARIES}")
 set_property(TARGET nnof PROPERTY CXX_STANDARD 14)
 

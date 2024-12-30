@@ -1,5 +1,5 @@
 ATOMIC_SPECIES
-Si 3 si.gga.psp blps
+Si 3 si.lda.lps blps
 
 LATTICE_CONSTANT
 10.334452882595281  // add lattice constant
