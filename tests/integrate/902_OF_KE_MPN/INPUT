@@ -18,19 +18,19 @@ dft_functional  XC_GGA_X_PBE+XC_GGA_C_PBE
 basis_type		pw
 
 #OFDFT
-of_kinetic      ml
+of_kinetic      mpn
 of_ml_device    cpu
 
-of_ml_chi_xi      1
-of_ml_chi_p       0.2
-of_ml_chi_q       0.1
-of_ml_chi_pnl     0.2
-of_ml_chi_qnl     0.1
-
-of_ml_tanhxi    1
-of_ml_tanhxi_nl    1
-of_ml_tanhp    1
-of_ml_tanhp_nl    1
-of_ml_feg      3
-of_ml_nnode    10
-of_ml_nlayer   3
+#of_ml_chi_xi      1
+#of_ml_chi_p       0.2
+#of_ml_chi_q       0.1
+#of_ml_chi_pnl     0.2
+#of_ml_chi_qnl     0.1
+#
+#of_ml_tanhxi    1
+#of_ml_tanhxi_nl    1
+#of_ml_tanhp    1
+#of_ml_tanhp_nl    1
+#of_ml_feg      3
+#of_ml_nnode    10
+#of_ml_nlayer   3

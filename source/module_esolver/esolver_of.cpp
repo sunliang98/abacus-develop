@@ -500,7 +500,7 @@ void ESolver_OF::after_opt(const int istep, UnitCell& ucell)
 
 #ifdef __MLKEDF
     // Check the positivity of Pauli energy
-    if (this->of_kinetic_ == "mpn" || this->of_kinetic_ == "ml")
+    if (this->of_kinetic_ == "ml")
     {
         this->tf_->get_energy(this->pelec->charge->rho);
         std::cout << "ML Term = " << this->ml_->ml_energy << " Ry, TF Term = " << this->tf_->tf_energy << " Ry." << std::endl;

@@ -448,7 +448,7 @@ void ESolver_OF::print_info()
             energies_Ry.push_back(this->tf_->tf_energy);
         }
         if (this->of_kinetic_ == "vw" || this->of_kinetic_ == "tf+" || this->of_kinetic_ == "wt"
-            || this->of_kinetic_ == "lkt" || this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
+            || this->of_kinetic_ == "lkt" || this->of_kinetic_ == "ml")
         {
             titles.push_back("vW KEDF");
             energies_Ry.push_back(this->vw_->vw_energy);
@@ -464,7 +464,7 @@ void ESolver_OF::print_info()
             energies_Ry.push_back(this->lkt_->lkt_energy);
         }
 #ifdef __MLKEDF
-        if (this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
+        if (this->of_kinetic_ == "ml")
         {
             titles.push_back("MPN KEDF");
             energies_Ry.push_back(this->ml_->ml_energy);

@@ -16,8 +16,7 @@ void ESolver_OF::init_kedf(const Input_para& inp)
     if (this->of_kinetic_ == "tf"
      || this->of_kinetic_ == "tf+"
      || this->of_kinetic_ == "wt"
-     || this->of_kinetic_ == "ml"
-     || this->of_kinetic_ == "mpn")
+     || this->of_kinetic_ == "ml")
     {
         if (this->tf_ == nullptr)
         {
@@ -28,7 +27,7 @@ void ESolver_OF::init_kedf(const Input_para& inp)
 
     //! vW, TF+, WT, and LKT KEDFs
     if (this->of_kinetic_ == "vw" || this->of_kinetic_ == "tf+" || this->of_kinetic_ == "wt"
-        || this->of_kinetic_ == "lkt" || this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
+        || this->of_kinetic_ == "lkt" || this->of_kinetic_ == "ml")
     {
         if (this->vw_ == nullptr)
         {
@@ -67,7 +66,7 @@ void ESolver_OF::init_kedf(const Input_para& inp)
         this->lkt_->set_para(this->dV_, inp.of_lkt_a);
     }
 #ifdef __MLKEDF
-    if (this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
+    if (this->of_kinetic_ == "ml")
     {
         if (this->ml_ == nullptr)
             this->ml_ = new KEDF_ML();
@@ -104,7 +103,7 @@ void ESolver_OF::kinetic_potential(double** prho, double** pphi, ModuleBase::mat
         this->lkt_->lkt_potential(prho, this->pw_rho, rpot);
     }
 #ifdef __MLKEDF
-    if (this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
+    if (this->of_kinetic_ == "ml")
     {
         this->ml_->ml_potential(prho, this->pw_rho, rpot);
         this->tf_->get_energy(prho); // temp
@@ -121,7 +120,7 @@ void ESolver_OF::kinetic_potential(double** prho, double** pphi, ModuleBase::mat
     }
 
     if (this->of_kinetic_ == "vw" || this->of_kinetic_ == "tf+" || this->of_kinetic_ == "wt"
-        || this->of_kinetic_ == "lkt" || this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
+        || this->of_kinetic_ == "lkt" || this->of_kinetic_ == "ml")
     {
         this->vw_->vw_potential(pphi, this->pw_rho, rpot);
     }
@@ -143,7 +142,7 @@ double ESolver_OF::kinetic_energy()
     }
 
     if (this->of_kinetic_ == "vw" || this->of_kinetic_ == "tf+" || this->of_kinetic_ == "wt"
-        || this->of_kinetic_ == "lkt" || this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
+        || this->of_kinetic_ == "lkt" || this->of_kinetic_ == "ml")
     {
         kinetic_energy += this->vw_->vw_energy;
     }
@@ -158,7 +157,7 @@ double ESolver_OF::kinetic_energy()
         kinetic_energy += this->lkt_->lkt_energy;
     }
 #ifdef __MLKEDF
-    if (this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
+    if (this->of_kinetic_ == "ml")
     {
         kinetic_energy += this->ml_->ml_energy;
         if (this->ml_->ml_energy >= this->tf_->tf_energy)
@@ -246,7 +245,7 @@ void ESolver_OF::kinetic_stress(ModuleBase::matrix& kinetic_stress_)
         this->lkt_->get_stress(pelec->charge->rho, this->pw_rho);
         kinetic_stress_ += this->lkt_->stress;
     }
-    if (this->of_kinetic_ == "ml" || this->of_kinetic_ == "mpn")
+    if (this->of_kinetic_ == "ml")
     {
         std::cout << "Sorry, the stress of MPN KEDF is not yet supported." << std::endl;
     }
