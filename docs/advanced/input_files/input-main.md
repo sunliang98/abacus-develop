@@ -2111,12 +2111,18 @@ Warning: this function is not robust enough for the current version. Please try 
 - **Type**: String
 - **Availability**: OFDFT
 - **Description**: The type of KEDF (kinetic energy density functional).
+
+  Analytical functionals:
   - **wt**: Wang-Teter.
   - **tf**: Thomas-Fermi.
   - **vw**: von Weizsäcker.
   - **tf+**: TF $\rm{\lambda}$ vW, the parameter $\rm{\lambda}$ can be set by `of_vw_weight`.
   - **lkt**: Luo-Karasiev-Trickey.
-  - **ml**: Machine learning based KEDF, see [ML-KEDF: machine learning based kinetic energy density functional for OFDFT](#ml-kedf-machine-learning-based-kinetic-energy-density-functional-for-ofdft).
+
+  Machine learning (ML) based functionals:
+  - **ml**: ML-based KEDF allows for greater flexibility, enabling users to set related ML model parameters themselves. see [ML-KEDF: machine learning based kinetic energy density functional for OFDFT](#ml-kedf-machine-learning-based-kinetic-energy-density-functional-for-ofdft).
+  - **mpn**: ML-based Physically-constrained Non-local (MPN) KEDF. ABACUS automatically configures the necessary parameters, requiring no manual intervention from the user.
+  - **cpn5**: Multi-Channel MPN (CPN) KEDF with 5 channels. Similar to mpn, ABACUS handles all parameter settings automatically.
 - **Default**: wt
 
 ### of_method
