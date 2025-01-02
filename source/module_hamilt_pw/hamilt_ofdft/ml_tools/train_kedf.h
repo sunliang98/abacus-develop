@@ -1,5 +1,5 @@
-#ifndef TRAIN_H
-#define TRAIN_H
+#ifndef TRAIN_KEDF_H
+#define TRAIN_KEDF_H
 
 #include "./data.h"
 #include "./grid.h"
@@ -10,11 +10,11 @@
 
 #include <torch/torch.h>
 
-class Train
+class Train_KEDF
 {
   public:
-    Train(){};
-    ~Train();
+    Train_KEDF(){};
+    ~Train_KEDF();
 
     std::shared_ptr<NN_OFImpl> nn;
     Input input;

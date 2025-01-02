@@ -1,9 +1,9 @@
-#include "./train.h"
+#include "./train_kedf.h"
 #include <sstream>
 #include <math.h>
 #include <chrono>
 
-Train::~Train()
+Train_KEDF::~Train_KEDF()
 {
     delete[] this->train_volume;
     delete[] this->vali_volume;
@@ -11,7 +11,7 @@ Train::~Train()
     delete[] this->kernel_vali;
 }
 
-void Train::setUpFFT()
+void Train_KEDF::setUpFFT()
 {
     this->train_volume = new double[this->input.ntrain];
     this->grid_train.initGrid(
@@ -66,7 +66,7 @@ void Train::setUpFFT()
     // this->dumpTensor(this->fft_kernel_vali[0].reshape({this->data_train.nx}), "kernel_bcc.npy", this->data_train.nx);
 }
 
-void Train::set_device()
+void Train_KEDF::set_device()
 {
     if (this->input.device_type == "cpu")
     {
@@ -89,7 +89,7 @@ void Train::set_device()
     }
 }
 
-void Train::init_input_index()
+void Train_KEDF::init_input_index()
 {
     this->ninput = 0;
 
@@ -195,7 +195,7 @@ void Train::init_input_index()
     std::cout << "feg_limit = " << this->input.feg_limit << std::endl;
 }
 
-void Train::init()
+void Train_KEDF::init()
 {
     this->set_device();
     this->init_input_index();
@@ -214,18 +214,18 @@ void Train::init()
     this->nn->set_data(&(this->data_vali), this->descriptor_type, this->kernel_index, this->nn->input_vali);
 }
 
-torch::Tensor Train::lossFunction(torch::Tensor enhancement, torch::Tensor target, torch::Tensor coef)
+torch::Tensor Train_KEDF::lossFunction(torch::Tensor enhancement, torch::Tensor target, torch::Tensor coef)
 {
     return torch::sum(torch::pow(enhancement - target, 2))/this->data_train.nx/coef/coef;
 }
 
-torch::Tensor Train::lossFunction_new(torch::Tensor enhancement, torch::Tensor target, torch::Tensor weight, torch::Tensor coef)
+torch::Tensor Train_KEDF::lossFunction_new(torch::Tensor enhancement, torch::Tensor target, torch::Tensor weight, torch::Tensor coef)
 {
     return torch::sum(torch::pow(weight * (enhancement - target), 2.))/this->data_train.nx/coef/coef;
 }
 
 
-void Train::train()
+void Train_KEDF::train()
 {
     // time
     double tot = 0.;
@@ -239,7 +239,7 @@ void Train::train()
 
     start = std::chrono::high_resolution_clock::now();
 
-    std::cout << "========== Train begin ==========" << std::endl;
+    std::cout << "========== Train_KEDF begin ==========" << std::endl;
     // torch::Tensor target = (this->input.loss=="energy") ? this->data_train.enhancement : this->data_train.pauli;
     if (this->input.loss == "potential" || this->input.loss == "both" || this->input.loss == "both_new")
     {
@@ -427,7 +427,7 @@ void Train::train()
     std::cout << "Step\t\t\t"           << totStep  << "\t\t" << totStep/tot    * 100. << " %" << std::endl;
 }
 
-void Train::potTest()
+void Train_KEDF::potTest()
 {
     this->set_device();
     this->init_input_index();

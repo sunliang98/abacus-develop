@@ -1,5 +1,5 @@
-#ifndef POTENTIAL_H
-#define POTENTIAL_H
+#ifndef PAULI_POTENTIAL_H
+#define PAULI_POTENTIAL_H
 
 #include <torch/torch.h>
 #include "./input.h"
