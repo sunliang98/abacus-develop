@@ -38,5 +38,3 @@ of_ml_device	cpu
 # of_ml_tanhxi_nl    1 1 1 1 1
 # of_ml_tanhp    1
 # of_ml_tanhp_nl    1 1 1 1 1
-# of_ml_nnode    100
-# of_ml_nlayer   3
