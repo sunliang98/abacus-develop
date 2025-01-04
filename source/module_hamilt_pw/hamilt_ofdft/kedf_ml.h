@@ -33,8 +33,6 @@ public:
         const std::vector<double> &chi_xi,
         const std::vector<double> &chi_pnl,
         const std::vector<double> &chi_qnl,
-        const int nnode,
-        const int nlayer,
         const int &nkernel,
         const std::vector<int> &kernel_type,
         const std::vector<double> &kernel_scaling,

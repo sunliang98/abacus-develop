@@ -212,8 +212,6 @@
   - [ML-KEDF: machine learning based kinetic energy density functional for OFDFT](#ml-kedf-machine-learning-based-kinetic-energy-density-functional-for-ofdft)
     - [of\_ml\_gene\_data](#of_ml_gene_data)
     - [of\_ml\_device](#of_ml_device)
-    - [of\_ml\_nnode](#of_ml_nnode)
-    - [of\_ml\_nlayer](#of_ml_nlayer)
     - [of\_ml\_feg](#of_ml_feg)
     - [of\_ml\_nkernel](#of_ml_nkernel)
     - [of\_ml\_kernel](#of_ml_kernel)
@@ -2269,20 +2267,6 @@ Warning: this function is not robust enough for the current version. Please try 
   - **gpu**: GPU
 - **Default**: cpu
 
-### of_ml_nnode
-
-- **Type**: Integer
-- **Availability**: OFDFT
-- **Description**: Hyperparameter: number of node of hidden layer.
-- **Default**: 100
-
-### of_ml_nlayer
-
-- **Type**: Integer
-- **Availability**: OFDFT
-- **Description**: Hyperparameter: number of hidden layer.
-- **Default**: 3
-
 ### of_ml_feg
 
 - **Type**: Integer
@@ -2475,7 +2459,7 @@ Warning: this function is not robust enough for the current version. Please try 
 
 - **Type**: Boolean
 - **Availability**: OFDFT
-- **Description**: For test. Read in the density, and output the F and Pauli potential.
+- **Description**: FOR TEST. Read in the density, and output the F and Pauli potential.
 - **Default**: False
 
 [back to top](#full-list-of-input-keywords)

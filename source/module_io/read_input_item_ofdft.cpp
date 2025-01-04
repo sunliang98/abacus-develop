@@ -222,18 +222,6 @@ void ReadInput::item_ofdft()
         this->add_item(item);
     }
     {
-        Input_Item item("of_ml_nnode");
-        item.annotation = "Hyperparameter: number of node of hidden layer";
-        read_sync_int(input.of_ml_nnode);
-        this->add_item(item);
-    }
-    {
-        Input_Item item("of_ml_nlayer");
-        item.annotation = "Hyperparameter: number of hidden layer";
-        read_sync_int(input.of_ml_nlayer);
-        this->add_item(item);
-    }
-    {
         Input_Item item("of_ml_feg");
         item.annotation = "The Free Electron Gas limit: 0: no, 3: yes";
         read_sync_int(input.of_ml_feg);

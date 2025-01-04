@@ -17,8 +17,6 @@ void KEDF_ML::set_para(
     const std::vector<double> &chi_xi,
     const std::vector<double> &chi_pnl,
     const std::vector<double> &chi_qnl,
-    const int nnode,
-    const int nlayer,
     const int &nkernel,
     const std::vector<int> &kernel_type,
     const std::vector<double> &kernel_scaling,
@@ -76,6 +74,8 @@ void KEDF_ML::set_para(
 
     if (PARAM.inp.of_kinetic == "ml")
     {
+        int nnode = 100;
+        int nlayer = 3;
         this->nn = std::make_shared<NN_OFImpl>(this->nx, 0, this->ninput, nnode, nlayer, this->device);
         torch::load(this->nn, "net.pt", this->device_type);
         std::cout << "load net done" << std::endl;

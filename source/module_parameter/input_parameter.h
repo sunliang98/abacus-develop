@@ -212,10 +212,7 @@ struct Input_para
     bool of_ml_gene_data = false;                ///< Generate training data or not
     // device
     std::string of_ml_device = "cpu";                      ///< Run NN on GPU or CPU
-    // size of nn 2023-04-19
-    int of_ml_nnode = 100;                       ///< Hyperparameter: number of node of hidden layer
-    int of_ml_nlayer = 3;                        ///< Hyperparameter: number of hidden layer
-    int of_ml_feg = 0;                           ///< The Free Electron Gas limit: 0: no, 3: yes
+    int of_ml_feg = 0;                                     ///< The Free Electron Gas limit: 0: no, 3: yes
     // kernel
     int of_ml_nkernel = 1;                                 ///< Number of kernels
     std::vector<int> of_ml_kernel = {1};                   ///< Type of kernel, 1 for wt, 2 for yukawa, and 3 for TKK
