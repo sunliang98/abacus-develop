@@ -672,14 +672,6 @@ void ESolver_KS<T, Device>::iter_finish(UnitCell& ucell, const int istep, int& i
         dkin = p_chgmix->get_dkin(pelec->charge, PARAM.inp.nelec);
     }
 
-    double pseudopot_energy = 0.;                   // electron-ion interaction energy
-    for (int is = 0; is < PARAM.inp.nspin; ++is)
-    {
-        pseudopot_energy += BlasConnector::dot(this->pw_rho->nrxx, this->pelec->pot->get_fixed_v(), 1, pelec->charge->rho[is], 1)
-                                * ucell.omega / this->pw_rho->nxyz;
-    }
-    Parallel_Reduce::reduce_all(pseudopot_energy);
-    this->pelec->f_en.eion_elec = pseudopot_energy;
     this->pelec->print_etot(ucell.magnet,this->conv_esolver, iter, drho, dkin, duration, PARAM.inp.printe, diag_ethr);
 
     // Json, need to be moved to somewhere else
