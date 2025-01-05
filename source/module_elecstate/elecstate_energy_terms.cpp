@@ -41,7 +41,7 @@ double ElecState::get_dftu_energy()
 
 double ElecState::get_local_pp_energy()
 {
-    double local_pseudopot_energy = 0.;                   // electron-ion interaction energy
+    double local_pseudopot_energy = 0.;                   // electron-ion interaction energy from local pseudopotential
     for (int is = 0; is < PARAM.inp.nspin; ++is)
     {
         local_pseudopot_energy += BlasConnector::dot(this->charge->rhopw->nrxx, this->pot->get_fixed_v(), 1, this->charge->rho[is], 1)

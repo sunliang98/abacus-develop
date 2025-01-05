@@ -311,7 +311,7 @@ void ElecState::cal_energies(const int type)
         this->f_en.edftu = get_dftu_energy();
     }
 
-    this->f_en.eion_elec = get_local_pp_energy();
+    this->f_en.e_local_pp = get_local_pp_energy();
 
 #ifdef __DEEPKS
     // energy from deepks

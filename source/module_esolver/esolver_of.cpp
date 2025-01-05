@@ -571,7 +571,7 @@ double ESolver_OF::cal_energy()
     }
     Parallel_Reduce::reduce_all(pseudopot_energy);
     this->pelec->f_en.ekinetic = kinetic_energy;
-    this->pelec->f_en.eion_elec = pseudopot_energy;
+    this->pelec->f_en.e_local_pp = pseudopot_energy;
     this->pelec->f_en.etot += kinetic_energy + pseudopot_energy;
     return this->pelec->f_en.etot;
 }

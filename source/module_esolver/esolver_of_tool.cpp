@@ -438,8 +438,8 @@ void ESolver_OF::print_info()
         energies_Ry.push_back(this->pelec->f_en.hartree_energy);
         titles.push_back("E_xc");
         energies_Ry.push_back(this->pelec->f_en.etxc - this->pelec->f_en.etxcc);
-        titles.push_back("E_IonElec");
-        energies_Ry.push_back(this->pelec->f_en.eion_elec);
+        titles.push_back("E_LocalPP");
+        energies_Ry.push_back(this->pelec->f_en.e_local_pp);
         titles.push_back("E_Ewald");
         energies_Ry.push_back(this->pelec->f_en.ewald_energy);
         if (this->of_kinetic_ == "tf" || this->of_kinetic_ == "tf+" || this->of_kinetic_ == "wt")
