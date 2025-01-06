@@ -17,8 +17,7 @@ Data::~Data()
 
 void Data::load_data(Input &input, const int ndata, std::string *dir, const torch::Device device)
 {
-    if (ndata <= 0) { return;
-}
+    if (ndata <= 0) return;
     this->init_label(input);
     this->init_data(input.nkernel, ndata, input.fftdim, device);
     this->load_data_(input, ndata, input.fftdim, dir);
@@ -30,36 +29,51 @@ void Data::load_data(Input &input, const int ndata, std::string *dir, const torc
 }
 
 torch::Tensor Data::get_data(std::string parameter, const int ikernel){
-    if (parameter == "gamma") {       return this->gamma.reshape({this->nx_tot});
-}
-    if (parameter == "p") {           return this->p.reshape({this->nx_tot});
-}
-    if (parameter == "q") {           return this->q.reshape({this->nx_tot});
-}
-    if (parameter == "tanhp") {       return this->tanhp.reshape({this->nx_tot});
-}
-    if (parameter == "tanhq") {       return this->tanhq.reshape({this->nx_tot});
-}
-    if (parameter == "gammanl") {     return this->gammanl[ikernel].reshape({this->nx_tot});
-}
-    if (parameter == "pnl") {         return this->pnl[ikernel].reshape({this->nx_tot});
-}
-    if (parameter == "qnl") {         return this->qnl[ikernel].reshape({this->nx_tot});
-}
-    if (parameter == "xi") {          return this->xi[ikernel].reshape({this->nx_tot});
-}
-    if (parameter == "tanhxi") {      return this->tanhxi[ikernel].reshape({this->nx_tot});
-}
-    if (parameter == "tanhxi_nl") {   return this->tanhxi_nl[ikernel].reshape({this->nx_tot});
-}
-    if (parameter == "tanh_pnl") {    return this->tanh_pnl[ikernel].reshape({this->nx_tot});
-}
-    if (parameter == "tanh_qnl") {    return this->tanh_qnl[ikernel].reshape({this->nx_tot});
-}
-    if (parameter == "tanhp_nl") {    return this->tanhp_nl[ikernel].reshape({this->nx_tot});
-}
-    if (parameter == "tanhq_nl") {    return this->tanhq_nl[ikernel].reshape({this->nx_tot});
-}
+    if (parameter == "gamma"){
+        return this->gamma.reshape({this->nx_tot});
+    }
+    if (parameter == "p"){
+        return this->p.reshape({this->nx_tot});
+    }
+    if (parameter == "q"){
+        return this->q.reshape({this->nx_tot});
+    }
+    if (parameter == "tanhp"){
+        return this->tanhp.reshape({this->nx_tot});
+    }
+    if (parameter == "tanhq"){
+        return this->tanhq.reshape({this->nx_tot});
+    }
+    if (parameter == "gammanl"){
+        return this->gammanl[ikernel].reshape({this->nx_tot});
+    }
+    if (parameter == "pnl"){
+        return this->pnl[ikernel].reshape({this->nx_tot});
+    }
+    if (parameter == "qnl"){
+        return this->qnl[ikernel].reshape({this->nx_tot});
+    }
+    if (parameter == "xi"){
+        return this->xi[ikernel].reshape({this->nx_tot});
+    }
+    if (parameter == "tanhxi"){
+        return this->tanhxi[ikernel].reshape({this->nx_tot});
+    }
+    if (parameter == "tanhxi_nl"){
+        return this->tanhxi_nl[ikernel].reshape({this->nx_tot});
+    }
+    if (parameter == "tanh_pnl"){
+        return this->tanh_pnl[ikernel].reshape({this->nx_tot});
+    }
+    if (parameter == "tanh_qnl"){
+        return this->tanh_qnl[ikernel].reshape({this->nx_tot});
+    }
+    if (parameter == "tanhp_nl"){
+        return this->tanhp_nl[ikernel].reshape({this->nx_tot});
+    }
+    if (parameter == "tanhq_nl"){
+        return this->tanhq_nl[ikernel].reshape({this->nx_tot});
+    }
     return torch::zeros({});
 }
 
@@ -139,8 +153,9 @@ void Data::init_data(const int nkernel, const int ndata, const int fftdim, const
     this->nx_tot = this->nx * ndata;
 
     this->rho = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-    if (this->load_p) { this->nablaRho = torch::zeros({ndata, 3, fftdim, fftdim, fftdim}).to(device);
-}
+    if (this->load_p){
+        this->nablaRho = torch::zeros({ndata, 3, fftdim, fftdim, fftdim}).to(device);
+    }
 
     this->enhancement = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
     this->enhancement_mean = torch::zeros(ndata).to(device);
@@ -148,16 +163,21 @@ void Data::init_data(const int nkernel, const int ndata, const int fftdim, const
     this->pauli = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
     this->pauli_mean = torch::zeros(ndata).to(device);
 
-    if (this->load_gamma) {   this->gamma = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-    if (this->load_p) {       this->p = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-    if (this->load_q) {       this->q = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-    if (this->load_tanhp) {   this->tanhp = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-    if (this->load_tanhq) {   this->tanhq = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
+    if (this->load_gamma){
+        this->gamma = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+    }
+    if (this->load_p){
+        this->p = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+    }
+    if (this->load_q){
+        this->q = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+    }
+    if (this->load_tanhp){
+        this->tanhp = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+    }
+    if (this->load_tanhq){
+        this->tanhq = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+    }
 
     for (int ik = 0; ik < nkernel; ++ik)
     {
@@ -172,26 +192,36 @@ void Data::init_data(const int nkernel, const int ndata, const int fftdim, const
         this->tanhp_nl.push_back(torch::zeros({}).to(device));
         this->tanhq_nl.push_back(torch::zeros({}).to(device));
 
-        if (this->load_gammanl[ik]) {   this->gammanl[ik]   = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-        if (this->load_pnl[ik]) {       this->pnl[ik]       = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-        if (this->load_qnl[ik]) {       this->qnl[ik]       = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-        if (this->load_xi[ik]) {        this->xi[ik]        = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-        if (this->load_tanhxi[ik]) {    this->tanhxi[ik]    = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-        if (this->load_tanhxi_nl[ik]) { this->tanhxi_nl[ik] = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-        if (this->load_tanh_pnl[ik]) {  this->tanh_pnl[ik]  = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-        if (this->load_tanh_qnl[ik]) {  this->tanh_qnl[ik]  = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-        if (this->load_tanhp_nl[ik]) {  this->tanhp_nl[ik]  = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
-        if (this->load_tanhq_nl[ik]) {  this->tanhq_nl[ik]  = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
-}
+        if (this->load_gammanl[ik]){
+            this->gammanl[ik]   = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+        }
+        if (this->load_pnl[ik]){
+            this->pnl[ik]       = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+        }
+        if (this->load_qnl[ik]){
+            this->qnl[ik]       = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+        }
+        if (this->load_xi[ik]){
+            this->xi[ik]        = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+        }
+        if (this->load_tanhxi[ik]){
+            this->tanhxi[ik]    = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+        }
+        if (this->load_tanhxi_nl[ik{
+            this->tanhxi_nl[ik] = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+        }
+        if (this->load_tanh_pnl[ik]){
+            this->tanh_pnl[ik]  = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+        }
+        if (this->load_tanh_qnl[ik]){
+            this->tanh_qnl[ik]  = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+        }
+        if (this->load_tanhp_nl[ik]){
+            this->tanhp_nl[ik]  = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+        }
+        if (this->load_tanhq_nl[ik]){
+            this->tanhq_nl[ik]  = torch::zeros({ndata, fftdim, fftdim, fftdim}).to(device);
+        }
     }
 
     // Input::print("init_data done");
@@ -205,9 +235,10 @@ void Data::load_data_(
 )
 {
     // Input::print("load_data");
-    if (ndata <= 0) { return;
-}
-    
+    if (ndata <= 0){ 
+        return;
+    }
+
     std::vector<long unsigned int> cshape = {(long unsigned) nx};
     std::vector<double> container(nx);
     bool fortran_order = false;
@@ -215,10 +246,10 @@ void Data::load_data_(
     for (int idata = 0; idata < ndata; ++idata)
     {
         this->loadTensor(dir[idata] + "/rho.npy", cshape, fortran_order, container, idata, fftdim, rho);
-        if (this->load_gamma) {   this->loadTensor(dir[idata] + "/gamma.npy", cshape, fortran_order, container, idata, fftdim, gamma);
-}
-        if (this->load_p)
-        {
+        if (this->load_gamma){
+            this->loadTensor(dir[idata] + "/gamma.npy", cshape, fortran_order, container, idata, fftdim, gamma);
+        }
+        if (this->load_p){
             this->loadTensor(dir[idata] + "/p.npy", cshape, fortran_order, container, idata, fftdim, p);
             npy::LoadArrayFromNumpy(dir[idata] + "/nablaRhox.npy", cshape, fortran_order, container);
             nablaRho[idata][0] = torch::tensor(container).reshape({fftdim, fftdim, fftdim});
@@ -227,12 +258,15 @@ void Data::load_data_(
             npy::LoadArrayFromNumpy(dir[idata] + "/nablaRhoz.npy", cshape, fortran_order, container);
             nablaRho[idata][2] = torch::tensor(container).reshape({fftdim, fftdim, fftdim});
         }
-        if (this->load_q) {       this->loadTensor(dir[idata] + "/q.npy", cshape, fortran_order, container, idata, fftdim, q);
-}
-        if (this->load_tanhp) {   this->loadTensor(dir[idata] + "/tanhp.npy", cshape, fortran_order, container, idata, fftdim, tanhp);
-}
-        if (this->load_tanhq) {   this->loadTensor(dir[idata] + "/tanhq.npy", cshape, fortran_order, container, idata, fftdim, tanhq);
-}
+        if (this->load_q){
+            this->loadTensor(dir[idata] + "/q.npy", cshape, fortran_order, container, idata, fftdim, q);
+        }
+        if (this->load_tanhp){
+            this->loadTensor(dir[idata] + "/tanhp.npy", cshape, fortran_order, container, idata, fftdim, tanhp);
+        }
+        if (this->load_tanhq){
+            this->loadTensor(dir[idata] + "/tanhq.npy", cshape, fortran_order, container, idata, fftdim, tanhq);
+        }
 
         for (int ik = 0; ik < input.nkernel; ++ik)
         {
@@ -305,8 +339,9 @@ void Data::loadTensor(
 void Data::dumpTensor(const torch::Tensor &data, std::string filename, int nx)
 {
     std::vector<double> v(nx);
-    for (int ir = 0; ir < nx; ++ir) { v[ir] = data[ir].item<double>();
-}
+    for (int ir = 0; ir < nx; ++ir){
+        v[ir] = data[ir].item<double>();
+    }
     // std::vector<double> v(data.data_ptr<float>(), data.data_ptr<float>() + data.numel()); // this works, but only supports float tensor
     const long unsigned cshape[] = {(long unsigned) nx}; // shape
     npy::SaveArrayAsNumpy(filename, false, 1, cshape, v);

@@ -29,12 +29,15 @@ void Grid::initGrid_(const int fftdim,
 
     for (int it = 0; it < ndata; ++it)
     {
-        if (cell[it] == "sc")
+        if (cell[it] == "sc"){
             this->initScRecipGrid(fftdim, a[it], it, device, volume, grid, gg);
-        else if (cell[it] == "fcc")
+        }
+        else if (cell[it] == "fcc"){
             this->initFccRecipGrid(fftdim, a[it], it, device, volume, grid, gg);
-        else if (cell[it] == "bcc")
+        }
+        else if (cell[it] == "bcc"){
             this->initBccRecipGrid(fftdim, a[it], it, device, volume, grid, gg);
+        }
     }
 }
 
