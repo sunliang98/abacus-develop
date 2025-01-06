@@ -177,11 +177,11 @@ void Kernel::read_kernel(const int fftdim,
                     eta = eta * this->scaling;
                     maxEta = std::max(eta, maxEta);
 
-                    if (eta <= eta_in[0])
+                    if (eta <= eta_in[0]) {
                         this->kernel[id][ix][iy][iz] = w0_in[0];
-                    else if (eta > maxEta_in)
+                    } else if (eta > maxEta_in) {
                         this->kernel[id][ix][iy][iz] = w0_in[nq_in-1];
-                    else
+                    } else
                     {
                         ind1 = 1;
                         ind2 = nq_in;
@@ -205,7 +205,8 @@ void Kernel::read_kernel(const int fftdim,
                 }
             }
         }
-        if (maxEta > maxEta_in) std::cout << "Please increase the maximal eta value in KEDF kernel file" << std::endl;
+        if (maxEta > maxEta_in) { std::cout << "Please increase the maximal eta value in KEDF kernel file" << std::endl;
+}
     }
 
 
