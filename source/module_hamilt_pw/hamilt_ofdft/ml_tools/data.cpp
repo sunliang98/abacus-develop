@@ -17,7 +17,8 @@ Data::~Data()
 
 void Data::load_data(Input &input, const int ndata, std::string *dir, const torch::Device device)
 {
-    if (ndata <= 0) return;
+    if (ndata <= 0) { return;
+}
     this->init_label(input);
     this->init_data(input.nkernel, ndata, input.fftdim, device);
     this->load_data_(input, ndata, input.fftdim, dir);
