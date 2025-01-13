@@ -325,17 +325,20 @@ void UnitCell::setup_cell(const std::string& fn, std::ofstream& log) {
     // Firstly, latvec must be read in.
     //========================================================
     assert(lat0 > 0.0);
-    this->omega = std::abs(latvec.Det()) * this->lat0 * lat0 * lat0;
-    if (this->omega <= 0) {
-        std::cout << "The volume is negative: " << this->omega << std::endl;
-        ModuleBase::WARNING_QUIT("setup_cell", "omega <= 0 .");
-    } else {
+    this->omega = latvec.Det() * this->lat0 * lat0 * lat0;
+    if (this->omega < 0)
+    {
+        ModuleBase::WARNING_QUIT("setup_cell", "The lattice vector is left-handed, please change it to right-handed.");
+    }
+    else if (this->omega == 0)
+    {
+        ModuleBase::WARNING_QUIT("setup_cell", "The volume is zero.");
+    }
+    else
+    {
         log << std::endl;
         ModuleBase::GlobalFunc::OUT(log, "Volume (Bohr^3)", this->omega);
-        ModuleBase::GlobalFunc::OUT(log,
-                                    "Volume (A^3)",
-                                    this->omega
-                                        * pow(ModuleBase::BOHR_TO_A, 3));
+        ModuleBase::GlobalFunc::OUT(log, "Volume (A^3)", this->omega * pow(ModuleBase::BOHR_TO_A, 3));
     }
 
     //==========================================================
