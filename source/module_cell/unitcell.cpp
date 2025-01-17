@@ -328,7 +328,13 @@ void UnitCell::setup_cell(const std::string& fn, std::ofstream& log) {
     this->omega = latvec.Det() * this->lat0 * lat0 * lat0;
     if (this->omega < 0)
     {
-        ModuleBase::WARNING_QUIT("setup_cell", "The lattice vector is left-handed, please change it to right-handed.");
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+        std::cout << " Warning: The lattice vector is left-handed; a right-handed vector is prefered." << std::endl;
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+        GlobalV::ofs_warning << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+        GlobalV::ofs_warning << " Warning: The lattice vector is left-handed; a right-handed vector is prefered." << std::endl;
+        GlobalV::ofs_warning << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+        this->omega = std::abs(this->omega);
     }
     else if (this->omega == 0)
     {
