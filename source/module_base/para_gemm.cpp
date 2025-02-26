@@ -140,7 +140,7 @@ void PGemmCN<T, Device>::multiply_single(const T alpha, const T* A, const T* B, 
 #else
     T real_beta = beta;
 #endif
-    ModuleBase::gemm_op<T, Device>()(ctx, 'C', 'N', ncolA, ncolB, nrow, &alpha, A, LDA, B, LDB, &real_beta, C, LDC);
+    ModuleBase::gemm_op<T, Device>()('C', 'N', ncolA, ncolB, nrow, &alpha, A, LDA, B, LDB, &real_beta, C, LDC);
 #ifdef __MPI
     if (this->row_nproc > 1)
     {
@@ -206,8 +206,7 @@ void PGemmCN<T, Device>::multiply_col(const T alpha, const T* A, const T* B, con
         T* C_start = C_local + shift;
         if (col_rank == ip)
         {
-            ModuleBase::gemm_op<T, Device>()(ctx,
-                                             'C',
+            ModuleBase::gemm_op<T, Device>()('C',
                                              'N',
                                              ncolA,
                                              ncolB,
@@ -229,8 +228,7 @@ void PGemmCN<T, Device>::multiply_col(const T alpha, const T* A, const T* B, con
             MPI_Status status;
             Parallel_Common::recv_dev<T, Device>(Atmp_device, size, ip, 0, col_world, &status, B_tmp.data());
             MPI_Wait(&requests[ip], &status);
-            ModuleBase::gemm_op<T, Device>()(ctx,
-                                             'C',
+            ModuleBase::gemm_op<T, Device>()('C',
                                              'N',
                                              m,
                                              ncolB,
@@ -334,8 +332,7 @@ void PGemmCN<T, Device>::multiply_row(const T alpha, const T* A, const T* B, con
         T* C_start = C + shift;
         if (col_rank == ip)
         {
-            ModuleBase::gemm_op<T, Device>()(ctx,
-                                             'C',
+            ModuleBase::gemm_op<T, Device>()('C',
                                              'N',
                                              ncolA,
                                              ncolB,
@@ -357,8 +354,7 @@ void PGemmCN<T, Device>::multiply_row(const T alpha, const T* A, const T* B, con
             MPI_Status status;
             Parallel_Common::recv_dev<T, Device>(Btmp_device, size, ip, 0, col_world, &status, B_tmp.data());
             MPI_Wait(&requests[ip], &status);
-            ModuleBase::gemm_op<T, Device>()(ctx,
-                                             'C',
+            ModuleBase::gemm_op<T, Device>()('C',
                                              'N',
                                              ncolA,
                                              m,

@@ -107,8 +107,7 @@ void PLinearTransform<T, Device>::act(const T alpha, const T* A, const T* U, con
 
             if (ip == rank_col)
             {
-                ModuleBase::gemm_op<T, Device>()(ctx,
-                                                 'N',
+                ModuleBase::gemm_op<T, Device>()('N',
                                                  'N',
                                                  nrowA,
                                                  ncolB,
@@ -128,8 +127,7 @@ void PLinearTransform<T, Device>::act(const T alpha, const T* A, const T* U, con
                 MPI_Status status;
                 Parallel_Common::recv_dev<T, Device>(A_tmp_device, size, ip, 0, col_world, &status, A_tmp.data());
                 MPI_Wait(&requests[ip], &status);
-                ModuleBase::gemm_op<T, Device>()(ctx,
-                                                 'N',
+                ModuleBase::gemm_op<T, Device>()('N',
                                                  'N',
                                                  nrowA,
                                                  ncolB,
@@ -145,7 +143,7 @@ void PLinearTransform<T, Device>::act(const T alpha, const T* A, const T* U, con
             }
             // sum all the results
             T one = 1.0;
-            ModuleBase::axpy_op<T, Device>()(ctx, ncolB * LDA, &one, B_tmp, 1, B, 1);
+            ModuleBase::axpy_op<T, Device>()(ncolB * LDA, &one, B_tmp, 1, B, 1);
         }
         delmem_dev_op()(U_tmp);
         delmem_dev_op()(B_tmp);
@@ -157,8 +155,7 @@ void PLinearTransform<T, Device>::act(const T alpha, const T* A, const T* U, con
     else
 #endif
     {
-        ModuleBase::gemm_op<T, Device>()(ctx,
-                                         'N',
+        ModuleBase::gemm_op<T, Device>()('N',
                                          'N',
                                          nrowA,
                                          ncolB,
