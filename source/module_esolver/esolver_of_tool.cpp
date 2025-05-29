@@ -410,8 +410,8 @@ void ESolver_OF::print_info(const bool conv_esolver)
         = (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - this->iter_time)).count()
           / static_cast<double>(1e6);
 #endif
-    std::cout << " " << std::setw(8) << iteration << std::setw(18) << std::scientific << std::setprecision(8)
-              << this->energy_current_ * ModuleBase::Ry_to_eV
+    std::cout << " " << std::setw(8) << iteration
+              << std::setw(18) << std::scientific << std::setprecision(8) << this->energy_current_ * ModuleBase::Ry_to_eV
               << std::setw(18) << (this->energy_current_ - this->energy_last_) * ModuleBase::Ry_to_eV
               << std::setw(13) << std::setprecision(4) << this->pelec->eferm.get_efval(0) * ModuleBase::Ry_to_eV
               << std::setw(13) << std::setprecision(4) << this->normdLdphi_

@@ -1,12 +1,6 @@
 #ifndef ESOLVER_KS_H
 #define ESOLVER_KS_H
 
-#ifdef __MPI
-#include <mpi.h>
-#else
-#include <chrono>
-#endif
-
 #include <cstring>
 //#include <fstream>
 

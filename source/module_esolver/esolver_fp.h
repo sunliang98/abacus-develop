@@ -3,6 +3,10 @@
 
 #include "esolver.h"
 
+#ifndef __MPI
+#include <chrono>
+#endif
+
 //! plane wave basis
 #include "module_basis/module_pw/pw_basis.h"
 
