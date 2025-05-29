@@ -98,6 +98,12 @@ class ESolver_FP: public ESolver
 
     int pw_rho_flag  = false; ///< flag for pw_rho, 0: not initialized, 1: initialized
 
+    //! the start time of scf iteration
+    #ifdef __MPI
+        double iter_time;
+    #else
+        std::chrono::system_clock::time_point iter_time;
+    #endif
 };
 } // namespace ModuleESolver
 
