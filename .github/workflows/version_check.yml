@@ -1,4 +1,4 @@
-name: Version Lock Check
+name: Version Check
 on:
   release:
     types: [published]
