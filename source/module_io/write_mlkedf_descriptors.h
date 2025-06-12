@@ -48,9 +48,6 @@ public:
         std::vector<std::vector<double>> &nablaRho
     );
 
-    void loadVector(std::string filename, std::vector<double> &data);
-    void dumpVector(std::string filename, const std::vector<double> &data);
-
     std::string file_name(
         const std::string& out_dir,
         std::string parameter,

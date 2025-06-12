@@ -175,19 +175,6 @@ void Write_MLKEDF_Descriptors::generate_descriptor(
     }
 }
 
-void Write_MLKEDF_Descriptors::loadVector(std::string filename, std::vector<double> &data)
-{
-    std::vector<long unsigned int> cshape = {(long unsigned) this->cal_tool->nx};
-    bool fortran_order = false;
-    npy::LoadArrayFromNumpy(filename, cshape, fortran_order, data);
-}
-
-void Write_MLKEDF_Descriptors::dumpVector(std::string filename, const std::vector<double> &data)
-{
-    const long unsigned cshape[] = {(long unsigned) this->cal_tool->nx}; // shape
-    npy::SaveArrayAsNumpy(filename, false, 1, cshape, data);
-}
-
 std::string Write_MLKEDF_Descriptors::file_name(
     const std::string& out_dir,
     std::string parameter,

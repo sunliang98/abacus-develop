@@ -6,6 +6,9 @@
 #include "module_hamilt_pw/hamilt_pwdft/global.h"
 #include "module_parameter/parameter.h"
 
+namespace ModuleIO
+{
+
 /**
  * @brief A class to calculate the descriptors for ML KEDF.
  * Sun, Liang, and Mohan Chen. Physical Review B 109.11 (2024): 115135.
@@ -100,5 +103,7 @@ public:
     std::vector<std::string> kernel_file = {"none"};
     std::vector<std::vector<double>> kernel = {}; // kernel[ikernel][ipw] = kernel value for ikernel and ipw
 };
+
+} // namespace ModuleIO
 
 #endif

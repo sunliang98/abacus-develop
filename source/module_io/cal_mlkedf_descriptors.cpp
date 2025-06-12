@@ -1,5 +1,8 @@
 #include "cal_mlkedf_descriptors.h"
 
+namespace ModuleIO
+{
+
 void Cal_MLKEDF_Descriptors::set_para(
     const int &nx,
     const double &nelec, 
@@ -131,7 +134,7 @@ void Cal_MLKEDF_Descriptors::read_kernel(const std::string &fileName, const doub
     std::ifstream ifs(fileName.c_str(), std::ios::in);
 
     GlobalV::ofs_running << "Read WT kernel from " << fileName << std::endl;
-    if (!ifs) ModuleBase::WARNING_QUIT("ml_data.cpp", "The kernel file not found");
+    if (!ifs) ModuleBase::WARNING_QUIT("cal_mlkedf_descriptors.cpp", "The kernel file not found");
 
     int kineType = 0;
     double kF_in = 0.;
@@ -512,4 +515,6 @@ void Cal_MLKEDF_Descriptors::getNablaRho(const double * const *prho, ModulePW::P
 
     delete[] recipRho;
     delete[] recipNablaRho;
+}
+
 }
