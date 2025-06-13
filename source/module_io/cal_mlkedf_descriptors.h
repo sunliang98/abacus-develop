@@ -1,25 +1,24 @@
-#ifndef ML_DATA_H
-#define ML_DATA_H
-
-#ifdef __MLALGO
+#ifndef CAL_MLKEDF_DESCRIPTORS_H
+#define CAL_MLKEDF_DESCRIPTORS_H
 
 #include <vector>
-#include "kedf_wt.h"
-#include "kedf_tf.h"
-#include "module_elecstate/elecstate_pw.h"
 #include "module_base/global_function.h"
 #include "module_hamilt_pw/hamilt_pwdft/global.h"
 #include "module_parameter/parameter.h"
 
-class ML_data{
+namespace ModuleIO
+{
+
+/**
+ * @brief A class to calculate the descriptors for ML KEDF.
+ * Sun, Liang, and Mohan Chen. Physical Review B 109.11 (2024): 115135.
+ * Sun, Liang, and Mohan Chen. Electronic Structure 6.4 (2024): 045006.
+ * @author sunliang on 2025-06-12
+ */
+class Cal_MLKEDF_Descriptors
+{
 public:
-    ~ML_data()
-    {
-        for (int ik = 0; ik < this->nkernel; ++ik)
-        {
-            delete[] this->kernel[ik];
-        }
-    }
+    ~Cal_MLKEDF_Descriptors() {}
 
     void set_para(
         const int &nx,
@@ -38,35 +37,6 @@ public:
         const std::vector<std::string> &kernel_file,
         const double &omega,
         ModulePW::PW_Basis *pw_rho);
-    // output all parameters
-    void generateTrainData_WT(
-        const double * const *prho, 
-        KEDF_WT &wt, 
-        KEDF_TF &tf, 
-        ModulePW::PW_Basis *pw_rho,
-        const double *veff
-    );
-    void generateTrainData_KS(
-        psi::Psi<std::complex<double>> *psi,
-        elecstate::ElecState *pelec,
-        ModulePW::PW_Basis_K *pw_psi,
-        ModulePW::PW_Basis *pw_rho,
-        UnitCell& ucell,
-        const double *veff
-    );
-    void generateTrainData_KS(
-        psi::Psi<std::complex<float>> *psi,
-        elecstate::ElecState *pelec,
-        ModulePW::PW_Basis_K *pw_psi,
-        ModulePW::PW_Basis *pw_rho,
-        UnitCell& ucell,
-        const double *veff
-    ){} // a mock function
-    void generate_descriptor(
-        const double * const *prho, 
-        ModulePW::PW_Basis *pw_rho,
-        std::vector<std::vector<double>> &nablaRho
-    );
     // get input parameters
     void getGamma(const double * const *prho, std::vector<double> &rgamma);
     void getP(const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<std::vector<double>> &pnablaRho, std::vector<double> &rp);
@@ -85,26 +55,14 @@ public:
     void getTanhQ_nl(const int ikernel, std::vector<double> &ptanhq, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhq_nl);
     // 2023-03-20
     void getTanhXi_nl(const int ikernel, std::vector<double> &ptanhxi, ModulePW::PW_Basis *pw_rho, std::vector<double> &rtanhxi_nl);
-    // get target
-    void getF_WT(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho,std::vector<double> &rF);
-    void getPauli_WT(KEDF_WT &wt, KEDF_TF &tf, const double * const *prho, ModulePW::PW_Basis *pw_rho, std::vector<double> &rpauli);
 
-    void getF_KS1(
+    void getF_KS(
         psi::Psi<std::complex<double>> *psi,
         elecstate::ElecState *pelec,
         ModulePW::PW_Basis_K *pw_psi,
         ModulePW::PW_Basis *pw_rho,
         UnitCell& ucell,
         const std::vector<std::vector<double>> &nablaRho,
-        std::vector<double> &rF,
-        std::vector<double> &rpauli
-    );
-    void getF_KS2(
-        psi::Psi<std::complex<double>> *psi,
-        elecstate::ElecState *pelec,
-        ModulePW::PW_Basis_K *pw_psi,
-        ModulePW::PW_Basis *pw_rho,
-        UnitCell& ucell,
         std::vector<double> &rF,
         std::vector<double> &rpauli
     );
@@ -118,9 +76,6 @@ public:
     void multiKernel(const int ikernel, double *pinput, ModulePW::PW_Basis *pw_rho, double *routput);
     void Laplacian(double * pinput, ModulePW::PW_Basis *pw_rho, double * routput);
     void divergence(double ** pinput, ModulePW::PW_Basis *pw_rho, double * routput);
-    // void dumpTensor(const torch::Tensor &data, std::string filename);
-    void loadVector(std::string filename, std::vector<double> &data);
-    void dumpVector(std::string filename, const std::vector<double> &data);
 
     void tanh(std::vector<double> &pinput, std::vector<double> &routput, double chi=1.);
     double dtanh(double tanhx, double chi=1.);
@@ -146,10 +101,9 @@ public:
     std::vector<double> kernel_scaling = {1.0};
     std::vector<double> yukawa_alpha = {1.0};
     std::vector<std::string> kernel_file = {"none"};
-    double **kernel = nullptr;
-
-    std::string file_name(std::string parameter, const int kernel_type, const double kernel_scaling);
+    std::vector<std::vector<double>> kernel = {}; // kernel[ikernel][ipw] = kernel value for ikernel and ipw
 };
 
-#endif
+} // namespace ModuleIO
+
 #endif

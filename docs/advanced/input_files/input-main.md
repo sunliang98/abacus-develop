@@ -2378,8 +2378,29 @@ Warning: this function is not robust enough for the current version. Please try 
 ### of_ml_gene_data
 
 - **Type**: Boolean
-- **Availability**: OFDFT
-- **Description**: Generate training data or not.
+- **Availability**: Used only for KSDFT with plane wave basis
+- **Description**: Controls the generation of machine learning training data. When enabled, training data in `.npy` format will be saved in the directory `OUT.${suffix}/MLKEDF_Descriptors/`. The generated descriptors are categorized as follows:
+  - Local/Semilocal Descriptors. Files are named as `{var}.npy`, where `{var}` corresponds to the descriptor type:
+    - `gamma`: Enabled by [of_ml_gamma](#of_ml_gamma)  
+    - `p`: Enabled by [of_ml_p](#of_ml_p)  
+    - `q`: Enabled by [of_ml_q](#of_ml_q)  
+    - `tanhp`: Enabled by [of_ml_tanhp](#of_ml_tanhp)  
+    - `tanhq`: Enabled by [of_ml_tanhq](#of_ml_tanhq)  
+  - Nonlocal Descriptors generated using kernels configured via [of_ml_nkernel](#of_ml_nkernel), [of_ml_kernel](#of_ml_kernel), and [of_ml_kernel_scaling](#of_ml_kernel_scaling). Files follow the naming convention `{var}_{kernel_type}_{kernel_scaling}.npy`, where `{kernel_type}` and `{kernel_scaling}` are specified by [of_ml_kernel](#of_ml_kernel), and [of_ml_kernel_scaling](#of_ml_kernel_scaling), respectively, and `{val}` denotes the kind of the descriptor, including 
+      - `gammanl`: Enabled by [of_ml_gammanl](#of_ml_gammanl)  
+      - `pnl`: Enabled by [of_ml_pnl](#of_ml_pnl)  
+      - `qnl`: Enabled by [of_ml_qnl](#of_ml_qnl)  
+      - `xi`: Enabled by [of_ml_xi](#of_ml_xi)  
+      - `tanhxi`: Enabled by [of_ml_tanhxi](#of_ml_tanhxi)  
+      - `tanhxi_nl`: Enabled by [of_ml_tanhxi_nl](#of_ml_tanhxi_nl)  
+      - `tanh_pnl`: Enabled by [of_ml_tanh_pnl](#of_ml_tanh_pnl)  
+      - `tanh_qnl`: Enabled by [of_ml_tanh_qnl](#of_ml_tanh_qnl)  
+      - `tanhp_nl`: Enabled by [of_ml_tanhp_nl](#of_ml_tanhp_nl)  
+      - `tanhq_nl`: Enabled by [of_ml_tanhq_nl](#of_ml_tanhq_nl) 
+  - Training Targets, including key quantum mechanical quantities:
+    - `enhancement.npy`: Pauli energy enhancement factor $T_\theta/T_{\rm{TF}}$, where $T_{\rm{TF}}$ is the Thomas-Fermi functional  
+    - `pauli.npy`: Pauli potential $V_\theta$
+    - `veff.npy`: Effective potential
 - **Default**: False
 
 ### of_ml_device
