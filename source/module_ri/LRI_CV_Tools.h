@@ -6,8 +6,9 @@
 #ifndef LRI_CV_TOOLS_H
 #define LRI_CV_TOOLS_H
 
+
 #include "abfs.h"
-#include "module_base/abfs-vector3_order.h"
+#include "source_base/abfs-vector3_order.h"
 #include "module_ri/abfs.h"
 
 #include <RI/global/Array_Operator.h>
