@@ -242,18 +242,18 @@ void kvec_mpi_k(K_Vectors& kv)
     kv.nks = kv.para_k.nks_pool[GlobalV::MY_POOL];
 
     GlobalV::ofs_running << std::endl;
-    ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "k-point number in this process", kv.nks);
+    ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "Number of k-points in this process", kv.nks);
     int nks_minimum = kv.nks;
 
     Parallel_Reduce::gather_min_int_all(GlobalV::NPROC, nks_minimum);
 
     if (nks_minimum == 0)
     {
-        ModuleBase::WARNING_QUIT("K_Vectors::mpi_k()", " nks == 0, some processor have no k point!");
+        ModuleBase::WARNING_QUIT("K_Vectors::mpi_k()", " nks == 0, some processor have no k points!");
     }
     else
     {
-        ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "minimum distributed K point number", nks_minimum);
+        ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "Minimum distributed k-point number", nks_minimum);
     }
 
     std::vector<int> isk_aux(kv.nkstot);
@@ -421,10 +421,9 @@ void kvec_ibz_kpoint(K_Vectors& kv,
                           ucell.atoms,
                           false,
                           nullptr);
-        GlobalV::ofs_running << "\n For reciprocal-space lattice:" << std::endl;
-        ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "BRAVAIS TYPE", recip_brav_type);
-        ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "BRAVAIS LATTICE NAME", recip_brav_name);
-        ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "ibrav", recip_brav_type);
+        GlobalV::ofs_running << "\n For reciprocal-space lattice" << std::endl;
+        ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "Bravais lattice type", recip_brav_type);
+        ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "Bravais lattice name", recip_brav_name);
 
         // the map of bravis lattice from real to reciprocal space
         // for example, 3(fcc) in real space matches 2(bcc) in reciprocal space
@@ -466,10 +465,9 @@ void kvec_ibz_kpoint(K_Vectors& kv,
                               ucell.atoms,
                               false,
                               nullptr);
-            GlobalV::ofs_running << "\n For k vectors:" << std::endl;
-            ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "BRAVAIS TYPE", k_brav_type);
-            ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "BRAVAIS LATTICE NAME", k_brav_name);
-            ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "ibrav", k_brav_type);
+            GlobalV::ofs_running << "\n For k-vectors" << std::endl;
+            ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "Bravais lattice type", k_brav_type);
+            ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "Bravais lattice name", k_brav_name);
         }
         // point-group analysis of reciprocal lattice
         ModuleBase::Matrix3 bsymop[48];
@@ -543,7 +541,7 @@ void kvec_ibz_kpoint(K_Vectors& kv,
             nrotkm = 2 * symm.nrotk;
         }
     }
-    else if (kv.get_is_mp()) // only include for mp grid
+    else if (kv.get_is_mp()) // only include for Monkhorst-Pack grid
     {
         nrotkm = 2;
         kgmatrix[0] = ind;
@@ -780,10 +778,10 @@ void kvec_ibz_kpoint(K_Vectors& kv,
     }
     ss << table << std::endl;
     skpt = ss.str();
-    ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "nkstot_ibz", nkstot_ibz);
+    ModuleBase::GlobalFunc::OUT(GlobalV::ofs_running, "Number of irreducible k-points", nkstot_ibz);
 
     table.clear();
-    table += "\n K-POINTS REDUCTION ACCORDING TO SYMMETRY:\n";
+    table += "\n K-POINTS REDUCTION ACCORDING TO SYMMETRY\n";
     table += FmtCore::format("%8s%12s%12s%12s%8s%8s\n", "IBZ", "DIRECT_X", "DIRECT_Y", "DIRECT_Z", "WEIGHT", "ibz2bz");
     for (int ik = 0; ik < nkstot_ibz; ik++)
     {

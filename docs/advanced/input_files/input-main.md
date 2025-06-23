@@ -86,7 +86,6 @@
     - [mixing\_tau](#mixing_tau)
     - [mixing\_dftu](#mixing_dftu)
     - [gamma\_only](#gamma_only)
-    - [printe](#printe)
     - [scf\_nmax](#scf_nmax)
     - [scf\_thr](#scf_thr)
     - [scf\_ene\_thr](#scf_ene_thr)
@@ -1253,12 +1252,6 @@ Note: In new angle mixing, you should set `mixing_beta_mag >> mixing_beta`. The 
 
 - **Default**: 0
 
-### printe
-
-- **Type**: Integer
-- **Description**: Print out energy for each band for every printe step
-- **Default**: `scf_nmax`
-
 ### scf_nmax
 
 - **Type**: Integer
@@ -1772,7 +1765,7 @@ These variables are used to control the output of properties.
 ### out_band
 
 - **Type**: Boolean \[Integer\](optional)
-- **Description**: Whether to output the eigenvalues of Hamiltonian matrix (in eV), optionally output precision can be set by a second parameter, default is 8. The output file names are:
+- **Description**: Whether to output the eigenvalues of the Hamiltonian matrix (in eV) into the running log during electronic iterations and into a file at the end of calculations. The former can be used with the 'out_freq_elec' parameter while the latter option allows the output precision to be set via a second parameter, with a default value of 8. The output file names are:
     - nspin = 1 or 4: `eigs1.txt`;
     - nspin = 2: `eigs1.txt` and `eigs2.txt`;
     - For more information, refer to the [band.md](../elec_properties/band.md)
@@ -1864,7 +1857,7 @@ These variables are used to control the output of properties.
 
 - **Type**: Boolean
 - **Availability**: Numerical atomic orbital basis (not gamma-only algorithm)
-- **Description**: Generate files containing the kinetic energy matrix $T(R)$. The format will be the same as the Hamiltonian matrix $H(R)$ and overlap matrix $S(R)$ as mentioned in [out_mat_hs2](#out_mat_hs2). The name of the files will be `trs1.csr` and so on. Also controled by [out_interval](#out_interval) and [out_app_flag](#out_app_flag).
+- **Description**: Generate files containing the kinetic energy matrix $T(R)$. The format will be the same as the Hamiltonian matrix $H(R)$ and overlap matrix $S(R)$ as mentioned in [out_mat_hs2](#out_mat_hs2). The name of the files will be `trs1_nao.csr` and so on. Also controled by [out_interval](#out_interval) and [out_app_flag](#out_app_flag).
 - **Default**: False
 - **Unit**: Ry
 - **Note**: In the 3.10-LTS version, the file name is data-TR-sparse_SPIN0.csr. 
@@ -1873,7 +1866,7 @@ These variables are used to control the output of properties.
 
 - **Type**: Boolean
 - **Availability**: Numerical atomic orbital basis (not gamma-only algorithm)
-- **Description**: Whether to print files containing the derivatives of the Hamiltonian matrix. The format will be the same as the Hamiltonian matrix $H(R)$ and overlap matrix $S(R)$ as mentioned in [out_mat_hs2](#out_mat_hs2). The name of the files will be `dhrxs1.csr` and so on. Also controled by [out_interval](#out_interval) and [out_app_flag](#out_app_flag).
+- **Description**: Whether to print files containing the derivatives of the Hamiltonian matrix. The format will be the same as the Hamiltonian matrix $H(R)$ and overlap matrix $S(R)$ as mentioned in [out_mat_hs2](#out_mat_hs2). The name of the files will be `dhrxs1_nao.csr`, `dhrys1_nao.csr`, `dhrzs1_nao.csr` and so on. Also controled by [out_interval](#out_interval) and [out_app_flag](#out_app_flag).
 - **Default**: False
 - **Unit**: Ry/Bohr
 - **Note**: In the 3.10-LTS version, the file name is data-dHRx-sparse_SPIN0.csr and so on.
