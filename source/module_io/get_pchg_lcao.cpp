@@ -3,6 +3,7 @@
 #include "module_io/cube_io.h"
 #include "source_estate/module_charge/symmetry_rho.h"
 #include "source_estate/module_dm/cal_dm_psi.h"
+#include "module_hamilt_lcao/module_gint/temp_gint/gint_interface.h"
 
 Get_pchg_lcao::Get_pchg_lcao(psi::Psi<double>* psi_gamma_in, const Parallel_Orbitals* ParaV_in)
     : psi_gamma(psi_gamma_in), ParaV(ParaV_in)
@@ -69,10 +70,14 @@ void Get_pchg_lcao::begin(Gint_Gamma& gg,
 
             DM.init_DMR(GridD_in, ucell_in);
             DM.cal_DMR();
+#ifdef __OLD_GINT
             gg.initialize_pvpR(*ucell_in, GridD_in, nspin);
             gg.transfer_DM2DtoGrid(DM.get_DMR_vector());
             Gint_inout inout(rho, Gint_Tools::job_type::rho, nspin);
             gg.cal_gint(&inout);
+#else
+            ModuleGint::cal_gint_rho(DM.get_DMR_vector(), nspin, rho);
+#endif
 
             // A solution to replace the original implementation of the following code:
             // pelec->charge->save_rho_before_sum_band();
@@ -164,10 +169,15 @@ void Get_pchg_lcao::begin(Gint_k& gk,
 
                     DM.init_DMR(GridD_in, ucell_in);
                     DM.cal_DMR(ik);
+#ifdef __OLD_GINT
                     gk.initialize_pvpR(*ucell_in, GridD_in, nspin);
                     gk.transfer_DM2DtoGrid(DM.get_DMR_vector());
                     Gint_inout inout(rho, Gint_Tools::job_type::rho, nspin);
                     gk.cal_gint(&inout);
+#else
+                    ModuleGint::cal_gint_rho(DM.get_DMR_vector(), nspin, rho);
+#endif
+                
 
                     // Using std::vector to replace the original double** rho_save
                     std::vector<std::vector<double>> rho_save(nspin, std::vector<double>(rhopw_nrxx));
@@ -206,11 +216,14 @@ void Get_pchg_lcao::begin(Gint_k& gk,
 
                 DM.init_DMR(GridD_in, ucell_in);
                 DM.cal_DMR();
+#ifdef __OLD_GINT
                 gk.initialize_pvpR(*ucell_in, GridD_in, nspin);
                 gk.transfer_DM2DtoGrid(DM.get_DMR_vector());
                 Gint_inout inout(rho, Gint_Tools::job_type::rho, nspin);
                 gk.cal_gint(&inout);
-
+#else
+                ModuleGint::cal_gint_rho(DM.get_DMR_vector(), nspin, rho);
+#endif
                 // Using std::vector to replace the original double** rho_save
                 std::vector<std::vector<double>> rho_save(nspin, std::vector<double>(rhopw_nrxx));
 

@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 #include <utility>
-#include <module_hamilt_lcao/module_hcontainer/hcontainer.h>
+#include "module_hamilt_lcao/module_hcontainer/hcontainer.h"
 #include "big_grid.h"
 
 namespace ModuleGint
@@ -28,8 +28,8 @@ class PhiOperator
     void set_bgrid(std::shared_ptr<const BigGrid> biggrid);
 
     // getter
-    int get_rows() const {return rows_;};
-    int get_cols() const {return cols_;};
+    int get_rows() const {return rows_;}
+    int get_cols() const {return cols_;}
 
     // get phi of the big grid
     // the dimension of phi is num_mgrids * (\sum_{i=0}^{atoms_->size()} atoms_[i]->nw)
@@ -93,6 +93,24 @@ class PhiOperator
         const double* dphi_z,
         ModuleBase::matrix *svl) const;
 
+    void cal_env_gamma(
+        const double* phi,
+        const double* wfc,
+        const vector<int>& trace_lo,
+        double* rho) const;
+    
+    void cal_env_k(
+        const double* phi,
+        const std::complex<double>* wfc,
+        const vector<int>& trace_lo,
+        const int ik,
+        const int nspin,
+        const int npol,
+        const int lgd,
+        const std::vector<Vec3d>& kvec_c,
+        const std::vector<Vec3d>& kvec_d,
+        double* rho) const;
+
     private:
     void init_atom_pair_start_end_idx_();
 
@@ -103,14 +121,19 @@ class PhiOperator
         int x = std::min(a, b);
         int y = std::abs(a - b);
         return atom_pair_start_end_idx_[(2 * biggrid_->get_atoms_num() - x + 1) * x / 2 + y];
-    };
+    }
+
+    bool is_atom_on_mgrid(int atom_idx, int mgrid_idx) const
+    {
+        return is_atom_on_mgrid_[atom_idx * rows_ + mgrid_idx];
+    }
 
     // the row number of the phi matrix
     // rows_ = biggrid_->get_mgrids_num()
     int rows_;
 
     // the column number of the phi matrix
-    // cols_ = biggrid_->get_mgrid_phi_len()
+    // cols_ = biggrid_->get_phi_len()
     int cols_;
 
     // the local index of the meshgrids
@@ -124,9 +147,8 @@ class PhiOperator
     std::vector<std::vector<Vec3d>> atoms_relative_coords_;
 
     // record whether the atom affects the meshgrid
-    // is_atom_on_mgrid_[i][j] = true if the ith atom affects the jth meshgrid, otherwise false
-    // FIXME,std::vector<std::vector<bool>> is not a efficient data structure, we can use a 1D array to replace it.
-    std::vector<std::vector<bool>> is_atom_on_mgrid_;
+    // is_atom_on_mgrid_[i * rows_ + j] = true if the ith atom affects jhe ith meshgrid, otherwise false
+    std::vector<bool> is_atom_on_mgrid_;
 
     // the start index of the phi of each atom
     std::vector<int> atoms_startidx_;

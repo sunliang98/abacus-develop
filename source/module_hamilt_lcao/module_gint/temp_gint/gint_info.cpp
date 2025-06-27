@@ -41,25 +41,38 @@ GintInfo::GintInfo(
         biggrids_.push_back(std::make_shared<BigGrid>(i));
     }
 
-    // initialize the atoms
+    // initialize the atoms and the numerical orbital
     init_atoms_(ucell_->ntype, ucell_->atoms, Phi);
+
+    // initialize trace_lo_ and lgd_
+    init_trace_lo_(ucell, PARAM.inp.nspin);
 
     // initialize the ijr_info
     // this step needs to be done after init_atoms_, because it requires the information of is_atom_on_bgrid
     init_ijr_info_(ucell, gd);
+
+    #ifdef __CUDA
+    if(PARAM.inp.device == "gpu")
+    {
+        streams_num_ = PARAM.inp.nstream;  // the default value of num_stream is 4
+        const int batch_size = nbz_local;
+        init_bgrid_batches_(batch_size);
+        gpu_vars_ = std::make_shared<GintGpuVars>(biggrid_info_, ucell, Phi);
+    }
+    #endif
 }
 
 template <typename T>
-std::shared_ptr<HContainer<T>> GintInfo::get_hr(int npol) const
+HContainer<T> GintInfo::get_hr(int npol) const
 {
-    auto p_hr = std::make_shared<HContainer<T>>(ucell_->nat);
+    auto hr = HContainer<T>(ucell_->nat);
     if(PARAM.inp.gamma_only)
     {
-        p_hr->fix_gamma();
+        hr.fix_gamma();
     }
-    p_hr->insert_ijrs(&ijr_info_, *ucell_, npol);
-    p_hr->allocate(nullptr, true);
-    return p_hr;
+    hr.insert_ijrs(&ijr_info_, *ucell_, npol);
+    hr.allocate(nullptr, true);
+    return hr;
 }
 
 void GintInfo::init_atoms_(int ntype, const Atom* atoms, const Numerical_Orbital* Phi)
@@ -68,12 +81,14 @@ void GintInfo::init_atoms_(int ntype, const Atom* atoms, const Numerical_Orbital
     int iat = 0;
     is_atom_in_proc_.resize(ucell_->nat, false);
     atoms_.resize(ucell_->nat);
+    orbs_.resize(ntype);
 
 // TODO: USE OPENMP TO PARALLELIZE THIS LOOP
     for(int i = 0; i < ntype; i++)
     {
         const auto& atom = atoms[i];
-        const auto *orb = &Phi[i];
+        orbs_[i] = Phi[i];
+        const auto *orb = &orbs_[i];
 
         // rcut extends to the maximum big grids in x, y, z directions
         Vec3i ext_bgrid = biggrid_info_->max_ext_bgrid_num(atom.Rcut);
@@ -124,7 +139,7 @@ void GintInfo::init_atoms_(int ntype, const Atom* atoms, const Numerical_Orbital
                                                      atom_bgrid_idx.y - ucell_idx_bgrid.y * unitcell_info_->get_nby(),
                                                      atom_bgrid_idx.z - ucell_idx_bgrid.z * unitcell_info_->get_nbz());
                             r_to_atom.insert(std::make_pair(ucell_idx_relative, 
-                                GintAtom(&atom, j, iat, ext_atom_bgrid_idx, ucell_idx_relative, tau_in_biggrid, orb)));
+                                GintAtom(&atom, i, j, iat, ext_atom_bgrid_idx, ucell_idx_relative, tau_in_biggrid, orb, ucell_)));
                         }
                         if(biggrids_[bgrid_local_idx]->is_atom_on_bgrid(&r_to_atom.at(ucell_idx_relative)))
                         {
@@ -138,6 +153,47 @@ void GintInfo::init_atoms_(int ntype, const Atom* atoms, const Numerical_Orbital
         }
     }
     ModuleBase::timer::tick("GintInfo", "init_atoms");
+}
+
+void GintInfo::init_trace_lo_(const UnitCell& ucell, const int nspin)
+{
+    this->trace_lo_ = std::vector<int>(PARAM.globalv.nlocal, -1);
+    this->lgd_ = 0;
+    int iat = 0;
+    int iw_all = 0;
+    int iw_local = 0;
+    for (int it = 0; it < ucell.ntype; it++)
+    {
+        for (int ia = 0; ia < ucell.atoms[it].na; ia++)
+        {
+            if (is_atom_in_proc_[iat]) 
+            {
+                int nw0 = ucell.atoms[it].nw;
+                if (nspin== 4)
+                { // added by zhengdy-soc, need to be double in soc
+                    nw0 *= 2;
+                    this->lgd_ += nw0;
+                } else {
+                    this->lgd_ += nw0;
+                }
+
+                for (int iw = 0; iw < nw0; iw++)
+                {
+                    this->trace_lo_[iw_all] = iw_local;
+                    ++iw_local;
+                    ++iw_all;
+                }
+            } else {
+                // global index of atomic orbitals
+                iw_all += ucell.atoms[it].nw;
+                if (nspin == 4)
+                {
+                    iw_all += ucell.atoms[it].nw;
+                }
+            }
+            ++iat;
+        }
+    }
 }
 
 void GintInfo::init_ijr_info_(const UnitCell& ucell, Grid_Driver& gd)
@@ -207,6 +263,22 @@ void GintInfo::init_ijr_info_(const UnitCell& ucell, Grid_Driver& gd)
     return;
 }
 
-template std::shared_ptr<HContainer<double>> GintInfo::get_hr<double>(int npol) const;
-template std::shared_ptr<HContainer<std::complex<double>>> GintInfo::get_hr<std::complex<double>>(int npol) const;
+#ifdef __CUDA
+void GintInfo::init_bgrid_batches_(int batch_size)
+{
+    for (int i = 0; i < biggrids_.size(); i += batch_size)
+    {
+        std::vector<std::shared_ptr<BigGrid>> bgrid_vec;
+        for(int j = i; j < i + batch_size && j < biggrids_.size(); j++)
+        {
+            bgrid_vec.push_back(biggrids_[j]);
+        }
+        auto bgrid_batch = std::make_shared<BatchBigGrid>(bgrid_vec);
+        bgrid_batches_.push_back(bgrid_batch);
+    }
+}
+#endif
+
+template HContainer<double> GintInfo::get_hr<double>(int npol) const;
+template HContainer<std::complex<double>> GintInfo::get_hr<std::complex<double>>(int npol) const;
 }

@@ -13,6 +13,11 @@
 #include "localcell_info.h"
 #include "divide_info.h"
 
+#ifdef __CUDA
+#include "batch_biggrid.h"
+#include "module_hamilt_lcao/module_gint/temp_gint/kernel/gint_gpu_vars.h"
+#endif
+
 namespace ModuleGint
 {
 
@@ -29,19 +34,25 @@ class GintInfo
         const UnitCell& ucell, Grid_Driver& gd);
 
     // getter functions
-    std::vector<std::shared_ptr<BigGrid>> get_biggrids() const { return biggrids_; };
-    double get_local_mgrid_num() const { return localcell_info_->get_mgrids_num(); };
-    double get_mgrid_volume() const { return meshgrid_info_->get_volume(); };
+    const std::vector<std::shared_ptr<BigGrid>>& get_biggrids() { return biggrids_; }
+    const std::vector<int>& get_trace_lo() const{ return trace_lo_; }
+    int get_lgd() const { return lgd_; }
+    int get_nat() const { return ucell_->nat; }        // return the number of atoms in the unitcell
+    int get_local_mgrid_num() const { return localcell_info_->get_mgrids_num(); }
+    double get_mgrid_volume() const { return meshgrid_info_->get_volume(); }
 
     //=========================================
     // functions about hcontainer
     //=========================================
     template <typename T>
-    std::shared_ptr<HContainer<T>> get_hr(int npol = 1) const;
+    HContainer<T> get_hr(int npol = 1) const;
     
     private:
     // initialize the atoms
     void init_atoms_(int ntype, const Atom* atoms, const Numerical_Orbital* Phi);
+
+    // initialize trace_lo_ and lgd_
+    void init_trace_lo_(const UnitCell& ucell, const int nspin);
 
     // initialize the ijr_info
     void init_ijr_info_(const UnitCell& ucell, Grid_Driver& gd);
@@ -77,6 +88,30 @@ class GintInfo
 
     // format for storing atomic pair information in hcontainer, used for initializing hcontainer
     std::vector<int> ijr_info_;
+
+    // map the global index of atomic orbitals to local index
+    std::vector<int> trace_lo_;
+    
+    // store the information about Numerical orbitals
+    std::vector<Numerical_Orbital> orbs_;
+
+    // total num of atomic orbitals on this proc
+    int lgd_ = 0;
+
+    #ifdef __CUDA
+    public:
+    std::vector<std::shared_ptr<BatchBigGrid>>& get_bgrid_batches() { return bgrid_batches_; };
+    std::shared_ptr<const GintGpuVars> get_gpu_vars() const { return gpu_vars_; };
+    int get_dev_id() const { return gpu_vars_->dev_id_; };
+    int get_streams_num() const { return streams_num_; };
+    
+    private:
+    void init_bgrid_batches_(int batch_size);
+    std::vector<std::shared_ptr<BatchBigGrid>> bgrid_batches_;
+    std::shared_ptr<const GintGpuVars> gpu_vars_;
+    // More streams can improve parallelism and may speed up grid integration, at the cost of higher GPU memory usage.
+    int streams_num_;
+    #endif
 };
 
 } // namespace ModuleGint

@@ -2,13 +2,13 @@
 if(ENABLE_LCAO)
 
 list(APPEND objects
-    gint.cpp
+    gint_old.cpp
     gint_gamma_env.cpp
     gint_gamma_vl.cpp
-    gint_fvl.cpp
-    gint_rho.cpp
-    gint_tau.cpp
-    gint_vl.cpp
+    gint_fvl_old.cpp
+    gint_rho_old.cpp
+    gint_tau_old.cpp
+    gint_vl_old.cpp
     gint_k_env.cpp
     gint_k_sparse1.cpp
     gint_k_pvpr.cpp
@@ -29,7 +29,7 @@ list(APPEND objects
     init_orb.cpp
 )
 
-if(NEW_GINT)
+if(NOT DEFINED OLD_GINT)
   list(APPEND objects
       temp_gint/biggrid_info.cpp
       temp_gint/big_grid.cpp
@@ -45,6 +45,9 @@ if(NEW_GINT)
       temp_gint/gint_tau.cpp
       temp_gint/gint_fvl.cpp
       temp_gint/gint_fvl_meta.cpp
+      temp_gint/gint_env_gamma.cpp
+      temp_gint/gint_env_k.cpp
+      temp_gint/gint_dvlocal.cpp
       temp_gint/localcell_info.cpp
       temp_gint/phi_operator.cpp
       temp_gint/set_ddphi.cpp
@@ -52,6 +55,24 @@ if(NEW_GINT)
       temp_gint/gint_common.cpp
       temp_gint/gint_interface.cpp
       )
+  if(USE_CUDA)
+    list(APPEND objects
+        temp_gint/kernel/gint_gpu_vars.cpp
+        temp_gint/kernel/phi_operator_gpu.cu
+        temp_gint/kernel/phi_operator_kernel.cu
+        temp_gint/kernel/set_const_mem.cu
+        temp_gint/batch_biggrid.cpp
+        temp_gint/gint_vl_gpu.cpp
+        temp_gint/gint_rho_gpu.cpp
+        temp_gint/gint_fvl_gpu.cpp
+        temp_gint/gint_vl_metagga_gpu.cpp
+        temp_gint/gint_vl_nspin4_gpu.cpp
+        temp_gint/gint_vl_metagga_nspin4_gpu.cpp
+        temp_gint/gint_tau_gpu.cpp
+        temp_gint/gint_fvl_meta_gpu.cpp
+        temp_gint/kernel/dgemm_vbatch.cu
+    )
+  endif()
 endif()
 
 if(USE_CUDA)

@@ -61,6 +61,8 @@
 // test RDMFT
 #include "module_rdmft/rdmft.h"
 
+#include "module_hamilt_lcao/module_gint/temp_gint/gint_info.h"
+
 #include <iostream>
 
 namespace ModuleESolver
@@ -830,7 +832,6 @@ void ESolver_KS_LCAO<TK, TR>::iter_finish(UnitCell& ucell, const int istep, int&
             this->p_chgmix->mix_dmr(dm);
         }
     }
-
     // 6) save charge density
     // Peize Lin add 2020.04.04
     if (GlobalC::restart.info_save.save_charge)

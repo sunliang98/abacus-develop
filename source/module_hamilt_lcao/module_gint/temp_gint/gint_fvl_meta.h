@@ -23,9 +23,9 @@ class Gint_fvl_meta : public Gint
         ModuleBase::matrix* svl)
         : nspin_(nspin), vr_eff_(vr_eff), vofk_(vofk), dm_vec_(dm_vec),
           isforce_(isforce), isstress_(isstress), fvl_(fvl), svl_(svl),
-          dr3_(gint_info_->get_mgrid_volume()) {};
+          dr3_(gint_info_->get_mgrid_volume()) {}
 
-    void cal_gint() override;
+    void cal_gint();
 
     private:
     void init_dm_gint_();
@@ -45,7 +45,7 @@ class Gint_fvl_meta : public Gint
     ModuleBase::matrix* svl_;
 
     // intermediate variables
-    std::vector<std::shared_ptr<HContainer<double>>> dm_gint_vec_;
+    std::vector<HContainer<double>> dm_gint_vec_;
 
     double dr3_;
 };

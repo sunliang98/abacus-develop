@@ -10,10 +10,13 @@ namespace ModuleGint
 {
 void Gint_vl_nspin4::cal_gint()
 {
+    ModuleBase::TITLE("Gint", "cal_gint_vl");
+    ModuleBase::timer::tick("Gint", "cal_gint_vl");
     init_hr_gint_();
     cal_hr_gint_();
     compose_hr_gint(hr_gint_part_, hr_gint_full_);
-    transfer_hr_gint_to_hR(toConstSharedPtr(hr_gint_full_), hR_);
+    transfer_hr_gint_to_hR(hr_gint_full_, *hR_);
+    ModuleBase::timer::tick("Gint", "cal_gint_vl");
 }
 
 void Gint_vl_nspin4::init_hr_gint_()
@@ -49,7 +52,7 @@ void Gint_vl_nspin4::cal_hr_gint_()
             for(int is = 0; is < nspin_; is++)
             {
                 phi_op.phi_mul_vldr3(vr_eff_[is], dr3_, phi.data(), phi_vldr3.data());
-                phi_op.phi_mul_phi(phi.data(), phi_vldr3.data(), *hr_gint_part_[is], PhiOperator::Triangular_Matrix::Upper);
+                phi_op.phi_mul_phi(phi.data(), phi_vldr3.data(), hr_gint_part_[is], PhiOperator::Triangular_Matrix::Upper);
             }
         }
     }

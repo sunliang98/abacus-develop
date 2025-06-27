@@ -9,21 +9,47 @@
 #include <iostream>
 #include <sstream>
 
-#define checkCuda(val) check(val, #val, __FILE__, __LINE__)
-#define checkCudaLastError() __checkCudaLastError(__FILE__, __LINE__)
+#define checkCuda(val) check((val), #val, __FILE__, __LINE__)
+#define checkCudaLastError() __getLastCudaError(__FILE__, __LINE__)
 
-cudaError_t check(cudaError_t result, const char *const func, const char *const file, const int line);
-cudaError_t __checkCudaLastError(const char *file, const int line);
+inline void check(cudaError_t result, char const *const func, const char *const file,
+           int const line) {
+  if (result) {
+    fprintf(stderr, "CUDA error at %s:%d code=%d(%s) \"%s\" \n", file, line,
+            static_cast<unsigned int>(result), cudaGetErrorString(result), func);
+    exit(EXIT_FAILURE);
+  }
+}
 
-void dump_cuda_array_to_file(double* cuda_array,
+inline void __getLastCudaError(const char *file,
+                               const int line) 
+{
+  cudaError_t err = cudaGetLastError();
+
+  if (cudaSuccess != err) {
+    fprintf(stderr,
+            "%s(%i) : getLastCudaError() CUDA error :"
+            " (%d) %s.\n",
+            file, line, static_cast<int>(err),
+            cudaGetErrorString(err));
+    exit(EXIT_FAILURE);
+  }
+}
+
+static inline int ceildiv(int x, int y)
+{
+    return (x + y - 1) / y;
+}
+
+void dump_cuda_array_to_file(const double* cuda_array,
                              int width,
                              int hight,
                              const std::string& filename);
 
-inline int ceil_div(int a, int b)
-{
-    return (a + b - 1) / b;
-}
+// inline int ceil_div(int a, int b)
+// {
+//     return (a + b - 1) / b;
+// }
 
 /*
  * @brief: A simple wrapper for cudaMalloc and cudaFree, sync and async CUDA
