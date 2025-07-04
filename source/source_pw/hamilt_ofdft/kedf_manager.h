@@ -8,6 +8,7 @@
 #include "source_pw/hamilt_ofdft/kedf_tf.h"
 #include "source_pw/hamilt_ofdft/kedf_vw.h"
 #include "source_pw/hamilt_ofdft/kedf_wt.h"
+#include "source_pw/hamilt_ofdft/kedf_xwm.h"
 #include "source_pw/hamilt_ofdft/kedf_ml.h"
 
 class KEDF_Manager
@@ -74,6 +75,7 @@ private:
     KEDF_TF* tf_ = nullptr;   // Thomas-Fermi KEDF
     KEDF_vW* vw_ = nullptr;   // von Weizsäcker KEDF
     KEDF_WT* wt_ = nullptr;   // Wang-Teter KEDF
+    KEDF_XWM* xwm_ = nullptr; // Xu-Wang-Ma KEDF
 #ifdef __MLALGO
     KEDF_ML* ml_ = nullptr;   // Machine Learning KEDF
 #endif
