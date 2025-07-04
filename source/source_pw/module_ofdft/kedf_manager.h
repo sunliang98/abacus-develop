@@ -4,12 +4,12 @@
 #include "module_parameter/parameter.h"
 #include "source_basis/module_pw/pw_basis.h"
 #include "source_estate/elecstate.h"
-#include "source_pw/hamilt_ofdft/kedf_lkt.h"
-#include "source_pw/hamilt_ofdft/kedf_tf.h"
-#include "source_pw/hamilt_ofdft/kedf_vw.h"
-#include "source_pw/hamilt_ofdft/kedf_wt.h"
-#include "source_pw/hamilt_ofdft/kedf_xwm.h"
-#include "source_pw/hamilt_ofdft/kedf_ml.h"
+#include "kedf_lkt.h"
+#include "kedf_tf.h"
+#include "kedf_vw.h"
+#include "kedf_wt.h"
+#include "kedf_xwm.h"
+#include "kedf_ml.h"
 
 class KEDF_Manager
 {
