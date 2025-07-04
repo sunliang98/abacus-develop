@@ -6,7 +6,7 @@
 #include "source_cell/unitcell.h"
 #include "source_estate/occupy.h"
 #include "source_hamilt/module_surchem/surchem.h"
-#include "source_pw/hamilt_pwdft/global.h"
+#include "source_pw/module_pwdft/global.h"
 #include "source_io/berryphase.h"
 #include "module_parameter/parameter.h"
 #include "source_relax/ions_move_basic.h"
@@ -23,8 +23,8 @@
 #include "source_basis/module_ao/ORB_read.h"
 #include "source_estate/module_pot/H_TDDFT_pw.h"
 #include "source_lcao/hamilt_lcaodft/FORCE_STRESS.h"
-#include "source_lcao/module_tddft/evolve_elec.h"
-#include "source_lcao/module_tddft/td_velocity.h"
+#include "source_lcao/module_rt/evolve_elec.h"
+#include "source_lcao/module_rt/td_velocity.h"
 #endif
 #ifdef __PEXSI
 #include "source_hsolver/module_pexsi/pexsi_solver.h"
@@ -297,7 +297,12 @@ void Input_Conv::Convert()
         if (dft_functional_lower == "hf" || dft_functional_lower == "pbe0"
             || dft_functional_lower == "hse"
             || dft_functional_lower == "opt_orb"
-            || dft_functional_lower == "scan0") {
+            || dft_functional_lower == "scan0"
+            || dft_functional_lower == "lc_pbe"
+            || dft_functional_lower == "lc_wpbe" 
+            || dft_functional_lower == "lrc_wpbe"
+            || dft_functional_lower == "lrc_wpbeh"
+            || dft_functional_lower == "cam_pbeh") {
             GlobalC::restart.info_load.load_charge = true;
             GlobalC::restart.info_load.load_H = true;
         }
@@ -322,10 +327,15 @@ void Input_Conv::Convert()
                    dft_functional_lower.begin(),
                    tolower);
     if (dft_functional_lower == "hf"
-     || dft_functional_lower == "pbe0" || dft_functional_lower == "b3lyp" || dft_functional_lower == "hse"
-     || dft_functional_lower == "scan0"
-     || dft_functional_lower == "muller" || dft_functional_lower == "power"
-     || dft_functional_lower == "cwp22" || dft_functional_lower == "wp22")
+    || dft_functional_lower == "pbe0" || dft_functional_lower == "b3lyp" || dft_functional_lower == "hse"
+    || dft_functional_lower == "scan0"
+    || dft_functional_lower == "muller" || dft_functional_lower == "power"
+    || dft_functional_lower == "cwp22" || dft_functional_lower == "wp22" 
+    || dft_functional_lower == "lc_pbe"
+    || dft_functional_lower == "lc_wpbe" 
+    || dft_functional_lower == "lrc_wpbe"
+    || dft_functional_lower == "lrc_wpbeh"
+    || dft_functional_lower == "cam_pbeh")
     {
         GlobalC::exx_info.info_global.cal_exx = true;
 
@@ -352,15 +362,13 @@ void Input_Conv::Convert()
         {
             if(PARAM.inp.basis_type == "lcao")
             {
-                std::map<Conv_Coulomb_Pot_K::Coulomb_Type, std::vector<std::map<std::string,std::string>>> coulomb_param;
-                coulomb_param[Conv_Coulomb_Pot_K::Coulomb_Type::Fock].resize(fock_alpha.size());
+                GlobalC::exx_info.info_global.coulomb_param[Conv_Coulomb_Pot_K::Coulomb_Type::Fock].resize(fock_alpha.size());
                 for(std::size_t i=0; i<fock_alpha.size(); ++i)
                 {
-                    coulomb_param[Conv_Coulomb_Pot_K::Coulomb_Type::Fock][i] = {{
+                    GlobalC::exx_info.info_global.coulomb_param[Conv_Coulomb_Pot_K::Coulomb_Type::Fock] = {{
                         {"alpha", ModuleBase::GlobalFunc::TO_STRING(fock_alpha[i])},
-                        {"Rcut_type", "spencer"} }};
+                        {"singularity_correction", PARAM.inp.exx_singularity_correction} }};
                 }
-                GlobalC::exx_info.info_ri.coulomb_settings[Conv_Coulomb_Pot_K::Coulomb_Method::Center2] = std::make_pair(true, coulomb_param);
             }
             else if(PARAM.inp.basis_type == "lcao_in_pw")
             {
@@ -392,16 +400,14 @@ void Input_Conv::Convert()
             assert(erfc_alpha.size() == PARAM.inp.exx_erfc_omega.size());
             if(PARAM.inp.basis_type == "lcao")
             {
-                std::map<Conv_Coulomb_Pot_K::Coulomb_Type, std::vector<std::map<std::string,std::string>>> coulomb_param;
-                coulomb_param[Conv_Coulomb_Pot_K::Coulomb_Type::Erfc].resize(erfc_alpha.size());
+                GlobalC::exx_info.info_global.coulomb_param[Conv_Coulomb_Pot_K::Coulomb_Type::Erfc].resize(erfc_alpha.size());
                 for(std::size_t i=0; i<erfc_alpha.size(); ++i)
                 {
-                    coulomb_param[Conv_Coulomb_Pot_K::Coulomb_Type::Erfc] = {{
+                    GlobalC::exx_info.info_global.coulomb_param[Conv_Coulomb_Pot_K::Coulomb_Type::Erfc] = {{
                         {"alpha", ModuleBase::GlobalFunc::TO_STRING(erfc_alpha[i])},
                         {"omega", ModuleBase::GlobalFunc::TO_STRING(PARAM.inp.exx_erfc_omega[i])},
-                        {"Rcut_type", "limits"} }};
+                        {"singularity_correction", PARAM.inp.exx_singularity_correction} }};
                 }
-                GlobalC::exx_info.info_ri.coulomb_settings[Conv_Coulomb_Pot_K::Coulomb_Method::Center2] = std::make_pair(true, coulomb_param);
             }
         }
     }
