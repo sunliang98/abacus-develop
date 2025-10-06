@@ -26,7 +26,6 @@
 #include "source_io/json_output/output_info.h"
 
 
-
 namespace ModuleESolver
 {
 
@@ -39,7 +38,10 @@ ESolver_KS<T, Device>::ESolver_KS()
 template <typename T, typename Device>
 ESolver_KS<T, Device>::~ESolver_KS()
 {
-    delete this->psi;
+	//****************************************************
+	// do not add any codes in this deconstructor funcion
+	//****************************************************
+	delete this->psi;
     delete this->pw_wfc;
     delete this->p_hamilt;
     delete this->p_chgmix;
