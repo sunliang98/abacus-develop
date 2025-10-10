@@ -6,9 +6,6 @@
 #include "source_cell/module_neighbor/sltk_grid_driver.h"
 #include "source_io/module_parameter/parameter.h"
 #include "source_estate/elecstate_tools.h"
-#ifdef __MLALGO
-#include "source_lcao/module_deepks/LCAO_deepks.h"
-#endif
 #include "source_estate/elecstate_lcao.h"
 #include "source_lcao/LCAO_domain.h"
 #include "source_lcao/module_operator_lcao/op_exx_lcao.h"
@@ -140,25 +137,10 @@ void ESolver_KS_LCAO<TK, TR>::before_scf(UnitCell& ucell, const int istep)
         );
     }
 
-#ifdef __MLALGO
+
     // 9) for each ionic step, the overlap <phi|alpha> must be rebuilt
     // since it depends on ionic positions
-    if (PARAM.globalv.deepks_setorb)
-    {
-        const Parallel_Orbitals* pv = &this->pv;
-        // allocate <phi(0)|alpha(R)>, phialpha is different every ion step, so it is allocated here
-        DeePKS_domain::allocate_phialpha(PARAM.inp.cal_force, ucell, orb_, this->gd, pv, this->deepks.ld.phialpha);
-        // build and save <phi(0)|alpha(R)> at beginning
-        DeePKS_domain::build_phialpha(PARAM.inp.cal_force, ucell, orb_, this->gd,
-          pv, *(two_center_bundle_.overlap_orb_alpha), this->deepks.ld.phialpha);
-
-        if (PARAM.inp.deepks_out_unittest)
-        {
-            DeePKS_domain::check_phialpha(PARAM.inp.cal_force, ucell, orb_,
-              this->gd, pv, this->deepks.ld.phialpha, GlobalV::MY_RANK);
-        }
-    }
-#endif
+    this->deepks.build_overlap(ucell, orb_, pv, gd, *(two_center_bundle_.overlap_orb_alpha), PARAM.inp);
 
     // 10) prepare sc calculation
     if (PARAM.inp.sc_mag_switch)
