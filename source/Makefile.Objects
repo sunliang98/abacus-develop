@@ -764,6 +764,7 @@ OBJS_SRCPW=H_Ewald_pw.o\
     of_stress_pw.o\
     symmetry_rho.o\
     symmetry_rhog.o\
+    setup_psi.o\
     psi_init.o\
     elecond.o\
     sto_tool.o\
