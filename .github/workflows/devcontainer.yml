@@ -1,6 +1,9 @@
 name: Container
 
 on:
+  pull_request: # 当有 PR 指向 develop 分支时触发
+    branches:
+      - develop
   push:
     branches:
       - develop
@@ -54,6 +57,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: Dockerfile.${{ matrix.dockerfile }}
-          push: true
+          # 只有在 develop 分支或打标签时才推送，PR时不推送
+          push: ${{ github.event_name != 'pull_request' }}
           cache-from: type=registry,ref=ghcr.io/deepmodeling/abacus-${{ matrix.dockerfile }}:latest
           cache-to: type=inline
