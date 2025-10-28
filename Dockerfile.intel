@@ -8,6 +8,7 @@ ENV ONEAPI_VER=${ONEAPI_VER}
 # Basic build tools
 RUN apt-get update && apt-get install -y \
     bc cmake git gnupg gcc g++ python3-numpy wget unzip ca-certificates \
+    gzip \
     vim sudo build-essential curl pkg-config \
     libcereal-dev libxc-dev libgtest-dev libgmock-dev libbenchmark-dev \
  && rm -rf /var/lib/apt/lists/*
