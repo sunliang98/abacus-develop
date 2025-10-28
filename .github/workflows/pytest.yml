@@ -1,7 +1,8 @@
 name: Pyabacus Build and Test
 
 on:
-  pull_request:
+  push:
+  # pull_request:
 
 jobs:
   test:

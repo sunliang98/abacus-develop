@@ -62,7 +62,7 @@ RUN source /opt/intel/oneapi/setvars.sh >/dev/null 2>&1 || true; \
     cd /tmp && \
     ELPA_VER=2025.06.001 && \
     wget -q https://elpa.mpcdf.mpg.de/software/tarball-archive/Releases/$ELPA_VER/elpa-$ELPA_VER.tar.gz && \
-    tar xzf elpa-$ELPA_VER.tar.gz && rm elpa-$ELPA_VER.tar.gz && \
+    tar xzf elpa-$ELPA_VER.tar.gz --no-same-owner --no-same-permissions && rm elpa-$ELPA_VER.tar.gz && \
     cd elpa-$ELPA_VER && mkdir build && cd build && \
     ../configure CFLAGS="-O3 -march=native" FCFLAGS="-O3 -qmkl=cluster" --enable-openmp && \
     make -j"$(nproc)" && make PREFIX=/usr/local install && \
