@@ -8,7 +8,8 @@ ENV ONEAPI_VER=${ONEAPI_VER}
 # Basic build tools
 RUN apt-get update && apt-get install -y \
     bc cmake git gnupg gcc g++ python3-numpy sudo wget vim unzip \
-    libcereal-dev libxc-dev libgtest-dev libgmock-dev libbenchmark-dev
+    libcereal-dev libxc-dev libgtest-dev libgmock-dev libbenchmark-dev \
+    pkg-config build-essential make ca-certificates
 
 # Add Intel apt repo
 RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
@@ -17,7 +18,13 @@ RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRO
     | sudo tee /etc/apt/sources.list.d/oneAPI.list
 
 # Install essential oneAPI components (avoid pinning an exact mpi minor version)
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && \
+    # Ensure pkg-config and kernel headers are present before installing vtune (vtune's installer checks kernel headers)
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        pkg-config || true && \
+    # Try to install headers matching the build host kernel; fall back to generic headers if exact package not available.
+    DEBIAN_FRONTEND=noninteractive bash -lc "apt-get install -y --no-install-recommends linux-headers-$(uname -r) || apt-get install -y --no-install-recommends linux-headers-generic || true" && \
+    apt-get install -y \
         intel-oneapi-compiler-dpcpp-cpp \
         intel-oneapi-compiler-fortran \
         intel-oneapi-mkl-devel \
