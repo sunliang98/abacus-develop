@@ -54,15 +54,20 @@ ENV CMAKE_PREFIX_PATH=/opt/intel/oneapi/mkl/latest/lib/cmake
 SHELL ["/bin/bash", "-c"]
 ENV CC=mpiicx CXX=mpiicpx FC=mpiifx
 
+RUN which gzip && ls -l $(which gzip)
+RUN ls -l /bin/gzip /usr/bin/gzip
+
 # Build ELPA (example dependency)
-RUN source /opt/intel/oneapi/setvars.sh  \
+RUN source /opt/intel/oneapi/setvars.sh && \
     cd /tmp && \
     ELPA_VER=2022.11.001 && \
     wget -q https://elpa.mpcdf.mpg.de/software/tarball-archive/Releases/$ELPA_VER/elpa-$ELPA_VER.tar.gz && \
-    tar xzf elpa-$ELPA_VER.tar.gz && rm elpa-$ELPA_VER.tar.gz && \
-    cd elpa-$ELPA_VER && mkdir build && cd build && \
+    /bin/tar xzf elpa-$ELPA_VER.tar.gz && \
+    rm elpa-$ELPA_VER.tar.gz && \
+    cd elpa-$ELPA_VER && \
+    mkdir build && cd build && \
     ../configure CFLAGS="-O3 -march=native" FCFLAGS="-O3 -qmkl=cluster" --enable-openmp && \
-    make -j`nproc` && \
+    make -j$(nproc) && \
     make PREFIX=/usr/local install && \
     ln -s /usr/local/include/elpa_openmp-$ELPA_VER/elpa /usr/local/include/ && \
     cd /tmp && rm -rf elpa-$ELPA_VER
