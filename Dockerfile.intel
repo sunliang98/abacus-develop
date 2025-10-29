@@ -42,18 +42,14 @@ ENV CMAKE_PREFIX_PATH=${ONEAPI_ROOT}/tbb/latest:${MKLROOT}/lib/cmake:${ONEAPI_RO
 SHELL ["/bin/bash", "-c"]
 
 # 设置编译器 - 使用更兼容的配置
-ENV CC=mpiicc CXX=mpiicpc FC=mpiifort
-# 备用设置（如果上面的不行）
-# ENV CC=mpiicx CXX=mpiicpx FC=mpiifort
-
-SHELL ["/bin/bash", "-c"]
 # ENV CC=mpiicc CXX=mpiicpc FC=mpiifort
+# 备用设置（如果上面的不行）
 ENV CC=mpiicx CXX=mpiicpx FC=mpiifx
 
 # 验证oneAPI安装
 RUN source ${ONEAPI_ROOT}/setvars.sh && \
     echo "=== 验证编译器 ===" && \
-    which mpiicc && mpiicc --version && \
+    which mpiicx && mpiicx --version && \
     echo "=== 验证MKL ===" && \
     ls ${MKLROOT}/lib/intel64/ && \
     echo "=== 验证MPI ===" && \
