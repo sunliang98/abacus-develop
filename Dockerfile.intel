@@ -7,17 +7,14 @@ ENV ONEAPI_VER=${ONEAPI_VER}
 
 # Basic build tools
 RUN apt-get update && apt-get install -y \
-    bc cmake git gnupg gcc g++ python3-numpy wget unzip ca-certificates \
-    gzip \
-    vim sudo build-essential curl pkg-config \
-    libcereal-dev libxc-dev libgtest-dev libgmock-dev libbenchmark-dev \
- && rm -rf /var/lib/apt/lists/*
+    bc cmake git gnupg gcc g++ python3-numpy sudo wget vim unzip \
+    libcereal-dev libxc-dev libgtest-dev libgmock-dev libbenchmark-dev
 
 # Add Intel apt repo
 RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
-    | gpg --dearmor --yes -o /usr/share/keyrings/oneapi-archive-keyring.gpg \
- && echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
-    > /etc/apt/sources.list.d/oneAPI.list
+    | gpg --dearmor | sudo tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
+    echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+    | sudo tee /etc/apt/sources.list.d/oneAPI.list
 
 # Install essential oneAPI components (avoid pinning an exact mpi minor version)
 RUN apt-get update && apt-get install -y \
@@ -58,15 +55,16 @@ SHELL ["/bin/bash", "-c"]
 ENV CC=mpiicx CXX=mpiicpx FC=mpiifx
 
 # Build ELPA (example dependency)
-RUN source /opt/intel/oneapi/setvars.sh >/dev/null 2>&1 || true; \
+RUN source /opt/intel/oneapi/setvars.sh  \
     cd /tmp && \
     ELPA_VER=2022.11.001 && \
     wget -q https://elpa.mpcdf.mpg.de/software/tarball-archive/Releases/$ELPA_VER/elpa-$ELPA_VER.tar.gz && \
-    tar xzf elpa-$ELPA_VER.tar.gz --no-same-owner --no-same-permissions && rm elpa-$ELPA_VER.tar.gz && \
+    tar xzf elpa-$ELPA_VER.tar.gz && rm elpa-$ELPA_VER.tar.gz && \
     cd elpa-$ELPA_VER && mkdir build && cd build && \
     ../configure CFLAGS="-O3 -march=native" FCFLAGS="-O3 -qmkl=cluster" --enable-openmp && \
-    make -j"$(nproc)" && make PREFIX=/usr/local install && \
-    ln -sfn /usr/local/include/elpa_openmp-$ELPA_VER/elpa /usr/local/include/elpa || true && \
+    make -j`nproc` && \
+    make PREFIX=/usr/local install && \
+    ln -s /usr/local/include/elpa_openmp-$ELPA_VER/elpa /usr/local/include/ && \
     cd /tmp && rm -rf elpa-$ELPA_VER
 
 # rapidjson and libtorch
