@@ -46,12 +46,13 @@ RUN set -eux; \
 # Set consistent envs referencing 'latest' symlink
 ENV I_MPI_ROOT=/opt/intel/oneapi/mpi/latest
 ENV MKLROOT=/opt/intel/oneapi/mkl/latest
-ENV LIBRARY_PATH=/opt/intel/oneapi/tbb/latest/env/../lib/intel64/gcc4.8:/opt/intel/oneapi/mpi/latest/lib:/opt/intel/oneapi/mkl/latest/lib
+# ENV LIBRARY_PATH=/opt/intel/oneapi/tbb/latest/env/../lib/intel64/gcc4.8:/opt/intel/oneapi/mpi/latest/lib:/opt/intel/oneapi/mkl/latest/lib
 ENV LD_LIBRARY_PATH=/opt/intel/oneapi/mpi/latest/lib:/opt/intel/oneapi/mkl/latest/lib
 ENV PATH=/opt/intel/oneapi/mpi/latest/bin:/opt/intel/oneapi/mkl/latest/bin:$PATH
 ENV CMAKE_PREFIX_PATH=/opt/intel/oneapi/mkl/latest/lib/cmake
 
 SHELL ["/bin/bash", "-c"]
+# ENV CC=mpiicc CXX=mpiicpc FC=mpiifort
 ENV CC=mpiicx CXX=mpiicpx FC=mpiifx
 
 RUN which gzip && ls -l $(which gzip)
