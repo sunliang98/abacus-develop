@@ -62,7 +62,8 @@ RUN source /opt/intel/oneapi/setvars.sh && \
     cd /tmp && \
     ELPA_VER=2022.11.001 && \
     wget -q https://elpa.mpcdf.mpg.de/software/tarball-archive/Releases/$ELPA_VER/elpa-$ELPA_VER.tar.gz && \
-    /bin/tar xzf elpa-$ELPA_VER.tar.gz && \
+    gzip -d elpa-$ELPA_VER.tar.gz && \
+    tar xf elpa-$ELPA_VER.tar && \
     rm elpa-$ELPA_VER.tar.gz && \
     cd elpa-$ELPA_VER && \
     mkdir build && cd build && \
