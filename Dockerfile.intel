@@ -60,7 +60,7 @@ ENV CMAKE_PREFIX_PATH=/opt/intel/oneapi/mkl/latest/lib/cmake
 
 SHELL ["/bin/bash", "-c"]
 # ENV CC=mpiicc CXX=mpiicpc FC=mpiifort
-ENV CC=mpiicx CXX=mpiicpx FC=mpiifx
+ENV CC=mpiicc CXX=mpiicpc FC=mpiifort
 
 RUN which gzip && ls -l $(which gzip)
 RUN ls -l /bin/gzip /usr/bin/gzip
