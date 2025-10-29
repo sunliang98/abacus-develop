@@ -1,15 +1,10 @@
 # Base image
 FROM ubuntu:22.04
 
-# allow selecting oneAPI minor version at build time
-ARG ONEAPI_VER=2025.3
-ENV ONEAPI_VER=${ONEAPI_VER}
-
-# Basic build tools
 RUN apt-get update && apt-get install -y \
     bc cmake git gnupg gcc g++ python3-numpy sudo wget vim unzip \
     libcereal-dev libxc-dev libgtest-dev libgmock-dev libbenchmark-dev \
-    pkg-config build-essential make ca-certificates
+    pkg-config build-essential autoconf automake libtool
 
 # Add Intel apt repo
 RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
@@ -17,64 +12,60 @@ RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRO
     echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
     | sudo tee /etc/apt/sources.list.d/oneAPI.list
 
-# Install essential oneAPI components (avoid pinning an exact mpi minor version)
+# 安装oneAPI组件（使用更灵活的版本处理）
 RUN apt-get update && \
-    # Ensure pkg-config and kernel headers are present before installing vtune (vtune's installer checks kernel headers)
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        pkg-config || true && \
-    # Try to install headers matching the build host kernel; fall back to generic headers if exact package not available.
-    DEBIAN_FRONTEND=noninteractive bash -lc "apt-get install -y --no-install-recommends linux-headers-$(uname -r) || apt-get install -y --no-install-recommends linux-headers-generic || true" && \
     apt-get install -y \
         intel-oneapi-compiler-dpcpp-cpp \
         intel-oneapi-compiler-fortran \
         intel-oneapi-mkl-devel \
         intel-oneapi-mpi-devel \
-        intel-oneapi-vtune \
- && rm -rf /var/lib/apt/lists/*
+        intel-oneapi-vtune && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Normalize 'latest' symlinks for mkl/mpi if possible; prefer requested ONEAPI_VER when present
-RUN set -eux; \
-    mkdir -p /opt/intel/oneapi; \
-    if [ -d "/opt/intel/oneapi/mkl/${ONEAPI_VER}" ]; then \
-        ln -sfn "/opt/intel/oneapi/mkl/${ONEAPI_VER}" /opt/intel/oneapi/mkl/latest; \
-    elif [ -d /opt/intel/oneapi/mkl ]; then \
-        ver=$(ls -1 /opt/intel/oneapi/mkl | sort -V | tail -n1 || true); \
-        [ -n "$ver" ] && ln -sfn "/opt/intel/oneapi/mkl/$ver" /opt/intel/oneapi/mkl/latest || true; \
-    fi; \
-    if [ -d "/opt/intel/oneapi/mpi/${ONEAPI_VER}" ]; then \
-        ln -sfn "/opt/intel/oneapi/mpi/${ONEAPI_VER}" /opt/intel/oneapi/mpi/latest; \
-    elif [ -d /opt/intel/oneapi/mpi ]; then \
-        ver=$(ls -1 /opt/intel/oneapi/mpi | sort -V | tail -n1 || true); \
-        [ -n "$ver" ] && ln -sfn "/opt/intel/oneapi/mpi/$ver" /opt/intel/oneapi/mpi/latest || true; \
-    fi; \
-    echo "MKL dirs:"; ls -la /opt/intel/oneapi/mkl || true; \
-    echo "MPI dirs:"; ls -la /opt/intel/oneapi/mpi || true
+# 设置oneAPI环境变量
+ENV ONEAPI_ROOT=/opt/intel/oneapi
+ENV I_MPI_ROOT=${ONEAPI_ROOT}/mpi/latest
+ENV MKLROOT=${ONEAPI_ROOT}/mkl/latest
+ENV CMPLR_ROOT=${ONEAPI_ROOT}/compiler/latest
 
-# Set consistent envs referencing 'latest' symlink
-ENV I_MPI_ROOT=/opt/intel/oneapi/mpi/latest
-ENV MKLROOT=/opt/intel/oneapi/mkl/latest
-# ENV LIBRARY_PATH=/opt/intel/oneapi/tbb/latest/env/../lib/intel64/gcc4.8:/opt/intel/oneapi/mpi/latest/lib:/opt/intel/oneapi/mkl/latest/lib
-ENV LD_LIBRARY_PATH=/opt/intel/oneapi/mpi/latest/lib:/opt/intel/oneapi/mkl/latest/lib
-ENV PATH=/opt/intel/oneapi/mpi/latest/bin:/opt/intel/oneapi/mkl/latest/bin:$PATH
-ENV CMAKE_PREFIX_PATH=/opt/intel/oneapi/mkl/latest/lib/cmake
+# 设置库路径和包含路径
+ENV LIBRARY_PATH=${ONEAPI_ROOT}/tbb/latest/lib/intel64/gcc4.8:${ONEAPI_ROOT}/mpi/latest/lib:${MKLROOT}/lib/intel64:${ONEAPI_ROOT}/compiler/latest/lib/intel64:${LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=${ONEAPI_ROOT}/tbb/latest/lib/intel64/gcc4.8:${ONEAPI_ROOT}/mpi/latest/lib:${MKLROOT}/lib/intel64:${ONEAPI_ROOT}/compiler/latest/lib/intel64:${LD_LIBRARY_PATH}
+ENV PATH=${ONEAPI_ROOT}/vtune/latest/bin64:${ONEAPI_ROOT}/mpi/latest/bin:${MKLROOT}/bin/intel64:${ONEAPI_ROOT}/compiler/latest/bin:${PATH}
+ENV CPATH=${MKLROOT}/include:${ONEAPI_ROOT}/mpi/latest/include:${CPATH}
+ENV PKG_CONFIG_PATH=${MKLROOT}/lib/pkgconfig:${ONEAPI_ROOT}/mpi/latest/lib/pkgconfig:${PKG_CONFIG_PATH}
+
+# 设置CMAKE相关路径
+ENV CMAKE_PREFIX_PATH=${ONEAPI_ROOT}/tbb/latest:${MKLROOT}/lib/cmake:${ONEAPI_ROOT}/dpl/latest/lib/cmake:${ONEAPI_ROOT}/dnnl/latest/lib/cmake:${ONEAPI_ROOT}/dal/latest:${ONEAPI_ROOT}/compiler/latest:${CMAKE_PREFIX_PATH}
+
+SHELL ["/bin/bash", "-c"]
+
+# 设置编译器 - 使用更兼容的配置
+ENV CC=mpiicc CXX=mpiicpc FC=mpiifort
+# 备用设置（如果上面的不行）
+# ENV CC=mpiicx CXX=mpiicpx FC=mpiifort
 
 SHELL ["/bin/bash", "-c"]
 # ENV CC=mpiicc CXX=mpiicpc FC=mpiifort
-ENV CC=mpiicc CXX=mpiicpc FC=mpiifort
+ENV CC=mpiicx CXX=mpiicpx FC=mpiifx
 
-RUN which gzip && ls -l $(which gzip)
-RUN ls -l /bin/gzip /usr/bin/gzip
+# 验证oneAPI安装
+RUN source ${ONEAPI_ROOT}/setvars.sh && \
+    echo "=== 验证编译器 ===" && \
+    which mpiicc && mpiicc --version && \
+    echo "=== 验证MKL ===" && \
+    ls ${MKLROOT}/lib/intel64/ && \
+    echo "=== 验证MPI ===" && \
+    which mpirun && mpirun --version
 
 # Build ELPA (example dependency)
 RUN source /opt/intel/oneapi/setvars.sh && \
     cd /tmp && \
     ELPA_VER=2022.11.001 && \
     wget -q https://elpa.mpcdf.mpg.de/software/tarball-archive/Releases/$ELPA_VER/elpa-$ELPA_VER.tar.gz && \
-    gzip -d elpa-$ELPA_VER.tar.gz && \
-    tar xf elpa-$ELPA_VER.tar && \
-    rm elpa-$ELPA_VER.tar && \
-    cd elpa-$ELPA_VER && \
-    mkdir build && cd build && \
+    tar xzf elpa-$ELPA_VER.tar.gz  && rm elpa-$ELPA_VER.tar.gz && \
+    cd elpa-$ELPA_VER && mkdir build && cd build && \
     ../configure CFLAGS="-O3 -march=native" FCFLAGS="-O3 -qmkl=cluster" --enable-openmp && \
     make -j$(nproc) && \
     make PREFIX=/usr/local install && \
