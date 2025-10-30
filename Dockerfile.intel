@@ -76,12 +76,7 @@ ENV CMAKE_PREFIX_PATH=/opt/libtorch/share/cmake:${CMAKE_PREFIX_PATH}
 
 # Clone and build abacus (optional during image build; keep for CI image)
 ADD https://api.github.com/repos/deepmodeling/abacus-develop/git/refs/heads/develop /dev/null
-RUN set -eux; \
-    export OCL_ICD_FILENAMES="" ; \
-    # 关键修复：在source setvars.sh之前设置缺失的变量
-    export mkl_sycl_distributed_dft_file="disabled" ; \
-    source /opt/intel/oneapi/setvars.sh > /dev/null 2>&1 || true; \
-    cd /tmp && git clone https://github.com/deepmodeling/abacus-develop.git --depth 1 && \
+RUN cd /tmp && git clone https://github.com/deepmodeling/abacus-develop.git --depth 1 && \
     cd abacus-develop && \
     cmake -B build \
         -DENABLE_MLALGO=ON \
