@@ -80,7 +80,11 @@ RUN set -ex; source /opt/intel/oneapi/setvars.sh || true; \
     set -eux; \
     cd /tmp && git clone https://github.com/deepmodeling/abacus-develop.git --depth 1 && \
     cd abacus-develop && \
-    cmake -B build -DENABLE_MLALGO=ON -DENABLE_LIBXC=ON -DENABLE_LIBRI=ON -DENABLE_RAPIDJSON=ON && \
+    cmake -B build -DENABLE_MLALGO=ON -DENABLE_LIBXC=ON -DENABLE_LIBRI=ON -DENABLE_RAPIDJSON=ON\
+        -DMKL_ENABLE_SYCL=OFF \
+        -DENABLE_SYCL=OFF \
+        -DCMAKE_DISABLE_FIND_PACKAGE_SYCL=ON \
+        -DCMAKE_BUILD_TYPE=Release && \
     cmake --build build -j"$(nproc)" && \
     cmake --install build && \
     /usr/bin/abacus --version || true && \
