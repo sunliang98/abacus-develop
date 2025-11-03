@@ -93,9 +93,8 @@ RUN wget https://codeload.github.com/KarypisLab/GKlib/zip/refs/heads/${GKLIB_VER
     make config shared=1 prefix=${GKLIB_ROOT} openmp=set && \
     make -j$(nproc) && \
     make install && \
-    cp ${GKLIB_ROOT}/lib64/*so ${GKLIB_ROOT}/lib/ && \
     cd / && rm -rf GKlib-${GKLIB_VERSION} GKlib-${GKLIB_VERSION}.zip
-    #.so file CANNOT be found otherwise.
+#.so file CANNOT be found otherwise.
 # 2. install METIS
 RUN wget https://codeload.github.com/KarypisLab/METIS/zip/refs/heads/${METIS_VERSION} -O METIS-${METIS_VERSION}.zip && \
     unzip METIS-${METIS_VERSION}.zip && \
