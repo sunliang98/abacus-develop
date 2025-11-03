@@ -74,10 +74,10 @@ RUN wget -q https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-
     unzip -q /tmp/libtorch.zip -d /opt && rm -f /tmp/libtorch.zip
 ENV CMAKE_PREFIX_PATH=/opt/libtorch/share/cmake:${CMAKE_PREFIX_PATH}
 
-###### PEXSI PART: pexsi\gklib\metis\parmetis\superlu_dist ######
-ENV GKLIB_VERSION="master" # Although that is not good in CI/CD...
-ENV METIS_VERSION="master" # Although that is not good in CI/CD...
-ENV PARMETIS_VERSION="main" # Although that is not good in CI/CD...
+###### PEXSI PART: pexsi and gklib and metis and parmetis and superlu_dist
+ENV GKLIB_VERSION="master" 
+ENV METIS_VERSION="master"
+ENV PARMETIS_VERSION="main"
 ENV SUPERLU_DIST_VERSION=7.2.0
 ENV PEXSI_VERSION=2.0.0
 ENV GKLIB_ROOT=/usr/local/gklib-${GKLIB_VERSION}
@@ -159,7 +159,7 @@ RUN wget https://github.com/ecrc/PEXSI/archive/v${PEXSI_VERSION}.tar.gz && \
     make -j$(nproc) && \
     make install && \
     cd / && rm -rf PEXSI-${PEXSI_VERSION} v${PEXSI_VERSION}.tar.gz
-###### END of PEXSI PART ######
+###### END of PEXSI PART
 
 # Clone and build abacus (optional during image build; keep for CI image)
 ADD https://api.github.com/repos/deepmodeling/abacus-develop/git/refs/heads/develop /dev/null
