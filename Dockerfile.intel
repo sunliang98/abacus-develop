@@ -90,7 +90,7 @@ ENV SUPERLU_DIST32_ROOT=/usr/local/superlu_dist32-${SUPERLU_DIST_VERSION}
 RUN wget https://codeload.github.com/KarypisLab/GKlib/zip/refs/heads/${GKLIB_VERSION} -O GKlib-${GKLIB_VERSION}.zip && \
     unzip GKlib-${GKLIB_VERSION}.zip && \
     cd GKlib-${GKLIB_VERSION} && \
-    make config cc=mpiicc shared=1 prefix=${GKLIB_ROOT} openmp=set && \
+    make config shared=1 prefix=${GKLIB_ROOT} openmp=set && \
     make -j$(nproc) && \
     make install && \
     cp ${GKLIB_ROOT}/lib64/*so ${GKLIB_ROOT}/lib/ && \
@@ -100,7 +100,7 @@ RUN wget https://codeload.github.com/KarypisLab/GKlib/zip/refs/heads/${GKLIB_VER
 RUN wget https://codeload.github.com/KarypisLab/METIS/zip/refs/heads/${METIS_VERSION} -O METIS-${METIS_VERSION}.zip && \
     unzip METIS-${METIS_VERSION}.zip && \
     cd METIS-${METIS_VERSION} && \
-    make config cc=mpiicc shared=1 prefix=${METIS32_ROOT} gklib_path=${GKLIB_ROOT} && \
+    make config shared=1 prefix=${METIS32_ROOT} gklib_path=${GKLIB_ROOT} && \
     make -j$(nproc) && \
     make install && \
     cd / && rm -rf METIS-${METIS_VERSION} METIS-${METIS_VERSION}.zip
@@ -109,7 +109,7 @@ RUN wget https://codeload.github.com/KarypisLab/METIS/zip/refs/heads/${METIS_VER
 RUN wget https://codeload.github.com/KarypisLab/ParMETIS/zip/refs/heads/${PARMETIS_VERSION} -O ParMETIS-${PARMETIS_VERSION}.zip && \
     unzip ParMETIS-${PARMETIS_VERSION}.zip && \
     cd ParMETIS-${PARMETIS_VERSION} && \
-    make config cc=mpiicc shared=1 prefix=${PARMETIS32_ROOT} gklib_path=${GKLIB_ROOT} metis_path=${METIS32_ROOT} && \
+    make config shared=1 prefix=${PARMETIS32_ROOT} gklib_path=${GKLIB_ROOT} metis_path=${METIS32_ROOT} && \
     make -j$(nproc) && \
     make install && \
     cd / && rm -rf ParMETIS-${PARMETIS_VERSION} ParMETIS-${PARMETIS_VERSION}.zip
@@ -132,8 +132,6 @@ RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${S
     -DXSDK_INDEX_SIZE=32 \
     -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_INSTALL_PREFIX=${SUPERLU_DIST32_ROOT} \
-    -DCMAKE_C_COMPILER=mpiicc \
-    -DCMAKE_CXX_COMPILER=mpiicpc \
     -DCMAKE_C_FLAGS="-O3 -fopenmp" \
     -DCMAKE_CXX_FLAGS="-O3 -fopenmp" \
     -DXSDK_ENABLE_Fortran=ON \
@@ -142,6 +140,8 @@ RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${S
     make install && \
     cd / && rm -rf superlu_dist-${SUPERLU_DIST_VERSION} v${SUPERLU_DIST_VERSION}.tar.gz
 
+###     -DCMAKE_C_COMPILER=mpiicc \
+###     -DCMAKE_CXX_COMPILER=mpiicpc \
 ###     -DCMAKE_CUDA_COMPILER=nvcc \
 
 # 5. install PEXSI
@@ -153,12 +153,13 @@ RUN wget https://github.com/ecrc/PEXSI/archive/v${PEXSI_VERSION}.tar.gz && \
         -DCMAKE_INSTALL_PREFIX=${PEXSI32_ROOT} \
         -DPEXSI_ENABLE_OPENMP=ON \
         -DPEXSI_ENABLE_FORTRAN=ON \
-        -DCMAKE_C_COMPILER=mpiicc \
-        -DCMAKE_CXX_COMPILER=mpiicpc \
         -DCMAKE_FORTRAN_COMPILER=mpif90 && \
     make -j$(nproc) && \
     make install && \
     cd / && rm -rf PEXSI-${PEXSI_VERSION} v${PEXSI_VERSION}.tar.gz
+
+###         -DCMAKE_C_COMPILER=mpiicc \
+###        -DCMAKE_CXX_COMPILER=mpiicpc \
 ###### END of PEXSI PART
 
 # Clone and build abacus (optional during image build; keep for CI image)
