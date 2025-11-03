@@ -100,3 +100,17 @@ if(NOT TARGET MKL::MKL_SCALAPACK)
     )
   endif()
 endif()
+
+
+if(NOT TARGET MKL::CORE)
+  find_library(MKL_CORE NAMES mkl_core HINTS ${MKLROOT}/lib ${MKLROOT}/lib/intel64)
+  message(STATUS "Found MKL_CORE: ${MKL_CORE}")
+  if(MKL_CORE)
+    # create an IMPORTED target that points to the discovered library file
+    add_library(MKL::CORE UNKNOWN IMPORTED)
+    set_target_properties(MKL::CORE PROPERTIES
+      IMPORTED_LOCATION "${MKL_CORE}"
+      INTERFACE_INCLUDE_DIRECTORIES "${MKL_INCLUDE}"
+    )
+  endif()
+endif()
