@@ -96,7 +96,8 @@ RUN wget https://codeload.github.com/KarypisLab/GKlib/zip/refs/heads/${GKLIB_VER
     cd / && rm -rf GKlib-${GKLIB_VERSION} GKlib-${GKLIB_VERSION}.zip
 #.so file CANNOT be found otherwise.
 # 2. install METIS
-RUN wget https://codeload.github.com/KarypisLab/METIS/zip/refs/heads/${METIS_VERSION} -O METIS-${METIS_VERSION}.zip && \
+RUN export LD_LIBRARY_PATH=${GKLIB_ROOT}/lib:${LD_LIBRARY_PATH} && \
+    wget https://codeload.github.com/KarypisLab/METIS/zip/refs/heads/${METIS_VERSION} -O METIS-${METIS_VERSION}.zip && \
     unzip METIS-${METIS_VERSION}.zip && \
     cd METIS-${METIS_VERSION} && \
     make config shared=1 prefix=${METIS32_ROOT} gklib_path=${GKLIB_ROOT} && \
@@ -105,7 +106,8 @@ RUN wget https://codeload.github.com/KarypisLab/METIS/zip/refs/heads/${METIS_VER
     cd / && rm -rf METIS-${METIS_VERSION} METIS-${METIS_VERSION}.zip
 
 # 3. install ParMETIS
-RUN wget https://codeload.github.com/KarypisLab/ParMETIS/zip/refs/heads/${PARMETIS_VERSION} -O ParMETIS-${PARMETIS_VERSION}.zip && \
+RUN export LD_LIBRARY_PATH=${METIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LD_LIBRARY_PATH} && \
+    wget https://codeload.github.com/KarypisLab/ParMETIS/zip/refs/heads/${PARMETIS_VERSION} -O ParMETIS-${PARMETIS_VERSION}.zip && \
     unzip ParMETIS-${PARMETIS_VERSION}.zip && \
     cd ParMETIS-${PARMETIS_VERSION} && \
     make config shared=1 prefix=${PARMETIS32_ROOT} gklib_path=${GKLIB_ROOT} metis_path=${METIS32_ROOT} && \
@@ -144,7 +146,8 @@ RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${S
 ###     -DCMAKE_CUDA_COMPILER=nvcc \
 
 # 5. install PEXSI
-RUN wget https://github.com/ecrc/PEXSI/archive/v${PEXSI_VERSION}.tar.gz && \
+RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARMETIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LD_LIBRARY_PATH} && \
+    wget https://github.com/ecrc/PEXSI/archive/v${PEXSI_VERSION}.tar.gz && \
     tar -xzf v${PEXSI_VERSION}.tar.gz && \
     cd PEXSI-${PEXSI_VERSION} && \
     mkdir build && cd build && \
