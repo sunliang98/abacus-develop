@@ -171,6 +171,10 @@ ADD https://api.github.com/repos/deepmodeling/abacus-develop/git/refs/heads/deve
 RUN cd /tmp && git clone https://github.com/deepmodeling/abacus-develop.git --depth 1 && \
     cd abacus-develop && \
     cmake -B build \
+        -DMKL_SYCL=OFF \
+        -DMKL_SYCL_INTERFACE_FULL=OFF \
+        -DMKL_SYCL_DISTRIBUTED_DFT=OFF \
+        -DMKL_SYCL_LINK=OFF \
         -DENABLE_MLALGO=ON \
         -DENABLE_LIBXC=ON \
         -DENABLE_LIBRI=ON \
