@@ -30,8 +30,8 @@ ENV MKLROOT=${ONEAPI_ROOT}/mkl/latest
 ENV CMPLR_ROOT=${ONEAPI_ROOT}/compiler/latest
 
 # 设置库路径和包含路径
-ENV LIBRARY_PATH=${ONEAPI_ROOT}/tbb/latest/lib/intel64/gcc4.8:${ONEAPI_ROOT}/mpi/latest/lib:${MKLROOT}/lib/intel64:${ONEAPI_ROOT}/compiler/latest/lib/intel64:${LIBRARY_PATH}
-ENV LD_LIBRARY_PATH=${ONEAPI_ROOT}/tbb/latest/lib/intel64/gcc4.8:${ONEAPI_ROOT}/mpi/latest/lib:${MKLROOT}/lib/intel64:${ONEAPI_ROOT}/compiler/latest/lib/intel64:${LD_LIBRARY_PATH}
+ENV LIBRARY_PATH=${ONEAPI_ROOT}/tbb/latest/lib/intel64/gcc4.8:${ONEAPI_ROOT}/mpi/latest/lib:${MKLROOT}/lib/intel64:${ONEAPI_ROOT}/compiler/latest/lib/:${LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=${ONEAPI_ROOT}/tbb/latest/lib/intel64/gcc4.8:${ONEAPI_ROOT}/mpi/latest/lib:${MKLROOT}/lib/intel64:${ONEAPI_ROOT}/compiler/latest/lib/:${LD_LIBRARY_PATH}
 ENV PATH=${ONEAPI_ROOT}/vtune/latest/bin64:${ONEAPI_ROOT}/mpi/latest/bin:${MKLROOT}/bin/intel64:${ONEAPI_ROOT}/compiler/latest/bin:${PATH}
 ENV CPATH=${MKLROOT}/include:${ONEAPI_ROOT}/mpi/latest/include:${CPATH}
 ENV PKG_CONFIG_PATH=${MKLROOT}/lib/pkgconfig:${ONEAPI_ROOT}/mpi/latest/lib/pkgconfig:${PKG_CONFIG_PATH}
