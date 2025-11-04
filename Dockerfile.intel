@@ -119,6 +119,7 @@ RUN export LD_LIBRARY_PATH=${METIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LD_LIBRARY_PA
 
 # 4. install SuperLU_DIST 
 RUN source ${ONEAPI_ROOT}/setvars.sh && \
+    echo `which ifort` && \
     wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${SUPERLU_DIST_VERSION} -O v${SUPERLU_DIST_VERSION}.tar.gz && \
     tar -xzf v${SUPERLU_DIST_VERSION}.tar.gz && \
     cd superlu_dist-${SUPERLU_DIST_VERSION} && \
