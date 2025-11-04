@@ -99,14 +99,7 @@ RUN export LD_LIBRARY_PATH=${METIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LD_LIBRARY_PA
     cd / && rm -rf ParMETIS-${PARMETIS_VERSION} ParMETIS-${PARMETIS_VERSION}.zip
 
 # 4. install SuperLU_DIST 
-RUN echo "--- 检查 ifort 是否已安装 ---" && \
-    find /opt/intel -name "ifort" && \
-    echo "--- 检查 ifort 是否在 PATH 中 ---" && \
-    which ifort || echo "ifort 不在 PATH 中" && \
-    source ${ONEAPI_ROOT}/setvars.sh && \
-    echo "--- 激活后再次检查 ifort 是否在 PATH 中 ---" && \
-    which ifort || echo "激活后 ifort 仍然不在 PATH 中" && \
-    wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${SUPERLU_DIST_VERSION} -O v${SUPERLU_DIST_VERSION}.tar.gz && \
+RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${SUPERLU_DIST_VERSION} -O v${SUPERLU_DIST_VERSION}.tar.gz && \
     tar -xzf v${SUPERLU_DIST_VERSION}.tar.gz && \
     cd superlu_dist-${SUPERLU_DIST_VERSION} && \
     mkdir build && cd build && \
@@ -126,7 +119,7 @@ RUN echo "--- 检查 ifort 是否已安装 ---" && \
     -DCMAKE_C_FLAGS="-O3 -fopenmp" \
     -DCMAKE_CXX_FLAGS="-O3 -fopenmp" \
     -DXSDK_ENABLE_Fortran=ON \
-    -DCMAKE_Fortran_COMPILER=mpiifort && \                             
+    -DCMAKE_Fortran_COMPILER=mpiifx && \                             
     make -j$(nproc) && \
     make install && \
     cd / && rm -rf superlu_dist-${SUPERLU_DIST_VERSION} v${SUPERLU_DIST_VERSION}.tar.gz
@@ -146,7 +139,7 @@ RUN source ${ONEAPI_ROOT}/setvars.sh && \
         -DCMAKE_INSTALL_PREFIX=${PEXSI32_ROOT} \
         -DPEXSI_ENABLE_OPENMP=ON \
         -DPEXSI_ENABLE_FORTRAN=ON \
-        -DCMAKE_FORTRAN_COMPILER=mpiifort && \
+        -DCMAKE_FORTRAN_COMPILER=mpiifx && \
     make -j$(nproc) && \
     make install && \
     cd / && rm -rf PEXSI-${PEXSI_VERSION} v${PEXSI_VERSION}.tar.gz
