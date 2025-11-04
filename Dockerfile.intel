@@ -118,7 +118,8 @@ RUN export LD_LIBRARY_PATH=${METIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LD_LIBRARY_PA
     cd / && rm -rf ParMETIS-${PARMETIS_VERSION} ParMETIS-${PARMETIS_VERSION}.zip
 
 # 4. install SuperLU_DIST 
-RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${SUPERLU_DIST_VERSION} -O v${SUPERLU_DIST_VERSION}.tar.gz && \
+RUN source ${ONEAPI_ROOT}/setvars.sh && \
+    wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${SUPERLU_DIST_VERSION} -O v${SUPERLU_DIST_VERSION}.tar.gz && \
     tar -xzf v${SUPERLU_DIST_VERSION}.tar.gz && \
     cd superlu_dist-${SUPERLU_DIST_VERSION} && \
     mkdir build && cd build && \
@@ -148,7 +149,8 @@ RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${S
 ###     -DCMAKE_CUDA_COMPILER=nvcc \
 
 # 5. install PEXSI
-RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARMETIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LD_LIBRARY_PATH} && \
+RUN source ${ONEAPI_ROOT}/setvars.sh && \
+    export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARMETIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LD_LIBRARY_PATH} && \
     wget https://github.com/ecrc/PEXSI/archive/v${PEXSI_VERSION}.tar.gz && \
     tar -xzf v${PEXSI_VERSION}.tar.gz && \
     cd PEXSI-${PEXSI_VERSION} && \
