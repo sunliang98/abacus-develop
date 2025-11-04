@@ -138,7 +138,7 @@ RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${S
     -DCMAKE_C_FLAGS="-O3 -fopenmp" \
     -DCMAKE_CXX_FLAGS="-O3 -fopenmp" \
     -DXSDK_ENABLE_Fortran=ON \
-    -DCMAKE_Fortran_COMPILER=mpif90 && \                             
+    -DCMAKE_Fortran_COMPILER=mpiifort && \                             
     make -j$(nproc) && \
     make install && \
     cd / && rm -rf superlu_dist-${SUPERLU_DIST_VERSION} v${SUPERLU_DIST_VERSION}.tar.gz
@@ -157,7 +157,7 @@ RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARM
         -DCMAKE_INSTALL_PREFIX=${PEXSI32_ROOT} \
         -DPEXSI_ENABLE_OPENMP=ON \
         -DPEXSI_ENABLE_FORTRAN=ON \
-        -DCMAKE_FORTRAN_COMPILER=mpif90 && \
+        -DCMAKE_FORTRAN_COMPILER=mpiifort && \
     make -j$(nproc) && \
     make install && \
     cd / && rm -rf PEXSI-${PEXSI_VERSION} v${PEXSI_VERSION}.tar.gz
