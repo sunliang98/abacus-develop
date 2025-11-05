@@ -138,7 +138,7 @@ RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARM
     cmake .. \
         -DCMAKE_INSTALL_PREFIX=${PEXSI32_ROOT} \
         -DMETIS_LIBRARIES="${PARMETIS32_ROOT}/lib/libparmetis.so;${METIS32_ROOT}/lib/libmetis.so;${GKLIB_ROOT}/lib/libGKlib.so" \
-        -DMETIS_INCLUDE_DIRS="${PARMETIS32_ROOT}/include;${METIS32_ROOT}/include;${GKLIB_ROOT}/include" \
+        -DMETIS_INCLUDE_DIR="${PARMETIS32_ROOT}/include;${METIS32_ROOT}/include;${GKLIB_ROOT}/include" \
         -DPEXSI_ENABLE_OPENMP=ON \
         -DPEXSI_ENABLE_FORTRAN=ON \
         -DCMAKE_FORTRAN_COMPILER=mpiifx && \
