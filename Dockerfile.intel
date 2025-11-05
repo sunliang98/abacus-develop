@@ -19,8 +19,7 @@ RUN apt-get update && \
         intel-oneapi-compiler-fortran \
         intel-oneapi-mkl-devel \
         intel-oneapi-mpi-devel \
-        intel-oneapi-vtune \
-        linux-headers-5.15.0-46-generic && \
+        intel-oneapi-vtune && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
