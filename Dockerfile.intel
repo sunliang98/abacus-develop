@@ -105,7 +105,7 @@ RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${S
     mkdir build && cd build && \
     cmake .. \
     -DTPL_ENABLE_PARMETISLIB=ON \
-    -DTPL_PARMETIS_LIBRARIES="${PARMETIS32_ROOT}/lib/libparmetis.so;${METIS32_ROOT}/lib/libmetis.so;${GKLIB_ROOT}/lib64/libGKlib.so" \
+    -DTPL_PARMETIS_LIBRARIES="${PARMETIS32_ROOT}/lib/libparmetis.so;${METIS32_ROOT}/lib/libmetis.so;${GKLIB_ROOT}/lib/libGKlib.so" \
     -DTPL_PARMETIS_INCLUDE_DIRS="${PARMETIS32_ROOT}/include;${METIS32_ROOT}/include;${GKLIB_ROOT}/include" \
     -DTPL_ENABLE_INTERNAL_BLASLIB=OFF \
     -DTPL_ENABLE_LAPACKLIB=ON \
@@ -129,8 +129,7 @@ RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${S
 ###     -DCMAKE_CUDA_COMPILER=nvcc \
 
 # 5. install PEXSI
-RUN source ${ONEAPI_ROOT}/setvars.sh && \
-    export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARMETIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LD_LIBRARY_PATH} && \
+RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARMETIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LD_LIBRARY_PATH} && \
     wget https://github.com/ecrc/PEXSI/archive/v${PEXSI_VERSION}.tar.gz && \
     tar -xzf v${PEXSI_VERSION}.tar.gz && \
     cd PEXSI-${PEXSI_VERSION} && \
