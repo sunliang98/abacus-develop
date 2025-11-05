@@ -130,9 +130,9 @@ RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${S
 
 # 5. install PEXSI
 RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARMETIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LD_LIBRARY_PATH} && \
-    wget https://github.com/ecrc/PEXSI/archive/v${PEXSI_VERSION}.tar.gz && \
+    wget https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_v${PEXSI_VERSION}.tar.gz -O v${PEXSI_VERSION}.tar.gz  && \
     tar -xzf v${PEXSI_VERSION}.tar.gz && \
-    cd PEXSI-${PEXSI_VERSION} && \
+    cd v${PEXSI_VERSION} && \
     mkdir build && cd build && \
     cmake .. \
         -DCMAKE_INSTALL_PREFIX=${PEXSI32_ROOT} \
@@ -141,7 +141,7 @@ RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARM
         -DCMAKE_FORTRAN_COMPILER=mpiifx && \
     make -j$(nproc) && \
     make install && \
-    cd / && rm -rf PEXSI-${PEXSI_VERSION} v${PEXSI_VERSION}.tar.gz
+    cd / && rm -rf v${PEXSI_VERSION} v${PEXSI_VERSION}.tar.gz
 
 ###         -DCMAKE_C_COMPILER=mpiicc \
 ###        -DCMAKE_CXX_COMPILER=mpiicpc \
