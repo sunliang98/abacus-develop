@@ -19,7 +19,8 @@ RUN apt-get update && \
         intel-oneapi-compiler-fortran \
         intel-oneapi-mkl-devel \
         intel-oneapi-mpi-devel \
-        intel-oneapi-vtune && \
+        intel-oneapi-vtune \
+        linux-headers-5.15.0-46-generic && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -111,7 +112,6 @@ RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${S
     -DTPL_ENABLE_LAPACKLIB=ON \
     -DTPL_ENABLE_COMBBLASLIB=OFF \
     -DTPL_ENABLE_CUDALIB=OFF \
-    -DTPL_ENABLE_HIPLIB=OFF \
     -Denable_complex16=ON \
     -DXSDK_INDEX_SIZE=32 \
     -DBUILD_SHARED_LIBS=ON \
@@ -133,7 +133,7 @@ RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARM
     export LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARMETIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LIBRARY_PATH} && \
     export PKG_CONFIG_PATH=${SUPERLU_DIST32_ROOT}/lib/pkgconfig:${METIS32_ROOT}/lib/pkgconfig:${PARMETIS32_ROOT}/lib/pkgconfig:${GKLIB_ROOT}/lib/pkgconfig:${PKG_CONFIG_PATH} && \
     export CPATH=${SUPERLU_DIST32_ROOT}/include:${PARMETIS32_ROOT}/include:${METIS32_ROOT}/include:${GKLIB_ROOT}/include:${CMAKE_PREFIX_PATH} && \
-    export CMAKE_PREFIX_PATH=${SUPERLU_DIST32_ROOT}:${PARMETIS32_ROOT}:${METIS32_ROOT}:${GKLIB_ROOT}:${CPATH} && \
+    export CMAKE_PREFIX_PATH=${SUPERLU_DIST32_ROOT}:${PARMETIS32_ROOT}:${METIS32_ROOT}:${GKLIB_ROOT}:${CMAKE_PREFIX_PATH} && \
     wget https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_v${PEXSI_VERSION}.tar.gz && \
     tar -xzf pexsi_v${PEXSI_VERSION}.tar.gz && \
     cd pexsi_v${PEXSI_VERSION} && \
@@ -143,7 +143,7 @@ RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARM
         -DPEXSI_ENABLE_OPENMP=ON \
         -DPEXSI_ENABLE_FORTRAN=ON \
         -DCMAKE_FORTRAN_COMPILER=mpiifx && \
-    make -j$(nproc) && \
+    make pexsi -j$(nproc) && \
     make install && \
     cd / && rm -rf pexsi_v${PEXSI_VERSION} pexsi_v${PEXSI_VERSION}.tar.gz
 
@@ -178,10 +178,12 @@ ENV CMAKE_PREFIX_PATH=/opt/libtorch/share/cmake:${CMAKE_PREFIX_PATH}
 ADD https://api.github.com/repos/deepmodeling/abacus-develop/git/refs/heads/develop /dev/null
 RUN export LD_LIBRARY_PATH=${GKLIB_ROOT}/lib:${METIS32_ROOT}/lib:${PARMETIS32_ROOT}/lib:${SUPERLU32_DIST_ROOT}/lib:${PEXSI32_ROOT}/lib:${LD_LIBRARY_PATH} && \
     export CPATH=${GKLIB_ROOT}/include:${METIS32_ROOT}/include:${PARMETIS32_ROOT}/include:${SUPERLU32_DIST_ROOT}/include:${PEXSI32_ROOT}/include:${CPATH} && \
+    export CMAKE_PREFIX_PATH=${PEXSI32_ROOT}:${SUPERLU_DIST32_ROOT}:${PARMETIS32_ROOT}:${METIS32_ROOT}:${GKLIB_ROOT}:${CMAKE_PREFIX_PATH} && \
     cd /tmp && git clone https://github.com/deepmodeling/abacus-develop.git --depth 1 && \
     cd abacus-develop && \
     cmake -B build \
         -DMKL_SYCL=OFF \
+        -DMKL_SYCL_LINK=OFF \
         -DENABLE_MLALGO=ON \
         -DENABLE_PEXSI=ON \
         -DENABLE_LIBXC=ON \
