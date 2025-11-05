@@ -130,12 +130,15 @@ RUN wget https://codeload.github.com/xiaoyeli/superlu_dist/tar.gz/refs/tags/v${S
 
 # 5. install PEXSI
 RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARMETIS32_ROOT}/lib:${GKLIB_ROOT}/lib:${LD_LIBRARY_PATH} && \
+    export CPATH=${SUPERLU_DIST32_ROOT}/include:${PARMETIS32_ROOT}/include:${METIS32_ROOT}/include:${GKLIB_ROOT}/include:${CPATH} && \
     wget https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_v${PEXSI_VERSION}.tar.gz && \
     tar -xzf pexsi_v${PEXSI_VERSION}.tar.gz && \
     cd pexsi_v${PEXSI_VERSION} && \
     mkdir build && cd build && \
     cmake .. \
         -DCMAKE_INSTALL_PREFIX=${PEXSI32_ROOT} \
+        -DMETIS_LIBRARIES="${PARMETIS32_ROOT}/lib/libparmetis.so;${METIS32_ROOT}/lib/libmetis.so;${GKLIB_ROOT}/lib/libGKlib.so" \
+        -DMETIS_INCLUDE_DIRS="${PARMETIS32_ROOT}/include;${METIS32_ROOT}/include;${GKLIB_ROOT}/include" \
         -DPEXSI_ENABLE_OPENMP=ON \
         -DPEXSI_ENABLE_FORTRAN=ON \
         -DCMAKE_FORTRAN_COMPILER=mpiifx && \
