@@ -142,8 +142,7 @@ RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARM
     cmake .. \
         -DCMAKE_INSTALL_PREFIX=${PEXSI32_ROOT} \
         -DPEXSI_ENABLE_OPENMP=ON \
-        -DPEXSI_ENABLE_FORTRAN=ON \
-        -DCMAKE_FORTRAN_COMPILER=mpiifx && \
+        -DPEXSI_ENABLE_FORTRAN=OFF && \
     make pexsi -j$(nproc) && \
     make install && \
     cd / && rm -rf pexsi_v${PEXSI_VERSION} pexsi_v${PEXSI_VERSION}.tar.gz
