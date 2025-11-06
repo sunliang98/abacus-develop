@@ -136,6 +136,8 @@ RUN export LD_LIBRARY_PATH=${SUPERLU_DIST32_ROOT}/lib:${METIS32_ROOT}/lib:${PARM
     wget https://bitbucket.org/berkeleylab/pexsi/downloads/pexsi_v${PEXSI_VERSION}.tar.gz && \
     tar -xzf pexsi_v${PEXSI_VERSION}.tar.gz && \
     cd pexsi_v${PEXSI_VERSION} && \
+    sed -i 's/^add_pexsi_f_example_exe/# add_pexsi_f_example_exe/g' fortran/CMakeLists.txt && \
+    sed -i 's/^add_pexsi_example_exe/# add_pexsi_example_exe/g' examples/CMakeLists.txt && \
     sed -i 's/add_executable/# add_executable/g' fortran/CMakeLists.txt && \
     sed -i 's/add_executable/# add_executable/g' examples/CMakeLists.txt && \
     mkdir build && cd build && \
