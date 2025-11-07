@@ -184,7 +184,6 @@ RUN export LD_LIBRARY_PATH=${GKLIB_ROOT}/lib:${METIS32_ROOT}/lib:${PARMETIS32_RO
     export CPATH=${GKLIB_ROOT}/include:${METIS32_ROOT}/include:${PARMETIS32_ROOT}/include:${SUPERLU32_DIST_ROOT}/include:${PEXSI32_ROOT}/include:${CPATH} && \
     export CMAKE_PREFIX_PATH=${GKLIB_ROOT}:${METIS32_ROOT}:${PARMETIS32_ROOT}:${SUPERLU32_DIST_ROOT}:${PEXSI32_ROOT}:${CMAKE_PREFIX_PATH} && \
     cd /tmp && git clone https://github.com/deepmodeling/abacus-develop.git --depth 1 && \
-    cd /tmp && git clone https://github.com/deepmodeling/abacus-develop.git --depth 1 && \
     cd abacus-develop && \
     cmake -B build \
         -DENABLE_MLALGO=ON \
