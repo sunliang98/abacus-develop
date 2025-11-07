@@ -302,6 +302,9 @@
   - [Exact Exchange (PW)](#exact-exchange-pw)
     - [exxace](#exxace)
     - [exx\_gamma\_extrapolation](#exx_gamma_extrapolation)
+    - [ecutexx](#ecutexx)
+    - [exx_thr_type](#exx_thr_type)
+    - [exx_ene_thr](#exx_ene_thr)
   - [Molecular Dynamics](#molecular-dynamics)
     - [md\_type](#md_type)
     - [md\_nstep](#md_nstep)
@@ -3101,6 +3104,26 @@ These variables are relevant when using hybrid functionals with *[basis_type](#b
 - **Description**: Whether to use the gamma point extrapolation method to calculate the Fock exchange operator. See [https://doi.org/10.1103/PhysRevB.79.205114](https://doi.org/10.1103/PhysRevB.79.205114) for details. Should be set to true most of the time.
 - **Default**: True
 
+### ecutexx
+- **Type**: Real
+- **Description**: The energy cutoff for EXX (Fock) exchange operator in plane wave basis calculations. Reducing `ecutexx` below `ecutrho` may significantly accelerate EXX computations. This speed improvement comes with a reduced numerical accuracy in the exchange energy calculation.
+- **Default**: same as *[ecutrho](#ecutrho)*
+- **Unit**: Ry
+
+### exx_thr_type
+- **Type**: String
+- **Description**: The type of threshold used to judge whether the outer loop has converged in the separate loop EXX calculation.
+  - energy: use the change of exact exchange energy to judge convergence.
+  - density: if the change of charge density difference between two successive outer loop iterations is seen as converged according to *[scf_thr](#scf_thr)*, then the outer loop is seen as converged.
+- **Default**: `density`
+
+### exx_ene_thr
+- **Type**: Real
+- **Availability**: *[exx_thr_type](#exx_thr_type)*==`energy`
+- **Description**: The threshold for the change of exact exchange energy to judge convergence of the outer loop in the separate loop EXX calculation.
+- **Default**: 1e-5
+- **Unit**: Ry
+
 ## Molecular dynamics
 
 These variables are used to control molecular dynamics calculations. For more information, please refer to [md.md](../md.md#molecular-dynamics) in detail.
@@ -3162,14 +3185,14 @@ These variables are used to control molecular dynamics calculations. For more in
 
 - **Type**: Boolean
 - **Description**: Control whether to restart molecular dynamics calculations and time-dependent density functional theory calculations.
-  - True: ABACUS will read in `${read_file_dir}/Restart_md.dat` to determine the current step `${md_step}`, then read in the corresponding `STRU_MD_${md_step}` in the folder `OUT.$suffix/STRU/` automatically. For tddft, ABACUS will also read in `WFC_NAO_K${kpoint}` of the last step (You need to set out_wfc_lcao=1 and out_app_flag=0 to obtain this file).
+  - True: ABACUS will read in `${read_file_dir}/Restart_md.txt` to determine the current step `${md_step}`, then read in the corresponding `STRU_MD_${md_step}` in the folder `OUT.$suffix/STRU/` automatically. For tddft, ABACUS will also read in `WFC_NAO_K${kpoint}` of the last step (You need to set out_wfc_lcao=1 and out_app_flag=0 to obtain this file).
   - False: ABACUS will start molecular dynamics calculations normally from the first step.
 - **Default**: False
 
 ### md_restartfreq
 
 - **Type**: Integer
-- **Description**: The output frequency of `OUT.${suffix}/Restart_md.dat` and structural files in the directory `OUT.${suffix}/STRIU/`, which are used to restart molecular dynamics calculations, see [md_restart](#md_restart) in detail.
+- **Description**: The output frequency of `OUT.${suffix}/Restart_md.txt` and structural files in the directory `OUT.${suffix}/STRIU/`, which are used to restart molecular dynamics calculations, see [md_restart](#md_restart) in detail.
 - **Default**: 5
 
 ### md_dumpfreq
