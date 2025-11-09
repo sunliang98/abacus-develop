@@ -156,7 +156,8 @@ if(ENABLE_COVERAGE)
     include(FetchContent)
     FetchContent_Declare(
       cmakecodecov
-      URL https://github.com/baixiaokuang/CMake-codecov/archive/refs/heads/master.zip
+      # URL https://github.com/baixiaokuang/CMake-codecov/archive/refs/heads/master.zip
+      URL https://github.com/RWTH-HPC/CMake-codecov.git
     )
     FetchContent_Populate(cmakecodecov)
     list(APPEND CMAKE_MODULE_PATH ${cmakecodecov_SOURCE_DIR}/cmake)
