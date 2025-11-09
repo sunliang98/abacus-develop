@@ -1,9 +1,9 @@
 name: Container
 
 on:
-  pull_request: # 当有 PR 指向 develop 分支时触发
-    branches:
-      - develop
+  #pull_request: # 当有 PR 指向 develop 分支时触发
+    #branches:
+    #  - develop
   push:
     branches:
       - develop
