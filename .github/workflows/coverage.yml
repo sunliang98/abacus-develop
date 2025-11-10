@@ -23,6 +23,8 @@ jobs:
           # git submodule add git://github.com/RWTH-HPC/CMake-codecov.git externals/CMake-codecov
       - name: Building
         run: |
+          rm -rf build/
+          rm -f CMakeCache.txt
           cmake -B build -DENABLE_COVERAGE=ON -DBUILD_TESTING=ON -DENABLE_MLALGO=ON -DENABLE_LIBXC=ON -DENABLE_LIBRI=ON -DENABLE_GOOGLEBENCH=ON -DENABLE_RAPIDJSON=ON
           cmake --build build -j`nproc`
           cmake --install build
@@ -31,6 +33,9 @@ jobs:
           OMP_NUM_THREADS: 1
         run: |
           cmake --build build --target test ARGS="-V --timeout 21600" || exit 0
+      - name: Generate Coverage Report
+        run: |
+          cmake --build build --target coverage
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5
         if: ${{ ! cancelled() }}
