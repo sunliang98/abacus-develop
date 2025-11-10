@@ -54,7 +54,7 @@ if(ENABLE_LCAO)
 
     add_library(
         hamilt_lcao
-        STATIC
+        OBJECT
         ${objects}
     )
 
