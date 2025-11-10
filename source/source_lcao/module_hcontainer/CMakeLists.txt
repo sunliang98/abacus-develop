@@ -12,7 +12,7 @@ list(APPEND objects
 
 add_library(
     hcontainer
-    OBJECT
+    STATIC
     ${objects}
 )
 
