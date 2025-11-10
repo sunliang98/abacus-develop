@@ -814,5 +814,22 @@ install(PROGRAMS ${ABACUS_BIN_PATH}
 )
 
 if(ENABLE_COVERAGE)
-  coverage_evaluate()
+  # coverage_evaluate()
+# ... 在所有 add_subdirectory() 之后 ...
+
+if(ENABLE_COVERAGE)
+    ## coverage_evaluate()
+    add_custom_target(coverage
+        COMMAND ${CMAKE_COMMAND} -E echo "Capturing coverage data..."
+        COMMAND lcov --capture --directory ${CMAKE_BINARY_DIR} --output-file ${CMAKE_BINARY_DIR}/coverage.info
+        COMMAND ${CMAKE_COMMAND} -E echo "Filtering coverage data..."
+       
+        COMMAND lcov --remove ${CMAKE_BINARY_DIR}/coverage.info '/usr/*' '*/test/*' '*/gtest/*' '*/gmock/*' --output-file ${CMAKE_BINARY_DIR}/coverage.info
+        COMMAND ${CMAKE_COMMAND} -E echo "Generating HTML report..."
+
+        COMMAND genhtml -o ${CMAKE_BINARY_DIR}/coverage_html ${CMAKE_BINARY_DIR}/coverage.info
+        COMMAND ${CMAKE_COMMAND} -E echo "Coverage report generated at: ${CMAKE_BINARY_DIR}/coverage_html/index.html"
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Generating code coverage report with lcov"
+    )
 endif()
