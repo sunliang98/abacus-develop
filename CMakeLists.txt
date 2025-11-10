@@ -814,10 +814,6 @@ install(PROGRAMS ${ABACUS_BIN_PATH}
 )
 
 if(ENABLE_COVERAGE)
-  # coverage_evaluate()
-# ... 在所有 add_subdirectory() 之后 ...
-
-if(ENABLE_COVERAGE)
     ## coverage_evaluate()
     add_custom_target(coverage
         COMMAND ${CMAKE_COMMAND} -E echo "Capturing coverage data..."
