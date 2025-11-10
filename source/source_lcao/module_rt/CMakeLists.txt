@@ -19,7 +19,7 @@ if(ENABLE_LCAO)
 
     add_library(
         tddft
-        OBJECT
+        STATIC
         ${objects}
     )
 
