@@ -1,10 +1,12 @@
 find_program(BASH bash)
 find_package(Python3 REQUIRED)
 
-add_executable(sum_cube.exe ${ABACUS_TEST_DIR}/integrate/tools/sum_cube.cpp)
-install(TARGETS sum_cube.exe DESTINATION ${ABACUS_TEST_DIR}/integrate/tools/)
+add_executable(sum_cube ${ABACUS_TEST_DIR}/integrate/tools/sum_cube.cpp)
+install(TARGETS sum_cube DESTINATION ${ABACUS_TEST_DIR}/integrate/tools/)
+message(STATUS "Target sum_cube has been defined in ${CMAKE_CURRENT_SOURCE_DIR}") # 添加此行
+    
 if(ENABLE_COVERAGE)
-  add_coverage(sum_cube.exe)
+  add_coverage(sum_cube)
 endif()
 
 if(ENABLE_ASAN)
