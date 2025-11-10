@@ -3,7 +3,7 @@ add_subdirectory(module_neighbor)
 
 add_library(
     cell
-    OBJECT
+    STATIC
     atom_pseudo.cpp
     atom_spec.cpp
     pseudo.cpp
