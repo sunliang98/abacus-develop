@@ -156,9 +156,13 @@ if(ENABLE_COVERAGE)
     include(FetchContent)
     FetchContent_Declare(
       cmakecodecov
+      GIT_REPOSITORY https://github.com/RWTH-HPC/CMake-codecov.git
+      GIT_TAG master
       # URL https://github.com/baixiaokuang/CMake-codecov/archive/refs/heads/master.zip
-      URL https://github.com/RWTH-HPC/CMake-codecov/archive/refs/heads/master.zip
+      # URL https://github.com/RWTH-HPC/CMake-codecov/archive/refs/heads/master.zip
       # URL https://gitee.com/mirrors_rwth-elp/cmake-codecov/archive/refs/heads/master.zip
+      GIT_SHALLOW TRUE
+      GIT_PROGRESS TRUE
     )
     FetchContent_Populate(cmakecodecov)
     list(APPEND CMAKE_MODULE_PATH ${cmakecodecov_SOURCE_DIR}/cmake)
