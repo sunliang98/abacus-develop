@@ -24,7 +24,7 @@ if(ENABLE_LCAO)
     )
 
     if(ENABLE_COVERAGE)
-    add_coverage(tddft)
+        add_coverage(tddft)
     endif()
 
     IF (BUILD_TESTING)

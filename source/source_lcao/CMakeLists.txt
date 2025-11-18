@@ -59,7 +59,7 @@ if(ENABLE_LCAO)
     )
 
     if(ENABLE_COVERAGE)
-    add_coverage(hamilt_lcao)
+        add_coverage(hamilt_lcao)
     endif()
 
 endif()
