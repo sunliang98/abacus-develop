@@ -1,9 +1,6 @@
 name: Coverage Analysis
 
 on:
-  pull_request:
-    branches:
-      - develop
   workflow_dispatch:
   push:
     tags:
