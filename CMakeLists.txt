@@ -151,15 +151,19 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if(ENABLE_COVERAGE)
-  find_package(codecov)
+  find_package(codecov QUIET)
   if(NOT codecov_FOUND)
     include(FetchContent)
     FetchContent_Declare(
       cmakecodecov
-      URL https://github.com/baixiaokuang/CMake-codecov/archive/refs/heads/master.zip
+      GIT_REPOSITORY https://github.com/RWTH-HPC/CMake-codecov.git
+      GIT_TAG master
+      GIT_SHALLOW TRUE
+      GIT_PROGRESS TRUE
     )
     FetchContent_Populate(cmakecodecov)
     list(APPEND CMAKE_MODULE_PATH ${cmakecodecov_SOURCE_DIR}/cmake)
+    set(CMAKE_MODULE_PATH "${cmakecodecov_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
     find_package(codecov REQUIRED)
   endif()
 endif()

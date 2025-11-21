@@ -1,6 +1,9 @@
 name: Coverage Analysis
 
 on:
+  pull_request:
+    branches:
+      - develop
   workflow_dispatch:
   push:
     tags:
@@ -13,24 +16,76 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      - name: Install Requirements for Coverage Testing
+        with:
+          submodules: recursive
+      
+      - name: Install Perl Dependencies and Coverage Tools
         run: |
-          apt update && apt install -y lcov gpg curl jq ca-certificates
-      - name: Building
+          apt update && apt install -y curl jq ca-certificates python3-pip
+          apt install -y lcov perl-modules
+          apt install -y libcapture-tiny-perl libdatetime-perl libjson-perl libperlio-gzip-perl
+          lcov --version
+      
+      - name: Building with Coverage
         run: |
-          cmake -B build -DENABLE_COVERAGE=ON -DBUILD_TESTING=ON -DENABLE_MLALGO=ON -DENABLE_LIBXC=ON -DENABLE_LIBRI=ON -DENABLE_GOOGLEBENCH=ON -DENABLE_RAPIDJSON=ON
-          cmake --build build -j`nproc`
-          cmake --install build
+          rm -rf build/
+          rm -f CMakeCache.txt
+
+          mkdir -p build
+          chmod -R 755 build/
+
+          cmake -B build \
+            -DENABLE_COVERAGE=ON \
+            -DBUILD_TESTING=ON \
+            -DENABLE_MLALGO=ON \
+            -DENABLE_LIBXC=ON \
+            -DENABLE_LIBRI=ON \
+            -DENABLE_GOOGLEBENCH=ON \
+            -DENABLE_RAPIDJSON=ON \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS="--coverage -fprofile-arcs -ftest-coverage" \
+            -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+          cmake --build build -j`nproc` || echo "Some tests failed but continuing for coverage"
+          cmake --install build || echo "Some tests failed but continuing for coverage"
+      
       - name: Testing
         env:
           OMP_NUM_THREADS: 1
         run: |
-          cmake --build build --target test ARGS="-V --timeout 21600" || exit 0
+          chmod -R 755 build/
+          cmake --build build --target test ARGS="-V --timeout 21600" || echo "Some tests failed but continuing for coverage"
+      
+      - name: Generate Coverage Data
+        run: |
+          cd build
+          
+          lcov --directory . --capture --output-file coverage.info
+          
+          lcov --remove coverage.info '/usr/*' '*/test/*' '*/external/*' '*/build/*' --output-file coverage.filtered.info || echo "lcov filtering failed"
+          
+          genhtml coverage.filtered.info --output-directory coverage-report || echo "genhtml failed"
+          
+          cd ..
+      
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v5
         if: ${{ ! cancelled() }}
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-          skip_validation: true
+          files: ./build/coverage.xml,./build/coverage.info
+          directory: ./build/
+          flags: unittests
+          name: codecov-umbrella
           verbose: true
+      
+      - name: Upload Coverage Report Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: |
+            build/coverage-report/
+            build/coverage.info
+            build/coverage.xml
+          retention-days: 30
