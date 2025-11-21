@@ -151,7 +151,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 if(ENABLE_COVERAGE)
-  find_package(codecov QUIET)
+  find_package(codecov)
   if(NOT codecov_FOUND)
     include(FetchContent)
     FetchContent_Declare(
