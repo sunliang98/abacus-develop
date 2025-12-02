@@ -73,40 +73,15 @@ void ESolver_OF::before_all_runners(UnitCell& ucell, const Input_para& inp)
 
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "SETUP UNITCELL");
 
-    XC_Functional::set_xc_type(ucell.atoms[0].ncpp.xc_func);
+//  XC_Functional::set_xc_type(ucell.atoms[0].ncpp.xc_func);
     int func_type = XC_Functional::get_func_type();
     if (func_type > 2)
     {
         ModuleBase::WARNING_QUIT("esolver_of", "meta-GGA and Hybrid functionals are not supported by OFDFT.");
     }
 
-    // symmetry analysis should be performed every time the cell is changed
-    if (ModuleSymmetry::Symmetry::symm_flag == 1)
-    {
-        ucell.symm.analy_sys(ucell.lat, ucell.st, ucell.atoms, GlobalV::ofs_running);
-        ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "SYMMETRY");
-    }
-
-    // Setup the k points according to symmetry.
-    kv.set(ucell,ucell.symm, inp.kpoint_file, inp.nspin, ucell.G, ucell.latvec, GlobalV::ofs_running);
-    ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT K-POINTS");
-
-    // print information
-    // mohan add 2021-01-30
-    ModuleIO::print_parameters(ucell, kv, inp);
-
-    // initialize the real-space uniform grid for FFT and parallel
-    // distribution of plane waves
-    Pgrid.init(pw_rho->nx,
-                        pw_rho->ny,
-                        pw_rho->nz,
-                        pw_rho->nplane,
-                        pw_rho->nrxx,
-                        pw_big->nbz,
-                        pw_big->bz); // mohan add 2010-07-22, update 2011-05-04
-    // Calculate Structure factor
-    sf.setup(&ucell, Pgrid, pw_rho);
-    ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT BASIS");
+    this->chr.init_rho(ucell, this->Pgrid, this->sf.strucFac, ucell.symm, &this->kv);
+    this->chr.check_rho(); // check the rho
 
     // initialize local pseudopotential
     this->locpp.init_vloc(ucell,pw_rho);
@@ -122,7 +97,7 @@ void ESolver_OF::before_all_runners(UnitCell& ucell, const Input_para& inp)
     // liuyu move here 2023-10-09
     // D in uspp need vloc, thus behind init_scf()
     // calculate the effective coefficient matrix for non-local pseudopotential projectors
-    ModuleBase::matrix veff = this->pelec->pot->get_effective_v();
+    ModuleBase::matrix veff = this->pelec->pot->get_eff_v();
 
     ModuleBase::GlobalFunc::DONE(GlobalV::ofs_running, "INIT POTENTIAL");
 
@@ -213,6 +188,8 @@ void ESolver_OF::before_opt(const int istep, UnitCell& ucell)
 
     //! 1) call before_scf() of ESolver_FP
     ESolver_FP::before_scf(ucell, istep);
+
+
 
     if (ucell.cell_parameter_updated)
     {
@@ -317,10 +294,10 @@ void ESolver_OF::update_potential(UnitCell& ucell)
     this->kedf_manager_->get_potential(this->chr.rho,
                                        this->pphi_,
                                        this->pw_rho,
-                                       this->pelec->pot->get_effective_v()); // KEDF potential
+                                       this->pelec->pot->get_eff_v()); // KEDF potential
     for (int is = 0; is < PARAM.inp.nspin; ++is)
     {
-        const double* vr_eff = this->pelec->pot->get_effective_v(is);
+        const double* vr_eff = this->pelec->pot->get_eff_v(is);
         for (int ir = 0; ir < this->pw_rho->nrxx; ++ir)
         {
             this->pdEdphi_[is][ir] = vr_eff[ir];
@@ -516,9 +493,9 @@ void ESolver_OF::after_opt(const int istep, UnitCell& ucell, const bool conv_eso
     this->kedf_manager_->get_potential(this->chr.rho,
                                        this->pphi_,
                                        this->pw_rho,
-                                       this->pelec->pot->get_effective_v()); // KEDF potential
+                                       this->pelec->pot->get_eff_v()); // KEDF potential
         
-        const double* vr_eff = this->pelec->pot->get_effective_v(0);
+        const double* vr_eff = this->pelec->pot->get_eff_v(0);
         for (int ir = 0; ir < this->pw_rho->nrxx; ++ir)
         {
             this->pdEdphi_[0][ir] = vr_eff[ir];

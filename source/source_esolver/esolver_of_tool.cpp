@@ -20,7 +20,6 @@ void ESolver_OF::init_elecstate(UnitCell& ucell)
     if (this->pelec == nullptr)
     {
         this->pelec = new elecstate::ElecState((Charge*)(&chr), this->pw_rho, pw_big);
-        this->chr.allocate(PARAM.inp.nspin);
     }
 
     delete this->pelec->pot;
@@ -139,7 +138,7 @@ void ESolver_OF::cal_potential(double* ptemp_phi, double* rdLdphi, UnitCell& uce
 
     elecstate::cal_ux(ucell);
     this->pelec->pot->update_from_charge(this->ptemp_rho_, &ucell);
-    ModuleBase::matrix& vr_eff = this->pelec->pot->get_effective_v();
+    ModuleBase::matrix& vr_eff = this->pelec->pot->get_eff_v();
 
     this->kedf_manager_->get_potential(this->ptemp_rho_->rho,
                                        temp_phi,
@@ -179,7 +178,7 @@ void ESolver_OF::cal_dEdtheta(double** ptemp_phi, Charge* temp_rho, UnitCell& uc
 
     elecstate::cal_ux(ucell);
     this->pelec->pot->update_from_charge(temp_rho, &ucell);
-    ModuleBase::matrix& vr_eff = this->pelec->pot->get_effective_v();
+    ModuleBase::matrix& vr_eff = this->pelec->pot->get_eff_v();
 
     this->kedf_manager_->get_potential(temp_rho->rho,
                                        ptemp_phi,
