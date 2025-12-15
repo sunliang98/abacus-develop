@@ -328,9 +328,10 @@ void Parallel_Global::divide_pools(const int& NPROC,
     //       and MY_BNDGROUP will be the same as well.
     if(BNDPAR > 1 && NPROC %(BNDPAR * KPAR) != 0)
     {
-        std::cout << "Error: When BNDPAR = " << BNDPAR << " > 1, number of processes (" << NPROC << ") must be divisible by the number of groups ("
-                  << BNDPAR * KPAR << ")." << std::endl;
-        exit(1);
+        std::cout << "Error: When BNDPAR = " << BNDPAR << " > 1, number of processes (" << NPROC
+            << ") must be divisible by the number of groups (" << BNDPAR * KPAR << ")." << std::endl;
+        ModuleBase::WARNING_QUIT("ParallelGlobal::divide_pools",
+            "When BNDPAR > 1, number of processes NPROC must be divisible by the number of groups BNDPAR * KPAR.");
     }
     // k-point parallelization
     MPICommGroup kpar_group(MPI_COMM_WORLD);
