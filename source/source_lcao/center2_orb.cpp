@@ -28,84 +28,56 @@ int Center2_Orb::get_rmesh(const double& R1, const double& R2, const double dr)
     return rmesh;
 }
 
-// Peize Lin update 2016-01-26
-void Center2_Orb::init_Lmax(const int orb_num,
-                            const int mode,
-                            int& Lmax_used,
-                            int& Lmax,
-                            const int& Lmax_exx,
-                            const int lmax_orb,
-                            const int lmax_beta)
+// used in <Phi|Phi> or <Beta|Phi>
+std::pair<int,int> Center2_Orb::init_Lmax_2_1(const int lmax_orb, const int lmax_beta)
 {
-
-    Lmax = -1;
-
-    switch (orb_num)
-    {
-    case 2:
-        switch (mode)
-        {
-        case 1: // used in <Phi|Phi> or <Beta|Phi>
-            Lmax = std::max({Lmax, lmax_orb, lmax_beta});
-            // use 2lmax+1 in dS
-            Lmax_used = 2 * Lmax + 1;
-            break;
-        case 2: // used in <jY|jY> or <Abfs|Abfs>
-            Lmax = std::max(Lmax, Lmax_exx);
-            Lmax_used = 2 * Lmax + 1;
-            break;
-        case 3: // used in berryphase by jingan
-            Lmax = std::max(Lmax, lmax_orb);
-            Lmax++;
-            Lmax_used = 2 * Lmax + 1;
-            break;
-        default:
-            throw std::invalid_argument("Center2_Orb::init_Lmax orb_num=2, mode error");
-            break;
-        }
-        break;
-    case 3:
-        switch (mode)
-        {
-        case 1: // used in <jY|PhiPhi> or <Abfs|PhiPhi>
-            Lmax = std::max(Lmax, lmax_orb);
-            Lmax_used = 2 * Lmax + 1;
-            Lmax = std::max(Lmax, Lmax_exx);
-            Lmax_used += Lmax_exx;
-            break;
-        default:
-            throw std::invalid_argument("Center2_Orb::init_Lmax orb_num=3, mode error");
-            break;
-        }
-        break;
-    case 4:
-        switch (mode)
-        {
-        case 1: // used in <PhiPhi|PhiPhi>
-            Lmax = std::max(Lmax, lmax_orb);
-            Lmax_used = 2 * (2 * Lmax + 1);
-            break;
-        default:
-            throw std::invalid_argument("Center2_Orb::init_Lmax orb_num=4, mode error");
-            break;
-        }
-        break;
-    default:
-        throw std::invalid_argument("Center2_Orb::init_Lmax orb_num error");
-        break;
-    }
-
+    const int Lmax = std::max({-1, lmax_orb, lmax_beta});
+    const int Lmax_used = 2 * Lmax + 1;
     assert(Lmax_used >= 1);
+    return {Lmax_used, Lmax};
+}
+
+// used in <jY|jY> or <Abfs|Abfs>
+std::pair<int,int> Center2_Orb::init_Lmax_2_2(const int& lmax_exx)
+{
+    const int Lmax = std::max(-1, lmax_exx);
+    const int Lmax_used = 2 * Lmax + 1;
+    assert(Lmax_used >= 1);
+    return {Lmax_used, Lmax};
+}
+
+// used in berryphase by jingan
+std::pair<int,int> Center2_Orb::init_Lmax_2_3(const int lmax_orb)
+{
+    int Lmax = std::max(-1, lmax_orb);
+    Lmax++;
+    const int Lmax_used = 2 * Lmax + 1;
+    assert(Lmax_used >= 1);
+    return {Lmax_used, Lmax};
+}
+
+// used in <jY|PhiPhi> or <Abfs|PhiPhi>
+std::pair<int,int> Center2_Orb::init_Lmax_3_1(const int& lmax_exx, const int lmax_orb)
+{
+    int Lmax = std::max(-1, lmax_orb);
+    int Lmax_used = 2 * Lmax + 1;
+    Lmax = std::max(Lmax, lmax_exx);
+    Lmax_used += lmax_exx;
+    assert(Lmax_used >= 1);
+    return {Lmax_used, Lmax};
+}
+
+// used in <PhiPhi|PhiPhi>
+std::pair<int,int> Center2_Orb::init_Lmax_4_1(const int lmax_orb)
+{
+    const int Lmax = std::max(-1, lmax_orb);
+    const int Lmax_used = 2 * (2 * Lmax + 1);
+    assert(Lmax_used >= 1);
+    return {Lmax_used, Lmax};
 }
 
 // Peize Lin update 2016-01-26
-void Center2_Orb::init_Table_Spherical_Bessel(const int orb_num,
-                                              const int mode,
-                                              int& Lmax_used,
-                                              int& Lmax,
-                                              const int& Lmax_exx,
-                                              const int lmax_orb,
-                                              const int lmax_beta,
+void Center2_Orb::init_Table_Spherical_Bessel(const int Lmax_used,
                                               const double dr,
                                               const double dk,
                                               const int kmesh,
@@ -113,8 +85,6 @@ void Center2_Orb::init_Table_Spherical_Bessel(const int orb_num,
                                               ModuleBase::Sph_Bessel_Recursive::D2*& psb)
 {
     ModuleBase::TITLE("Center2_Orb", "init_Table_Spherical_Bessel");
-
-    init_Lmax(orb_num, mode, Lmax_used, Lmax, Lmax_exx, lmax_orb, lmax_beta); // Peize Lin add 2016-01-26
 
     for (auto& sb: ModuleBase::Sph_Bessel_Recursive_Pool::D2::sb_pool)
     {
