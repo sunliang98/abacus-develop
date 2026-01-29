@@ -306,14 +306,28 @@ void Data::load_data_(
                 this->loadTensor(dir[idata] + this->file_name("tanhq_nl", ktype, kscaling), idata, fftdim, tanhq_nl[ik]);
             }
         }
-
-        this->loadTensor(dir[idata] + "/enhancement.npy", idata, fftdim, enhancement);
+        
+        if (input.energy_type == "kedf")
+        {
+            this->loadTensor(dir[idata] + "/enhancement.npy", idata, fftdim, enhancement);
+        }
+        else if (input.energy_type == "exx")
+        {
+            this->loadTensor(dir[idata] + "/enhancement_x.npy", idata, fftdim, enhancement);
+        }
         enhancement_mean[idata] = torch::mean(enhancement[idata]);
         tau_mean[idata] = torch::mean(torch::pow(rho[idata], input.exponent/3.) * enhancement[idata]);
 
         if (input.loss == "potential" || input.loss == "both" || input.loss == "both_new")
         {
-            this->loadTensor(dir[idata] + "/pauli.npy", idata, fftdim, pauli);
+            if (input.energy_type == "kedf")
+            {
+                this->loadTensor(dir[idata] + "/pauli.npy", idata, fftdim, pauli);
+            }
+            else if (input.energy_type == "exx")
+            {
+                this->loadTensor(dir[idata] + "/v_pbe_x.npy", idata, fftdim, pauli);
+            }
             pauli_mean[idata] = torch::mean(pauli[idata]);
         }
     }
