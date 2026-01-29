@@ -4,6 +4,7 @@
 
 #include "npy.hpp"
 #include "source_estate/module_charge/symmetry_rho.h"
+#include "source_hamilt/module_xc/xc_functional.h"
 
 namespace ModuleIO
 {
@@ -63,6 +64,54 @@ void Write_MLKEDF_Descriptors::generateTrainData_KS(
         container[ir] = veff[ir];
     }
     npy::SaveArrayAsNumpy(out_dir + "/veff.npy", false, 1, cshape, container);
+
+    std::string current_func = PARAM.inp.dft_functional;
+    if (current_func == "none")
+    {
+        // if dft_functional is not set, use the one in pseudopotential
+        current_func = ucell.atoms[0].ncpp.xc_func;
+    }
+    
+    // 1. PBE Exchange
+    XC_Functional::set_xc_type("PBE_X");
+
+    std::vector<double> ex_density_pbe(this->cal_tool->nx, 0.0);
+    const auto etxc_vtxc_v_pbe = XC_Functional::v_xc(
+        this->cal_tool->nx, 
+        pelec->charge, 
+        &ucell, 
+        &ex_density_pbe
+    );
+
+    const ModuleBase::matrix& v_x_pbe = std::get<2>(etxc_vtxc_v_pbe);
+    for (int ir = 0; ir < this->cal_tool->nx; ++ir){
+        container[ir] = v_x_pbe(0, ir);
+    }
+    npy::SaveArrayAsNumpy(out_dir + "/v_pbe_x.npy", false, 1, cshape, container);
+
+    // 2. LDA Exchange 
+    XC_Functional::set_xc_type("LDA_X");
+
+    std::vector<double> ex_density_lda(this->cal_tool->nx, 0.0);
+    XC_Functional::v_xc(
+        this->cal_tool->nx, 
+        pelec->charge, 
+        &ucell, 
+        &ex_density_lda
+    );
+
+    // 3. Enhancement Factor = PBE_X / LDA_X
+    std::vector<double> enhancement_x(this->cal_tool->nx, 0.0);
+    for(int ir = 0; ir < this->cal_tool->nx; ++ir) {
+        if (std::abs(ex_density_lda[ir]) > 1e-12) {
+            enhancement_x[ir] = ex_density_pbe[ir] / ex_density_lda[ir];
+        } else {
+            enhancement_x[ir] = 1.0; 
+        }
+    }
+    npy::SaveArrayAsNumpy(out_dir + "/enhancement_x.npy", false, 1, cshape, enhancement_x);
+    
+    XC_Functional::set_xc_type(current_func);
 
     delete ptempRho;
 }

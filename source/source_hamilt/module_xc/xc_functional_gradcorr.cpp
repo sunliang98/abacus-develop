@@ -24,7 +24,8 @@
 // from gradcorr.f90
 void XC_Functional::gradcorr(double &etxc, double &vtxc, ModuleBase::matrix &v,
 	const Charge* const chr, ModulePW::PW_Basis* rhopw, const UnitCell *ucell,
-	std::vector<double> &stress_gga, const bool is_stress)
+	std::vector<double> &stress_gga, const bool is_stress,
+    std::vector<double>* energy_density)
 {
 	ModuleBase::TITLE("XC_Functional","gradcorr");
 	
@@ -291,6 +292,7 @@ void XC_Functional::gradcorr(double &etxc, double &vtxc, ModuleBase::matrix &v,
 					
 					local_vtxcgc += ModuleBase::e2* v1xc * ( rhotmp1[ir] - chr->rho_core[ir] );
 					local_etxcgc += ModuleBase::e2* sxc  * segno;
+                    if(energy_density) (*energy_density)[ir] += ModuleBase::e2 * sxc * segno;
 				}
 			} // end arho > epsr
 		}
@@ -359,6 +361,7 @@ void XC_Functional::gradcorr(double &etxc, double &vtxc, ModuleBase::matrix &v,
 					local_vtxcgc = local_vtxcgc + ModuleBase::e2 * v1xcup * ( rhotmp1[ir] - chr->rho_core[ir] * fac );
 					local_vtxcgc = local_vtxcgc + ModuleBase::e2 * v1xcdw * ( rhotmp2[ir] - chr->rho_core[ir] * fac );
 					local_etxcgc = local_etxcgc + ModuleBase::e2 * sxc;
+                    if(energy_density) (*energy_density)[ir] += ModuleBase::e2 * sxc;
 				}
 #endif
 			}
@@ -451,6 +454,7 @@ void XC_Functional::gradcorr(double &etxc, double &vtxc, ModuleBase::matrix &v,
 					local_vtxcgc = local_vtxcgc + ModuleBase::e2 * ( v1xup + v1cup ) * ( rhotmp1[ir] - chr->rho_core[ir] * fac );
 					local_vtxcgc = local_vtxcgc + ModuleBase::e2 * ( v1xdw + v1cdw ) * ( rhotmp2[ir] - chr->rho_core[ir] * fac );
 					local_etxcgc = local_etxcgc + ModuleBase::e2 * ( sx + sc );
+                    if(energy_density) (*energy_density)[ir] += ModuleBase::e2 * ( sx + sc );
 				}
 			}
 		}// end ir

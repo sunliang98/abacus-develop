@@ -75,6 +75,12 @@ void XC_Functional::set_xc_type(const std::string xc_func_in)
         func_type = 1;
         use_libxc = false;
 	}
+    else if ( xc_func == "LDA_X") // LDA Exchange Only
+    {
+        func_id.push_back(XC_LDA_X);
+        func_type = 1;
+        use_libxc = false;
+    }
     else if (xc_func == "PWLDA")
     {
         func_id.push_back(XC_LDA_X);
@@ -121,6 +127,12 @@ void XC_Functional::set_xc_type(const std::string xc_func_in)
 	{
         func_id.push_back(XC_GGA_X_B88);
         func_id.push_back(XC_GGA_C_P86);
+        func_type = 2;
+        use_libxc = false;
+	}
+	else if ( xc_func == "PBE_X") //PBE Exchange Only
+	{
+        func_id.push_back(XC_GGA_X_PBE);
         func_type = 2;
         use_libxc = false;
 	}

@@ -16,10 +16,16 @@
 // [etxc, vtxc, v] = XC_Functional::v_xc(...)
 std::tuple<double, double, ModuleBase::matrix> XC_Functional::v_xc(const int& nrxx, // number of real-space grid
                                                                    const Charge* const chr,
-                                                                   const UnitCell* ucell) // core charge density
+                                                                   const UnitCell* ucell, // core charge density
+                                                                   std::vector<double>* energy_density)
 {
     ModuleBase::TITLE("XC_Functional", "v_xc");
     ModuleBase::timer::tick("XC_Functional", "v_xc");
+
+    if(energy_density)
+    {
+        energy_density->assign(nrxx, 0.0);
+    }
 
     if (use_libxc)
     {
@@ -67,6 +73,7 @@ std::tuple<double, double, ModuleBase::matrix> XC_Functional::v_xc(const int& nr
                 v(0,ir) = e2 * vxc;
                 // consider the total charge density
                 etxc += e2 * exc * rhox;
+                if(energy_density) (*energy_density)[ir] += e2 * exc * rhox;
                 // only consider chr->rho
                 vtxc += v(0, ir) * chr->rho[0][ir];
             } // endif
@@ -104,6 +111,7 @@ std::tuple<double, double, ModuleBase::matrix> XC_Functional::v_xc(const int& nr
                 }
 
                 etxc += e2 * exc * rhox;
+                if(energy_density) (*energy_density)[ir] += e2 * exc * rhox;
                 vtxc += v(0, ir) * chr->rho[0][ir] + v(1, ir) * chr->rho[1][ir];
             }
         }
@@ -150,6 +158,7 @@ std::tuple<double, double, ModuleBase::matrix> XC_Functional::v_xc(const int& nr
                 }
 
                 etxc += e2 * exc * rhox;
+                if(energy_density) (*energy_density)[ir] += e2 * exc * rhox;
 
                 v(0, ir) = e2*( 0.5 * ( vxc[0] + vxc[1]) );
                 vtxc += v(0,ir) * chr->rho[0][ir];
@@ -174,7 +183,7 @@ std::tuple<double, double, ModuleBase::matrix> XC_Functional::v_xc(const int& nr
     // the dummy variable dum contains gradient correction to stress
     // which is not used here
     std::vector<double> dum;
-    gradcorr(etxc, vtxc, v, chr, chr->rhopw, ucell, dum);
+    gradcorr(etxc, vtxc, v, chr, chr->rhopw, ucell, dum, false, energy_density);
 
     // parallel code : collect vtxc,etxc
     // mohan add 2008-06-01

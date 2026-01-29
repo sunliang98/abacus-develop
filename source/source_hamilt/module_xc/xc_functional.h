@@ -48,7 +48,8 @@ class XC_Functional
     static std::tuple<double,double,ModuleBase::matrix> v_xc(
 		const int &nrxx, // number of real-space grid
 		const Charge* const chr,
-		const UnitCell *ucell); // charge density
+		const UnitCell *ucell, // charge density
+        std::vector<double>* energy_density = nullptr);
 
 //-------------------
 //  xc_functional.cpp
@@ -180,7 +181,8 @@ class XC_Functional
                          ModulePW::PW_Basis* rhopw,
                          const UnitCell* ucell,
                          std::vector<double>& stress_gga,
-                         const bool is_stress = false);
+                         const bool is_stress = false,
+                         std::vector<double>* energy_density = nullptr);
 	template <typename T, typename Device,
           typename Real = typename GetTypeReal<T>::type>
 	static void grad_wfc(
