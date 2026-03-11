@@ -8,6 +8,7 @@
 #include "source_pw/module_stodft/sto_forces.h"
 #include "source_pw/module_stodft/sto_stress_pw.h"
 #include "source_hsolver/diago_iter_assist.h"
+#include "source_hsolver/diago_params.h"
 #include "source_io/module_parameter/parameter.h"
 
 #include <algorithm>
@@ -142,20 +143,11 @@ void ESolver_SDFT_PW<T, Device>::hamilt2rho_single(UnitCell& ucell, int istep, i
     // reset energy
     this->pelec->f_en.eband = 0.0;
     this->pelec->f_en.demet = 0.0;
-    // choose if psi should be diag in subspace
-    // be careful that istep start from 0 and iter start from 1
-    if (istep == 0 && iter == 1 || PARAM.inp.calculation == "nscf")
-    {
-        hsolver::DiagoIterAssist<T, Device>::need_subspace = false;
-    }
-    else
-    {
-        hsolver::DiagoIterAssist<T, Device>::need_subspace = true;
-    }
+
+    // setup diagonalization parameters for SDFT
+    hsolver::setup_diago_params_sdft<T, Device>(istep, iter, ethr, PARAM.inp);
 
     bool skip_charge = PARAM.inp.calculation == "nscf" ? true : false;
-    hsolver::DiagoIterAssist<T, Device>::PW_DIAG_THR = ethr;
-    hsolver::DiagoIterAssist<T, Device>::PW_DIAG_NMAX = PARAM.inp.pw_diag_nmax;
 
     // hsolver only exists in this function
     hsolver::HSolverPW_SDFT<T, Device> hsolver_pw_sdft_obj(&this->kv,
@@ -190,11 +182,7 @@ void ESolver_SDFT_PW<T, Device>::hamilt2rho_single(UnitCell& ucell, int istep, i
 
     if (PARAM.globalv.ks_run)
     {
-        Symmetry_rho srho;
-        for (int is = 0; is < PARAM.inp.nspin; is++)
-        {
-            srho.begin(is, this->chr, this->pw_rho, ucell.symm);
-        }
+        Symmetry_rho::symmetrize_rho(PARAM.inp.nspin, this->chr, this->pw_rho, ucell.symm);
         this->pelec->f_en.deband = this->pelec->cal_delta_eband(ucell);
     }
     else
