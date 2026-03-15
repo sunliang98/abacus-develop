@@ -90,7 +90,7 @@ void ModuleIO::ctrl_scf_pw(const int istep,
 		const ModulePW::PW_Basis *pw_rho,
 		const ModulePW::PW_Basis *pw_rhod,
 		const ModulePW::PW_Basis_Big *pw_big,
-        Setup_Psi_pw<T, Device> &stp,
+        Setup_Psi_pw &stp,
         const Parallel_Grid &para_grid,
         const Input_para& inp)
 {
@@ -101,9 +101,7 @@ void ModuleIO::ctrl_scf_pw(const int istep,
     Device* ctx = nullptr;
 
     // Transfer data from device (GPU) to host (CPU) in pw basis
-    base_device::DeviceContext* device_ctx = &base_device::DeviceContext::instance();
-    device_ctx->set_device_type(stp.get_device_type());
-    stp.copy_d2h(device_ctx);
+    stp.copy_d2h();
 
     //----------------------------------------------------------
     //! 4) Compute density of states (DOS)
@@ -177,7 +175,7 @@ void ModuleIO::ctrl_scf_pw(const int istep,
                               pw_rhod->nxyz,
                               ngmc,
                               &ucell,
-                              stp.get_psi_d(),
+                              stp.template get_psi_d<T, Device>(),
                               pw_rhod,
                               pw_wfc,
                               ctx,
@@ -239,7 +237,7 @@ void ModuleIO::ctrl_scf_pw(const int istep,
     if (inp.onsite_radius > 0)
     { // float type has not been implemented
         auto* onsite_p = projectors::OnsiteProjector<double, Device>::get_instance();
-        onsite_p->cal_occupations(reinterpret_cast<psi::Psi<std::complex<double>, Device>*>(stp.get_psi_t()),
+        onsite_p->cal_occupations(reinterpret_cast<psi::Psi<std::complex<double>, Device>*>(stp.template get_psi_t<T, Device>()),
                                   pelec->wg);
     }
 
@@ -255,7 +253,7 @@ void ModuleIO::ctrl_runner_pw(UnitCell& ucell,
         ModulePW::PW_Basis* pw_rhod,
 		Charge &chr,
         K_Vectors &kv,
-        Setup_Psi_pw<T, Device> &stp,
+        Setup_Psi_pw &stp,
         Structure_Factor &sf,
         pseudopot_cell_vnl &ppcell,
 		surchem &solvent,
@@ -313,7 +311,7 @@ void ModuleIO::ctrl_runner_pw(UnitCell& ucell,
                             inp.nspin,
                             pw_rhod->nxyz,
                             &ucell,
-                            stp.get_psi_d(),
+                            stp.template get_psi_d<T, Device>(),
                             pw_wfc,
                             ctx,
                             para_grid,
@@ -329,7 +327,7 @@ void ModuleIO::ctrl_runner_pw(UnitCell& ucell,
     if (inp.cal_cond)
     {
         using Real = typename GetTypeReal<T>::type;
-        EleCond<Real, Device> elec_cond(&ucell, &kv, pelec, pw_wfc, stp.get_psi_t(), &ppcell);
+        EleCond<Real, Device> elec_cond(&ucell, &kv, pelec, pw_wfc, stp.template get_psi_t<T, Device>(), &ppcell);
         elec_cond.KG(inp.cond_smear,
                      inp.cond_fwhm,
                      inp.cond_wcut,
@@ -366,7 +364,7 @@ void ModuleIO::ctrl_runner_pw(UnitCell& ucell,
                                              pw_rho);
 
         write_mlkedf_desc.generateTrainData_KS(PARAM.globalv.global_mlkedf_descriptor_dir,
-                                               stp.get_psi_t(),
+                                               stp.template get_psi_t<T, Device>(),
                                                pelec,
                                                pw_wfc,
                                                pw_rho,
@@ -389,7 +387,7 @@ template void ModuleIO::ctrl_scf_pw<std::complex<float>, base_device::DEVICE_CPU
     const ModulePW::PW_Basis *pw_rho,
     const ModulePW::PW_Basis *pw_rhod,
     const ModulePW::PW_Basis_Big *pw_big,
-    Setup_Psi_pw<std::complex<float>, base_device::DEVICE_CPU> &stp,
+    Setup_Psi_pw &stp,
     const Parallel_Grid &para_grid,
     const Input_para& inp);
 
@@ -404,7 +402,7 @@ template void ModuleIO::ctrl_scf_pw<std::complex<double>, base_device::DEVICE_CP
     const ModulePW::PW_Basis *pw_rho,
     const ModulePW::PW_Basis *pw_rhod,
     const ModulePW::PW_Basis_Big *pw_big,
-    Setup_Psi_pw<std::complex<double>, base_device::DEVICE_CPU> &stp,
+    Setup_Psi_pw &stp,
     const Parallel_Grid &para_grid,
     const Input_para& inp);
 
@@ -420,7 +418,7 @@ template void ModuleIO::ctrl_scf_pw<std::complex<float>, base_device::DEVICE_GPU
     const ModulePW::PW_Basis *pw_rho,
     const ModulePW::PW_Basis *pw_rhod,
     const ModulePW::PW_Basis_Big *pw_big,
-    Setup_Psi_pw<std::complex<float>, base_device::DEVICE_GPU> &stp,
+    Setup_Psi_pw &stp,
     const Parallel_Grid &para_grid,
     const Input_para& inp);
 
@@ -435,7 +433,7 @@ template void ModuleIO::ctrl_scf_pw<std::complex<double>, base_device::DEVICE_GP
     const ModulePW::PW_Basis *pw_rho,
     const ModulePW::PW_Basis *pw_rhod,
     const ModulePW::PW_Basis_Big *pw_big,
-    Setup_Psi_pw<std::complex<double>, base_device::DEVICE_GPU> &stp,
+    Setup_Psi_pw &stp,
     const Parallel_Grid &para_grid,
     const Input_para& inp);
 #endif
@@ -449,7 +447,7 @@ template void ModuleIO::ctrl_runner_pw<std::complex<float>, base_device::DEVICE_
     ModulePW::PW_Basis* pw_rhod,
 	Charge &chr,
     K_Vectors &kv,
-    Setup_Psi_pw<std::complex<float>, base_device::DEVICE_CPU> &stp,
+    Setup_Psi_pw &stp,
     Structure_Factor &sf,
     pseudopot_cell_vnl &ppcell,
 	surchem &solvent,
@@ -465,7 +463,7 @@ template void ModuleIO::ctrl_runner_pw<std::complex<double>, base_device::DEVICE
     ModulePW::PW_Basis* pw_rhod,
 	Charge &chr,
     K_Vectors &kv,
-    Setup_Psi_pw<std::complex<double>, base_device::DEVICE_CPU> &stp,
+    Setup_Psi_pw &stp,
     Structure_Factor &sf,
     pseudopot_cell_vnl &ppcell,
 	surchem &solvent,
@@ -482,7 +480,7 @@ template void ModuleIO::ctrl_runner_pw<std::complex<float>, base_device::DEVICE_
     ModulePW::PW_Basis* pw_rhod,
 	Charge &chr,
     K_Vectors &kv,
-    Setup_Psi_pw<std::complex<float>, base_device::DEVICE_GPU> &stp,
+    Setup_Psi_pw &stp,
     Structure_Factor &sf,
     pseudopot_cell_vnl &ppcell,
 	surchem &solvent,
@@ -498,7 +496,7 @@ template void ModuleIO::ctrl_runner_pw<std::complex<double>, base_device::DEVICE
     ModulePW::PW_Basis* pw_rhod,
 	Charge &chr,
     K_Vectors &kv,
-    Setup_Psi_pw<std::complex<double>, base_device::DEVICE_GPU> &stp,
+    Setup_Psi_pw &stp,
     Structure_Factor &sf,
     pseudopot_cell_vnl &ppcell,
 	surchem &solvent,
