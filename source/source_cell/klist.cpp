@@ -7,7 +7,7 @@
 #include "source_base/parallel_global.h"
 #include "source_base/parallel_reduce.h"
 #include "source_cell/module_symmetry/symmetry.h"
-#include "source_io/berryphase.h"
+#include "source_io/module_unk/berryphase.h"
 #include "source_io/module_parameter/parameter.h"
 
 void K_Vectors::cal_ik_global()
@@ -86,6 +86,18 @@ void K_Vectors::set(const UnitCell& ucell,
     // output kpoints file
     std::string skpt1;
     std::string skpt2;
+
+    if (!this->kc_done && this->kd_done)
+    {
+        for (size_t ik = 0; ik != this->nkstot_full; ++ik)
+            this->kvec_c_full[ik] = this->kvec_d[ik] * reciprocal_vec;
+    }
+    else if (this->kc_done && !this->kd_done)
+    {
+        for (size_t ik = 0; ik != this->nkstot_full; ++ik)
+            this->kvec_c_full[ik] = this->kvec_c[ik];
+    }
+
 
     // (2)
     // only berry phase need all kpoints including time-reversal symmetry!
@@ -182,6 +194,7 @@ void K_Vectors::renew(const int& kpoint_number)
 {
     kvec_c.resize(kpoint_number);
     kvec_d.resize(kpoint_number);
+    kvec_c_full.resize(kpoint_number);
     wk.resize(kpoint_number);
     isk.resize(kpoint_number);
     ngk.resize(kpoint_number);

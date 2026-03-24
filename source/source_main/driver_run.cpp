@@ -3,8 +3,8 @@
 #include "source_cell/module_neighbor/sltk_atom_arrange.h"
 #include "source_relax/relax_driver.h"
 #include "source_io/module_parameter/parameter.h"
-#include "source_io/para_json.h"
-#include "source_io/print_info.h"
+#include "source_io/module_json/para_json.h"
+#include "source_io/module_output/print_info.h"
 #include "source_md/run_md.h"
 #include "source_base/global_variable.h"
 #include "source_base/module_device/device.h"
@@ -124,7 +124,7 @@ void Driver::init_hardware()
 #endif
 
 #ifdef __DSP
-    if (GlobalV::NPROC > PARAM.inp.kpar)
+    if (GlobalV::NPROC > PARAM.inp.kpar && GlobalV::NPROC > PARAM.globalv.kpar_lcao)
     {
         ModuleBase::WARNING_QUIT(
             "Driver::init_hardware",

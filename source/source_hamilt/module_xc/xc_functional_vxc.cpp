@@ -20,7 +20,6 @@ std::tuple<double, double, ModuleBase::matrix> XC_Functional::v_xc(const int& nr
                                                                    std::vector<double>* energy_density)
 {
     ModuleBase::TITLE("XC_Functional", "v_xc");
-    ModuleBase::timer::tick("XC_Functional", "v_xc");
 
     if(energy_density)
     {
@@ -30,7 +29,6 @@ std::tuple<double, double, ModuleBase::matrix> XC_Functional::v_xc(const int& nr
     if (use_libxc)
     {
 #ifdef USE_LIBXC
-        ModuleBase::timer::tick("XC_Functional", "v_xc");
         return XC_Functional_Libxc::v_xc_libxc(XC_Functional::get_func_id(),
                                                nrxx,
                                                ucell->omega,
@@ -41,6 +39,8 @@ std::tuple<double, double, ModuleBase::matrix> XC_Functional::v_xc(const int& nr
         ModuleBase::WARNING_QUIT("v_xc", "compile with LIBXC");
 #endif
     }
+
+    ModuleBase::timer::start("XC_Functional", "v_xc");
 
     //Exchange-Correlation potential Vxc(r) from n(r)
     double etxc = 0.0;
@@ -194,6 +194,6 @@ std::tuple<double, double, ModuleBase::matrix> XC_Functional::v_xc(const int& nr
     etxc *= ucell->omega / chr->rhopw->nxyz;
     vtxc *= ucell->omega / chr->rhopw->nxyz;
 
-    ModuleBase::timer::tick("XC_Functional", "v_xc");
+    ModuleBase::timer::end("XC_Functional", "v_xc");
     return std::make_tuple(etxc, vtxc, std::move(v));
 }

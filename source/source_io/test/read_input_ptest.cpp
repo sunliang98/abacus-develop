@@ -4,7 +4,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "source_base/tool_quit.h"
-#include "source_io/read_input.h"
+#include "source_io/module_parameter/read_input.h"
 #include "source_io/module_parameter/parameter.h"
 
 // #ifdef __MPI
@@ -194,7 +194,7 @@ TEST_F(InputParaTest, ParaRead)
     EXPECT_EQ(param.inp.deepks_equiv, 0);
     EXPECT_EQ(param.inp.deepks_bandgap, 0);
     EXPECT_EQ(param.inp.deepks_out_unittest, 0);
-    EXPECT_EQ(param.inp.out_pot, 2);
+    EXPECT_EQ(param.inp.out_pot[0], 2);
     EXPECT_EQ(param.inp.out_wfc_pw, 0);
     EXPECT_EQ(param.inp.out_dos, 0);
     EXPECT_EQ(param.inp.out_ldos[0], 1);
@@ -296,7 +296,12 @@ TEST_F(InputParaTest, ParaRead)
     EXPECT_DOUBLE_EQ(param.inp.rpa_ccp_rmesh_times, 10.0);
     EXPECT_EQ(param.inp.exx_opt_orb_lmax, 0);
     EXPECT_DOUBLE_EQ(param.inp.exx_opt_orb_ecut, 0.0);
-    EXPECT_DOUBLE_EQ(param.inp.exx_opt_orb_tolerence, 1E-12);
+    EXPECT_DOUBLE_EQ(param.inp.exx_opt_orb_tolerence, 0.0);
+    EXPECT_DOUBLE_EQ(param.inp.shrink_abfs_pca_thr, 0.02);
+    EXPECT_DOUBLE_EQ(param.inp.shrink_LU_inv_thr, 1e-5);
+    EXPECT_TRUE(param.inp.exx_coul_moment);
+    EXPECT_TRUE(param.inp.exx_rotate_abfs);
+    EXPECT_DOUBLE_EQ(param.inp.exx_multip_moments_threshold, 1e-12);
     EXPECT_FALSE(param.inp.noncolin);
     EXPECT_FALSE(param.inp.lspinorb);
     EXPECT_DOUBLE_EQ(param.inp.soc_lambda, 1.0);
@@ -364,8 +369,6 @@ TEST_F(InputParaTest, ParaRead)
     EXPECT_EQ(param.inp.of_full_pw_dim, 0);
     EXPECT_FALSE(param.inp.of_read_kernel);
     EXPECT_EQ(param.inp.of_kernel_file, "WTkernel.txt");
-    EXPECT_FALSE(param.inp.of_cd);
-    EXPECT_DOUBLE_EQ(param.inp.of_mCD_alpha,1.0);
     EXPECT_DOUBLE_EQ(param.inp.of_xwm_kappa, 1.);
     EXPECT_DOUBLE_EQ(param.inp.of_xwm_rho_ref, 1.);
     EXPECT_EQ(param.inp.device, "cpu");

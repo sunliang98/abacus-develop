@@ -47,11 +47,10 @@ void ElecState::cal_bandgap()
     { 
         vbm =this->eferm.ef;
     }
-#ifdef __MPI
-    Parallel_Reduce::gather_max_double_all(GlobalV::NPROC, vbm);
-    Parallel_Reduce::gather_min_double_all(GlobalV::NPROC, cbm);
-#endif
-
+    #ifdef __MPI
+    Parallel_Reduce::reduce_max(vbm);
+    Parallel_Reduce::reduce_min(cbm);
+    #endif
     this->bandgap = cbm - vbm;
 }
 
@@ -119,14 +118,12 @@ void ElecState::cal_bandgap_updw()
     { 
         vbm_dw =this->eferm.ef_dw;
     }
-
-#ifdef __MPI
-    Parallel_Reduce::gather_max_double_all(GlobalV::NPROC, vbm_up);
-    Parallel_Reduce::gather_min_double_all(GlobalV::NPROC, cbm_up);
-    Parallel_Reduce::gather_max_double_all(GlobalV::NPROC, vbm_dw);
-    Parallel_Reduce::gather_min_double_all(GlobalV::NPROC, cbm_dw);
-#endif
-
+    #ifdef __MPI
+    Parallel_Reduce::reduce_max(vbm_up);
+    Parallel_Reduce::reduce_min(cbm_up);
+    Parallel_Reduce::reduce_max(vbm_dw);
+    Parallel_Reduce::reduce_min(cbm_dw);
+    #endif
     this->bandgap_up = cbm_up - vbm_up;
     this->bandgap_dw = cbm_dw - vbm_dw;
 }
@@ -134,7 +131,7 @@ void ElecState::cal_bandgap_updw()
 /// @brief calculate deband
 double ElecState::cal_delta_eband(const UnitCell& ucell) const
 {
-	ModuleBase::timer::tick("ElecState", "cal_delta_eband");
+	ModuleBase::timer::start("ElecState", "cal_delta_eband");
 	// out potentials from potential mixing
 	// total energy and band energy corrections
     double deband0 = 0.0;
@@ -209,7 +206,7 @@ double ElecState::cal_delta_eband(const UnitCell& ucell) const
     // \int rho(r) v_{exx}(r) dr = 2 E_{exx}[rho]
     deband0 -= 2 * this->f_en.exx; // Peize Lin add 2017-10-16
 
-	ModuleBase::timer::tick("ElecState", "cal_delta_eband");
+	ModuleBase::timer::end("ElecState", "cal_delta_eband");
     return deband0;
 }
 
@@ -217,7 +214,7 @@ double ElecState::cal_delta_eband(const UnitCell& ucell) const
 double ElecState::cal_delta_escf() const
 {
     ModuleBase::TITLE("ElecState", "cal_delta_escf");
-	ModuleBase::timer::tick("ElecState", "cal_delta_escf");
+	ModuleBase::timer::start("ElecState", "cal_delta_escf");
     double descf = 0.0;
 
     // now rho1 is "mixed" charge density
@@ -287,7 +284,7 @@ double ElecState::cal_delta_escf() const
 #endif
 
 
-	ModuleBase::timer::tick("ElecState", "cal_delta_escf");
+	ModuleBase::timer::end("ElecState", "cal_delta_escf");
     return descf;
 }
 

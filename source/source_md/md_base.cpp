@@ -3,7 +3,7 @@
 #ifdef __MPI
 #include "mpi.h"
 #endif
-#include "source_io/print_info.h"
+#include "source_io/module_output/print_info.h"
 #include "source_cell/update_cell.h"
 MD_base::MD_base(const Parameter& param_in, UnitCell& unit_in) 
 : mdp(param_in.mdp), ucell(unit_in)
@@ -62,7 +62,7 @@ void MD_base::setup(ModuleESolver::ESolver* p_esolver, const std::string& global
 
     // mohan add 2026-01-04
     const int stress_step = 0;
-	const int force_step = 0;
+    const int force_step = 0;
     const int istep_print = step_ + step_rst_ + 1;
 
 	ModuleIO::print_screen(stress_step, force_step, istep_print);

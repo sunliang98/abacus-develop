@@ -4,11 +4,11 @@
 #include "source_base/memory.h"
 #include "source_base/timer.h"
 #include "source_esolver/esolver.h"
-#include "source_io/cal_test.h"
-#include "source_io/input_conv.h"
-#include "source_io/para_json.h"
-#include "source_io/print_info.h"
-#include "source_io/read_input.h"
+#include "source_io/module_output/cal_test.h"
+#include "source_io/module_parameter/input_conv.h"
+#include "source_io/module_json/para_json.h"
+#include "source_io/module_output/print_info.h"
+#include "source_io/module_parameter/read_input.h"
 #include "source_io/module_parameter/parameter.h"
 #include "source_main/version.h"
 #include "source_base/parallel_global.h"
@@ -110,7 +110,7 @@ void Driver::print_start_info()
 void Driver::reading()
 {
     ModuleBase::TITLE("Driver", "reading");
-    ModuleBase::timer::tick("Driver", "reading");
+    ModuleBase::timer::start("Driver", "reading");
     // temperarily
     GlobalV::MY_RANK = PARAM.globalv.myrank;
     GlobalV::NPROC = PARAM.globalv.nproc;
@@ -163,13 +163,13 @@ void Driver::reading()
                                 GlobalV::RANK_IN_POOL,
                                 GlobalV::MY_POOL);
 #endif
-    ModuleBase::timer::tick("Driver", "reading");
+    ModuleBase::timer::end("Driver", "reading");
 }
 
 void Driver::atomic_world()
 {
     ModuleBase::TITLE("Driver", "atomic_world");
-    ModuleBase::timer::tick("Driver", "atomic_world");
+    ModuleBase::timer::start("Driver", "atomic_world");
 
     // reading information 
     this->reading();
@@ -177,5 +177,5 @@ void Driver::atomic_world()
     // where the actual stuff is done
     this->driver_run();
 
-    ModuleBase::timer::tick("Driver", "atomic_world");
+    ModuleBase::timer::end("Driver", "atomic_world");
 }

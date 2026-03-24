@@ -1,14 +1,14 @@
 #include "esolver_of.h"
 
 #include "source_io/module_parameter/parameter.h"
-#include "source_io/cube_io.h"
-#include "source_io/output_log.h"
-#include "source_io/write_elecstat_pot.h"
+#include "source_io/module_output/cube_io.h"
+#include "source_io/module_output/output_log.h"
+#include "source_io/module_chgpot/write_elecstat_pot.h"
 //-----------temporary-------------------------
 #include "source_base/global_function.h"
 #include "source_estate/module_charge/symmetry_rho.h"
 #include "source_hamilt/module_ewald/H_Ewald_pw.h"
-#include "source_io/print_info.h"
+#include "source_io/module_output/print_info.h"
 #include "source_estate/cal_ux.h"
 #include "source_pw/module_pwdft/forces.h"
 #include "source_pw/module_ofdft/of_stress_pw.h"
@@ -131,7 +131,7 @@ void ESolver_OF::before_all_runners(UnitCell& ucell, const Input_para& inp)
 
 void ESolver_OF::runner(UnitCell& ucell, const int istep)
 {
-    ModuleBase::timer::tick("ESolver_OF", "runner");
+    ModuleBase::timer::start("ESolver_OF", "runner");
     // get Ewald energy, initial rho and phi if necessary
     this->before_opt(istep, ucell);
     this->iter_ = 0;
@@ -169,7 +169,7 @@ void ESolver_OF::runner(UnitCell& ucell, const int istep)
 
     this->after_opt(istep, ucell, conv_esolver);
 
-    ModuleBase::timer::tick("ESolver_OF", "runner");
+    ModuleBase::timer::end("ESolver_OF", "runner");
 }
 
 /**
@@ -183,7 +183,7 @@ void ESolver_OF::runner(UnitCell& ucell, const int istep)
 void ESolver_OF::before_opt(const int istep, UnitCell& ucell)
 {
     ModuleBase::TITLE("ESolver_OF", "before_opt");
-    ModuleBase::timer::tick("ESolver_OF", "before_opt");
+    ModuleBase::timer::start("ESolver_OF", "before_opt");
 
     //! 1) call before_scf() of ESolver_FP
     ESolver_FP::before_scf(ucell, istep);
@@ -234,11 +234,7 @@ void ESolver_OF::before_opt(const int istep, UnitCell& ucell)
 
     this->pelec->init_scf(ucell, Pgrid, sf.strucFac, locpp.numeric, ucell.symm);
 
-    Symmetry_rho srho;
-    for (int is = 0; is < PARAM.inp.nspin; is++)
-    {
-        srho.begin(is, this->chr, this->pw_rho, ucell.symm);
-    }
+    Symmetry_rho::symmetrize_rho(PARAM.inp.nspin, this->chr, this->pw_rho, ucell.symm);
 
     for (int is = 0; is < PARAM.inp.nspin; ++is)
     {
@@ -274,7 +270,7 @@ void ESolver_OF::before_opt(const int istep, UnitCell& ucell)
         this->theta_[0] = 0.2;
     }
 
-    ModuleBase::timer::tick("ESolver_OF", "before_opt");
+    ModuleBase::timer::end("ESolver_OF", "before_opt");
 }
 
 /**
@@ -461,7 +457,7 @@ bool ESolver_OF::check_exit(bool& conv_esolver)
 void ESolver_OF::after_opt(const int istep, UnitCell& ucell, const bool conv_esolver)
 {
     ModuleBase::TITLE("ESolver_OF", "after_opt");
-    ModuleBase::timer::tick("ESolver_OF", "after_opt");
+    ModuleBase::timer::start("ESolver_OF", "after_opt");
 
     //------------------------------------------------------------------
     // 1) calculate kinetic energy density and ELF
@@ -507,7 +503,7 @@ void ESolver_OF::after_opt(const int istep, UnitCell& ucell, const bool conv_eso
     }
 #endif
 
-    ModuleBase::timer::tick("ESolver_OF", "after_opt");
+    ModuleBase::timer::end("ESolver_OF", "after_opt");
 }
 
 /**

@@ -1,14 +1,14 @@
 #include "esolver_of_tddft.h"
 
 #include "source_io/module_parameter/parameter.h"
-#include "source_io/cube_io.h"
-#include "source_io/output_log.h"
-#include "source_io/write_elecstat_pot.h"
+#include "source_io/module_output/cube_io.h"
+#include "source_io/module_output/output_log.h"
+#include "source_io/module_chgpot/write_elecstat_pot.h"
 //-----------temporary-------------------------
 #include "source_base/global_function.h"
 #include "source_estate/module_charge/symmetry_rho.h"
 #include "source_hamilt/module_ewald/H_Ewald_pw.h"
-#include "source_io/print_info.h"
+#include "source_io/module_output/print_info.h"
 #include "source_estate/cal_ux.h"
 //-----force-------------------
 #include "source_pw/module_pwdft/forces.h"
@@ -34,7 +34,7 @@ ESolver_OF_TDDFT::~ESolver_OF_TDDFT()
 
 void ESolver_OF_TDDFT::runner(UnitCell& ucell, const int istep)
 {
-    ModuleBase::timer::tick("ESolver_OF_TDDFT", "runner");
+    ModuleBase::timer::start("ESolver_OF_TDDFT", "runner");
     // get Ewald energy, initial rho and phi if necessary
     this->before_opt(istep, ucell);
     this->iter_ = 0;
@@ -121,7 +121,7 @@ void ESolver_OF_TDDFT::runner(UnitCell& ucell, const int istep)
 
     this->after_opt(istep, ucell, conv_esolver);
 
-    ModuleBase::timer::tick("ESolver_OF_TDDFT", "runner");
+    ModuleBase::timer::end("ESolver_OF_TDDFT", "runner");
 }
 
 } // namespace ModuleESolver
