@@ -239,7 +239,14 @@ void Train_KEDF::train()
 
     start = std::chrono::high_resolution_clock::now();
 
-    std::cout << "========== Train_KEDF begin ==========" << std::endl;
+    if (this->input.energy_type == "kedf")
+    {
+        std::cout << "========== Train_KEDF begin ==========" << std::endl;
+    }
+    else if (this->input.energy_type == "exx")
+    {
+        std::cout << "========= Train_ML-EXX begin =========" << std::endl;
+    }
     // torch::Tensor target = (this->input.loss=="energy") ? this->data_train.enhancement : this->data_train.pauli;
     if (this->input.loss == "potential" || this->input.loss == "both" || this->input.loss == "both_new")
     {

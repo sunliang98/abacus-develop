@@ -200,10 +200,6 @@ void Input::readInput()
         {
             this->read_value(ifs, this->coef_feg_e);
         }
-        else if (strcmp("coef_feg_p", word) == 0)
-        {
-            this->read_value(ifs, this->coef_feg_p);
-        }
         else if (strcmp("check_pot", word) == 0)
         {
             this->read_value(ifs, this->check_pot);

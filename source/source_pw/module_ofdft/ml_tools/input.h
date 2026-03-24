@@ -2,6 +2,7 @@
 #define INPUT_H
 
 #include <torch/torch.h>
+#include <limits> 
 
 class Input
 {
@@ -42,7 +43,7 @@ class Input
     template <class T> static void read_value(std::ifstream &ifs, T &var)
     {
         ifs >> var;
-        ifs.ignore(150, '\n');
+        ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return;
     }
 
@@ -52,7 +53,7 @@ class Input
         {
             ifs >> var[i];
         }
-        ifs.ignore(150, '\n');
+        ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return;
     }
 
@@ -110,7 +111,6 @@ class Input
     double coef_e = 1.;
     double coef_p = 1.;
     double coef_feg_e = 1.;
-    double coef_feg_p = 1.;
 
     // size of nn
     int nnode = 10;
