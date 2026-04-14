@@ -7,8 +7,10 @@ out_dmk    1
 After finishing the calculation, the density matrix is written into `OUT.${suffix}/`.
 
 For current develop versions:
-- gamma-only (`gamma_only = 1`): `dm_nao.csr` (`nspin=1/4`) or `dms1_nao.csr` and `dms2_nao.csr` (`nspin=2`)
-- multi-k (`gamma_only = 0`): `dmk1_nao.csr`, `dmk2_nao.csr`, ... (`nspin=1/4`) or `dmk1s1_nao.csr`, `dmk1s2_nao.csr`, ... (`nspin=2`)
+- gamma-only (`gamma_only = 1`): `dmg1_nao.txt` (`nspin=1/4`) or `dms1g1_nao.txt` and `dms2g1_nao.txt` (`nspin=2`)
+- multi-k (`gamma_only = 0`): `dmk1g1_nao.txt`, `dmk2g1_nao.txt`, ... (`nspin=1/4`) or `dmk1s1g1_nao.txt`, `dmk1s2g1_nao.txt`, ... (`nspin=2`)
+
+Here `g{istep}` denotes the geometry/step index in the output filename.
 
 For 3.10-LTS, the corresponding keyword is `out_dm`, and file names follow the legacy style such as `SPIN1_DM` and `SPIN2_DM`.
 
